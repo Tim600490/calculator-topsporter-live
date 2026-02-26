@@ -39,6 +39,14 @@ const AnchoredBarTooltip = ({ point, label, left, top, formatCurrency }) => {
   );
 };
 
+const clampEuro = (value, min = 0, max = 10000) => {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) {
+    return min;
+  }
+  return Math.min(max, Math.max(min, Math.round(parsed)));
+};
+
 const InvestmentCalculator = () => {
   const [startAmount, setStartAmount] = useState(25000);
   const [phase1MonthlyDeposit, setPhase1MonthlyDeposit] = useState(7500);
@@ -391,6 +399,27 @@ const InvestmentCalculator = () => {
                 <span>€0</span>
                 <span>€10.000</span>
               </div>
+              <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "8px" }}>
+                <span style={{ fontSize: "14px", color: "#6B7280" }}>Exact p/m:</span>
+                <span style={{ fontSize: "14px", color: "#111827" }}>€</span>
+                <input
+                  type="number"
+                  min="0"
+                  max="10000"
+                  step="1"
+                  value={phase1MonthlyDeposit}
+                  onChange={(e) => setPhase1MonthlyDeposit(clampEuro(e.target.value))}
+                  style={{
+                    width: "120px",
+                    padding: "6px 8px",
+                    border: "1px solid #D2BB5D",
+                    borderRadius: "6px",
+                    fontSize: "14px",
+                    outline: "none",
+                    backgroundColor: "#fff"
+                  }}
+                />
+              </div>
             </div>
           </div>
 
@@ -490,6 +519,27 @@ const InvestmentCalculator = () => {
               >
                 <span>€0</span>
                 <span>€10.000</span>
+              </div>
+              <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "8px" }}>
+                <span style={{ fontSize: "14px", color: "#6B7280" }}>Exact p/m:</span>
+                <span style={{ fontSize: "14px", color: "#111827" }}>€</span>
+                <input
+                  type="number"
+                  min="0"
+                  max="10000"
+                  step="1"
+                  value={phase2MonthlyDeposit}
+                  onChange={(e) => setPhase2MonthlyDeposit(clampEuro(e.target.value))}
+                  style={{
+                    width: "120px",
+                    padding: "6px 8px",
+                    border: "1px solid #D2BB5D",
+                    borderRadius: "6px",
+                    fontSize: "14px",
+                    outline: "none",
+                    backgroundColor: "#fff"
+                  }}
+                />
               </div>
             </div>
           </div>
