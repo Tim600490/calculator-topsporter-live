@@ -934,9 +934,7 @@ const InvestmentCalculator = () => {
               resultaat waarschijnlijk tussen {formatCurrency(worstCaseBalance)} en{" "}
               {formatCurrency(bestCaseBalance)} zal liggen. Voor details en achtergronden zie onze FAQ
               <br />
-              **Deze rekentool laat de te verwachten netto € resultaten zien, dus na aftrek van de kosten. Inleg
-              fase 1 loopt {phase1Years} jaar, fase 2 loopt tot jaar {phase2EndYear}, daarna is de maandinleg €0.
-              {startDepositsInYear2 ? " Inleg start pas in jaar 2." : ""}
+              **Deze rekentool laat de te verwachten netto € resultaten zien, dus na aftrek van de kosten.
             </div>
           </div>
         </div>
