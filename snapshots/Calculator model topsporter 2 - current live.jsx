@@ -46,7 +46,6 @@ const InvestmentCalculator = () => {
   const [phase2MonthlyDeposit, setPhase2MonthlyDeposit] = useState(3000);
   const [phase2EndYear, setPhase2EndYear] = useState(10);
   const [investmentHorizon, setInvestmentHorizon] = useState(20);
-  const [startDepositsInYear2, setStartDepositsInYear2] = useState(false);
   const [profile, setProfile] = useState("Gedreven");
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const chartContainerRef = useRef(null);
@@ -89,18 +88,13 @@ const InvestmentCalculator = () => {
   }, [phase1Years, phase2EndYear, investmentHorizon]);
 
   const getMonthlyDepositForMonth = (absoluteMonth) => {
-    const monthInDepositTimeline = startDepositsInYear2 ? absoluteMonth - 12 : absoluteMonth;
-    if (monthInDepositTimeline <= 0) {
-      return 0;
-    }
-
     const phase1Months = phase1Years * 12;
     const phase2Months = phase2EndYear * 12;
 
-    if (monthInDepositTimeline <= phase1Months) {
+    if (absoluteMonth <= phase1Months) {
       return phase1MonthlyDeposit;
     }
-    if (monthInDepositTimeline <= phase2Months) {
+    if (absoluteMonth <= phase2Months) {
       return phase2MonthlyDeposit;
     }
     return 0;
@@ -150,7 +144,6 @@ const InvestmentCalculator = () => {
     phase1Years,
     phase2MonthlyDeposit,
     phase2EndYear,
-    startDepositsInYear2,
     investmentHorizon,
     annualReturn
   ]);
@@ -602,28 +595,6 @@ const InvestmentCalculator = () => {
             </div>
           </div>
 
-          <div style={{ marginBottom: "24px" }}>
-            <label
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "10px",
-                fontSize: "16px",
-                fontWeight: "500",
-                color: "#111827",
-                cursor: "pointer"
-              }}
-            >
-              <input
-                type="checkbox"
-                checked={startDepositsInYear2}
-                onChange={(e) => setStartDepositsInYear2(e.target.checked)}
-                style={{ width: "16px", height: "16px", accentColor: "#D2BB5D", cursor: "pointer" }}
-              />
-              Start maandinleg vanaf jaar 2 (jaar 1 zonder inleg)
-            </label>
-          </div>
-
           {/* Profile */}
           <div style={{ marginBottom: "32px" }}>
             <label
@@ -886,7 +857,6 @@ const InvestmentCalculator = () => {
               <br />
               **Deze rekentool laat de te verwachten netto € resultaten zien, dus na aftrek van de kosten. Inleg
               fase 1 loopt {phase1Years} jaar, fase 2 loopt tot jaar {phase2EndYear}, daarna is de maandinleg €0.
-              {startDepositsInYear2 ? " Inleg start pas in jaar 2." : ""}
             </div>
           </div>
         </div>
