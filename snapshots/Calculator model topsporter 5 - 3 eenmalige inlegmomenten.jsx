@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
 
 const AnchoredBarTooltip = ({ point, label, left, top, formatCurrency }) => {
   if (!point) {
@@ -336,86 +336,6 @@ const InvestmentCalculator = () => {
 
     return { left, top };
   }, [calculationData, chartSize.height, chartSize.width, hoveredIndex, hoveredPoint]);
-
-  const showcaseGraph = useMemo(() => {
-    const halfYearMonths = Array.from({ length: 17 }, (_, i) => i * 6); // 2017.0 -> 2025.0
-    const shapeReference = [100, 134, 150, 136, 160, 188, 212, 136, 266, 246, 232, 268, 360, 434, 400, 418, 430];
-    const monthlyReturn = annualReturn / 12;
-
-    let balance = startAmount;
-    let totalExtraDeposits = 0;
-    const stateByMonth = { 0: { balance: startAmount, totalExtraDeposits: 0 } };
-    const checkpointSet = new Set(halfYearMonths);
-
-    for (let month = 1; month <= 96; month++) {
-      const monthInDepositTimeline = startDepositsInYear2 ? month - 12 : month;
-      let monthlyDeposit = 0;
-      if (monthInDepositTimeline > 0) {
-        const phase1Months = phase1Years * 12;
-        const phase2Months = phase2EndYear * 12;
-        const phase3Months = phase3EndYear * 12;
-        if (monthInDepositTimeline <= phase1Months) {
-          monthlyDeposit = phase1MonthlyDeposit;
-        } else if (monthInDepositTimeline <= phase2Months) {
-          monthlyDeposit = phase2MonthlyDeposit;
-        } else if (monthInDepositTimeline <= phase3Months) {
-          monthlyDeposit = phase3MonthlyDeposit;
-        }
-      }
-
-      const oneTimeExtraThisMonth = oneTimeExtras.reduce((sum, entry) => {
-        if (entry.amount <= 0) {
-          return sum;
-        }
-        const targetMonth = (entry.year - 1) * 12 + entry.month;
-        return sum + (month === targetMonth ? entry.amount : 0);
-      }, 0);
-
-      balance = balance * (1 + monthlyReturn);
-      balance += monthlyDeposit + oneTimeExtraThisMonth;
-      totalExtraDeposits += monthlyDeposit + oneTimeExtraThisMonth;
-
-      if (checkpointSet.has(month)) {
-        stateByMonth[month] = { balance, totalExtraDeposits };
-      }
-    }
-
-    const startRef = shapeReference[0];
-    const endRef = shapeReference[shapeReference.length - 1];
-    const rangeRef = endRef - startRef || 1;
-    const firstBalance = stateByMonth[0].balance;
-    const lastBalance = stateByMonth[96]?.balance ?? balance;
-
-    const data = halfYearMonths.map((month, index) => {
-      const norm = (shapeReference[index] - startRef) / rangeRef;
-      const shapedBalance = firstBalance + norm * (lastBalance - firstBalance);
-      const year = 2017 + month / 12;
-      const label = Number.isInteger(year) ? `${year}` : `${Math.floor(year)}.5`;
-      return { label, balance: shapedBalance };
-    });
-
-    const finalBalanceShowcase = data[data.length - 1]?.balance ?? lastBalance;
-    const ownContribution = startAmount + (stateByMonth[96]?.totalExtraDeposits ?? totalExtraDeposits);
-    const totalReturn = finalBalanceShowcase - ownContribution;
-
-    return {
-      data,
-      finalBalanceShowcase,
-      totalReturn,
-      ownContribution
-    };
-  }, [
-    annualReturn,
-    oneTimeExtras,
-    phase1MonthlyDeposit,
-    phase1Years,
-    phase2MonthlyDeposit,
-    phase2EndYear,
-    phase3MonthlyDeposit,
-    phase3EndYear,
-    startAmount,
-    startDepositsInYear2
-  ]);
 
   return (
     <div
@@ -1297,79 +1217,6 @@ const InvestmentCalculator = () => {
           </div>
         </div>
       </div>
-
-      <section
-        style={{
-          marginTop: "28px",
-          background: "linear-gradient(180deg, #073a37 0%, #042f2d 100%)",
-          color: "#eaf2ef",
-          borderRadius: "8px",
-          border: "1px solid rgba(210,187,93,0.35)",
-          padding: "22px"
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            gap: "20px",
-            flexDirection: isDesktop ? "row" : "column"
-          }}
-        >
-          <div style={{ maxWidth: "660px" }}>
-            <h3 style={{ margin: 0, fontSize: "38px", lineHeight: "1.1" }}>
-              De cijfers <em>spreken</em>
-            </h3>
-            <p style={{ marginTop: "8px", marginBottom: 0, fontSize: "17px", lineHeight: "1.5", color: "#d2ddd8" }}>
-              Halfjaarlijks verloop van 2017 t/m 2025 met een vaste historische curve-vorm, omgerekend op basis van
-              je huidige calculatorinstellingen.
-            </p>
-          </div>
-          <div style={{ minWidth: "220px" }}>
-            <div
-              style={{
-                border: "1px solid #cfb455",
-                borderRadius: "2px",
-                padding: "12px",
-                textAlign: "center",
-                marginBottom: "16px"
-              }}
-            >
-              <div style={{ fontSize: "12px", color: "#c8d5cf", marginBottom: "6px" }}>Vermogen op 01-01-2025</div>
-              <div style={{ fontSize: "38px", fontWeight: 700, color: "#e3c75a" }}>
-                {formatCurrency(showcaseGraph.finalBalanceShowcase)}
-              </div>
-            </div>
-            <div style={{ fontSize: "15px", fontWeight: 600, marginBottom: "8px", textAlign: "right" }}>
-              Totaal rendement: {formatCurrency(showcaseGraph.totalReturn)}
-            </div>
-            <div style={{ fontSize: "15px", fontWeight: 600, textAlign: "right" }}>
-              Totaal eigen inleg: {formatCurrency(showcaseGraph.ownContribution)}
-            </div>
-          </div>
-        </div>
-
-        <div style={{ marginTop: "20px", height: "320px" }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={showcaseGraph.data} margin={{ top: 16, right: 10, left: 10, bottom: 8 }}>
-              <CartesianGrid vertical={false} stroke="rgba(255,255,255,0.12)" />
-              <XAxis
-                dataKey="label"
-                axisLine={{ stroke: "rgba(255,255,255,0.22)" }}
-                tickLine={false}
-                tick={{ fill: "#d2ddd8", fontSize: 12 }}
-              />
-              <YAxis
-                axisLine={false}
-                tickLine={false}
-                tick={{ fill: "#d2ddd8", fontSize: 12 }}
-                tickFormatter={(value) => Math.round(value).toLocaleString("nl-NL")}
-              />
-              <Line type="monotone" dataKey="balance" stroke="#d9bf56" strokeWidth={3} dot={false} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      </section>
 
       <style>{`
         input[type="range"]::-webkit-slider-thumb {
