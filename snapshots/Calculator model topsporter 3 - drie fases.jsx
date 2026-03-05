@@ -56,9 +56,6 @@ const InvestmentCalculator = () => {
   const [phase3MonthlyDeposit, setPhase3MonthlyDeposit] = useState(0);
   const [phase3EndYear, setPhase3EndYear] = useState(10);
   const [investmentHorizon, setInvestmentHorizon] = useState(20);
-  const [oneTimeExtraAmount, setOneTimeExtraAmount] = useState(0);
-  const [oneTimeExtraYear, setOneTimeExtraYear] = useState(5);
-  const [oneTimeExtraMonth, setOneTimeExtraMonth] = useState(6);
   const [startDepositsInYear2, setStartDepositsInYear2] = useState(false);
   const [profile, setProfile] = useState("Gedreven");
   const [hoveredIndex, setHoveredIndex] = useState(null);
@@ -107,10 +104,7 @@ const InvestmentCalculator = () => {
     if (phase3EndYear < phase2EndYear) {
       setPhase3EndYear(phase2EndYear);
     }
-    if (oneTimeExtraYear > investmentHorizon) {
-      setOneTimeExtraYear(investmentHorizon);
-    }
-  }, [phase1Years, phase2EndYear, phase3EndYear, oneTimeExtraYear, investmentHorizon]);
+  }, [phase1Years, phase2EndYear, phase3EndYear, investmentHorizon]);
 
   const getMonthlyDepositForMonth = (absoluteMonth) => {
     const monthInDepositTimeline = startDepositsInYear2 ? absoluteMonth - 12 : absoluteMonth;
@@ -134,18 +128,10 @@ const InvestmentCalculator = () => {
     return 0;
   };
 
-  const getOneTimeExtraForMonth = (absoluteMonth) => {
-    if (oneTimeExtraAmount <= 0) {
-      return 0;
-    }
-    const targetMonth = (oneTimeExtraYear - 1) * 12 + oneTimeExtraMonth;
-    return absoluteMonth === targetMonth ? oneTimeExtraAmount : 0;
-  };
-
   const calculationData = useMemo(() => {
     const data = [];
     let currentBalance = startAmount;
-    let totalExtraDeposits = 0;
+    let totalMonthlyDeposits = 0;
 
     const monthlyReturn = annualReturn / 12; // Maandelijks rendement
 
@@ -157,24 +143,22 @@ const InvestmentCalculator = () => {
       for (let month = 1; month <= 12; month++) {
         const currentMonth = (year - 1) * 12 + month;
         const activeDeposit = getMonthlyDepositForMonth(currentMonth);
-        const oneTimeExtra = getOneTimeExtraForMonth(currentMonth);
 
         // Rendement over huidige saldo
         currentBalance = currentBalance * (1 + monthlyReturn);
 
         // Maandelijkse storting aan het einde van de maand
         currentBalance += activeDeposit;
-        currentBalance += oneTimeExtra;
-        totalExtraDeposits += activeDeposit + oneTimeExtra;
+        totalMonthlyDeposits += activeDeposit;
       }
 
-      const totalDeposits = startAmount + totalExtraDeposits;
+      const totalDeposits = startAmount + totalMonthlyDeposits;
       const accruedInterest = currentBalance - totalDeposits;
 
       data.push({
         year,
         balance: currentBalance,
-        deposits: totalExtraDeposits, // All extra deposits, excluding start amount
+        deposits: totalMonthlyDeposits, // Only monthly deposits, not including start amount
         interest: accruedInterest,
         initialBalance: startAmount,
         yearStartBalance
@@ -190,9 +174,6 @@ const InvestmentCalculator = () => {
     phase2EndYear,
     phase3MonthlyDeposit,
     phase3EndYear,
-    oneTimeExtraAmount,
-    oneTimeExtraYear,
-    oneTimeExtraMonth,
     startDepositsInYear2,
     investmentHorizon,
     annualReturn
@@ -219,17 +200,17 @@ const InvestmentCalculator = () => {
   // Calculate worst case scenario
   const calculateWorstCase = () => {
     let currentBalance = startAmount;
+    let totalMonthlyDeposits = 0;
     const monthlyReturn = worstCaseProfiles[profile] / 12;
 
     for (let year = 1; year <= investmentHorizon; year++) {
       for (let month = 1; month <= 12; month++) {
         const currentMonth = (year - 1) * 12 + month;
         const activeDeposit = getMonthlyDepositForMonth(currentMonth);
-        const oneTimeExtra = getOneTimeExtraForMonth(currentMonth);
 
         currentBalance = currentBalance * (1 + monthlyReturn);
         currentBalance += activeDeposit;
-        currentBalance += oneTimeExtra;
+        totalMonthlyDeposits += activeDeposit;
       }
     }
     return currentBalance;
@@ -238,17 +219,17 @@ const InvestmentCalculator = () => {
   // Calculate best case scenario
   const calculateBestCase = () => {
     let currentBalance = startAmount;
+    let totalMonthlyDeposits = 0;
     const monthlyReturn = bestCaseProfiles[profile] / 12;
 
     for (let year = 1; year <= investmentHorizon; year++) {
       for (let month = 1; month <= 12; month++) {
         const currentMonth = (year - 1) * 12 + month;
         const activeDeposit = getMonthlyDepositForMonth(currentMonth);
-        const oneTimeExtra = getOneTimeExtraForMonth(currentMonth);
 
         currentBalance = currentBalance * (1 + monthlyReturn);
         currentBalance += activeDeposit;
-        currentBalance += oneTimeExtra;
+        totalMonthlyDeposits += activeDeposit;
       }
     }
     return currentBalance;
@@ -838,78 +819,6 @@ const InvestmentCalculator = () => {
             </label>
           </div>
 
-          {/* One-time extra deposit */}
-          <div style={{ marginBottom: "28px", padding: "12px", border: "1px solid #D2BB5D", borderRadius: "8px" }}>
-            <div style={{ fontSize: "16px", fontWeight: "600", color: "#111827", marginBottom: "12px" }}>
-              Eenmalige extra inleg
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
-              <span style={{ fontSize: "14px", color: "#6B7280", minWidth: "74px" }}>Bedrag</span>
-              <span style={{ fontSize: "14px", color: "#111827" }}>€</span>
-              <input
-                type="number"
-                min="0"
-                max="5000000"
-                step="1"
-                value={oneTimeExtraAmount}
-                onChange={(e) => setOneTimeExtraAmount(clampEuro(e.target.value, 0, 5000000))}
-                style={{
-                  flex: 1,
-                  padding: "6px 8px",
-                  border: "1px solid #D2BB5D",
-                  borderRadius: "6px",
-                  fontSize: "14px",
-                  outline: "none",
-                  backgroundColor: "#fff"
-                }}
-              />
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-              <div>
-                <div style={{ fontSize: "14px", color: "#6B7280", marginBottom: "6px" }}>Jaar</div>
-                <input
-                  type="number"
-                  min="1"
-                  max={investmentHorizon}
-                  step="1"
-                  value={oneTimeExtraYear}
-                  onChange={(e) =>
-                    setOneTimeExtraYear(Math.min(investmentHorizon, Math.max(1, Number(e.target.value) || 1)))
-                  }
-                  style={{
-                    width: "100%",
-                    padding: "6px 8px",
-                    border: "1px solid #D2BB5D",
-                    borderRadius: "6px",
-                    fontSize: "14px",
-                    outline: "none",
-                    backgroundColor: "#fff"
-                  }}
-                />
-              </div>
-              <div>
-                <div style={{ fontSize: "14px", color: "#6B7280", marginBottom: "6px" }}>Maand</div>
-                <input
-                  type="number"
-                  min="1"
-                  max="12"
-                  step="1"
-                  value={oneTimeExtraMonth}
-                  onChange={(e) => setOneTimeExtraMonth(Math.min(12, Math.max(1, Number(e.target.value) || 1)))}
-                  style={{
-                    width: "100%",
-                    padding: "6px 8px",
-                    border: "1px solid #D2BB5D",
-                    borderRadius: "6px",
-                    fontSize: "14px",
-                    outline: "none",
-                    backgroundColor: "#fff"
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-
           {/* Profile */}
           <div style={{ marginBottom: "32px" }}>
             <label
@@ -1171,9 +1080,6 @@ const InvestmentCalculator = () => {
               {formatCurrency(bestCaseBalance)} zal liggen. Voor details en achtergronden zie onze FAQ
               <br />
               **Deze rekentool laat de te verwachten netto € resultaten zien, dus na aftrek van de kosten.
-              {oneTimeExtraAmount > 0
-                ? ` Eenmalige extra inleg: ${formatCurrency(oneTimeExtraAmount)} in jaar ${oneTimeExtraYear}, maand ${oneTimeExtraMonth}.`
-                : ""}
             </div>
           </div>
         </div>
