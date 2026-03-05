@@ -864,8 +864,8 @@ const InvestmentCalculator = () => {
                 }}
               />
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-              <div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", columnGap: "16px" }}>
+              <div style={{ minWidth: 0 }}>
                 <div style={{ fontSize: "14px", color: "#6B7280", marginBottom: "6px" }}>Jaar</div>
                 <input
                   type="number"
@@ -883,11 +883,12 @@ const InvestmentCalculator = () => {
                     borderRadius: "6px",
                     fontSize: "14px",
                     outline: "none",
-                    backgroundColor: "#fff"
+                    backgroundColor: "#fff",
+                    boxSizing: "border-box"
                   }}
                 />
               </div>
-              <div>
+              <div style={{ minWidth: 0 }}>
                 <div style={{ fontSize: "14px", color: "#6B7280", marginBottom: "6px" }}>Maand</div>
                 <input
                   type="number"
@@ -903,7 +904,8 @@ const InvestmentCalculator = () => {
                     borderRadius: "6px",
                     fontSize: "14px",
                     outline: "none",
-                    backgroundColor: "#fff"
+                    backgroundColor: "#fff",
+                    boxSizing: "border-box"
                   }}
                 />
               </div>
@@ -1171,9 +1173,6 @@ const InvestmentCalculator = () => {
               {formatCurrency(bestCaseBalance)} zal liggen. Voor details en achtergronden zie onze FAQ
               <br />
               **Deze rekentool laat de te verwachten netto € resultaten zien, dus na aftrek van de kosten.
-              {oneTimeExtraAmount > 0
-                ? ` Eenmalige extra inleg: ${formatCurrency(oneTimeExtraAmount)} in jaar ${oneTimeExtraYear}, maand ${oneTimeExtraMonth}.`
-                : ""}
             </div>
           </div>
         </div>
