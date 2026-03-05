@@ -390,19 +390,20 @@ const InvestmentCalculator = () => {
       const norm = (shapeReference[index] - startRef) / rangeRef;
       const shapedBalance = firstBalance + norm * (lastBalance - firstBalance);
       const year = 2017 + month / 12;
-      const label = Number.isInteger(year) ? `${year}` : `${Math.floor(year)}.5`;
-      return { label, balance: shapedBalance };
+      return { yearValue: year, balance: shapedBalance };
     });
 
     const finalBalanceShowcase = data[data.length - 1]?.balance ?? lastBalance;
     const ownContribution = startAmount + (stateByMonth[96]?.totalExtraDeposits ?? totalExtraDeposits);
     const totalReturn = finalBalanceShowcase - ownContribution;
+    const avgMonthlyContribution = (stateByMonth[96]?.totalExtraDeposits ?? totalExtraDeposits) / 96;
 
     return {
       data,
       finalBalanceShowcase,
       totalReturn,
-      ownContribution
+      ownContribution,
+      avgMonthlyContribution
     };
   }, [
     annualReturn,
@@ -1301,7 +1302,7 @@ const InvestmentCalculator = () => {
       <section
         style={{
           marginTop: "28px",
-          background: "linear-gradient(180deg, #073a37 0%, #042f2d 100%)",
+          background: "#0d2a28",
           color: "#eaf2ef",
           borderRadius: "8px",
           border: "1px solid rgba(210,187,93,0.35)",
@@ -1321,18 +1322,21 @@ const InvestmentCalculator = () => {
               De cijfers <em>spreken</em>
             </h3>
             <p style={{ marginTop: "8px", marginBottom: 0, fontSize: "17px", lineHeight: "1.5", color: "#d2ddd8" }}>
-              Halfjaarlijks verloop van 2017 t/m 2025 met een vaste historische curve-vorm, omgerekend op basis van
-              je huidige calculatorinstellingen.
+              Deze grafiek laat zien hoe {formatCurrency(startAmount)} is gegroeid wanneer je de afgelopen jaren
+              belegd zou hebben zoals Animo dat nu mogelijk maakt. In dit voorbeeld zien we onze ambitieuze
+              portefeuille en is er, naast het startbedrag, rekening gehouden met een maandelijkse inleg van{" "}
+              {formatCurrency(showcaseGraph.avgMonthlyContribution)}. De gegevens zijn gebaseerd op historische netto
+              resultaten van vergelijkbare portefeuilles van onze beheerder, HIP Capital.
             </p>
           </div>
-          <div style={{ minWidth: "220px" }}>
+          <div style={{ minWidth: "220px", paddingTop: "6px", paddingLeft: "14px" }}>
             <div
               style={{
                 border: "1px solid #cfb455",
                 borderRadius: "2px",
-                padding: "12px",
+                padding: "14px 12px",
                 textAlign: "center",
-                marginBottom: "16px"
+                marginBottom: "24px"
               }}
             >
               <div style={{ fontSize: "12px", color: "#c8d5cf", marginBottom: "6px" }}>Vermogen op 01-01-2025</div>
@@ -1340,7 +1344,7 @@ const InvestmentCalculator = () => {
                 {formatCurrency(showcaseGraph.finalBalanceShowcase)}
               </div>
             </div>
-            <div style={{ fontSize: "15px", fontWeight: 600, marginBottom: "8px", textAlign: "right" }}>
+            <div style={{ fontSize: "15px", fontWeight: 600, marginBottom: "14px", textAlign: "right" }}>
               Totaal rendement: {formatCurrency(showcaseGraph.totalReturn)}
             </div>
             <div style={{ fontSize: "15px", fontWeight: 600, textAlign: "right" }}>
@@ -1354,10 +1358,15 @@ const InvestmentCalculator = () => {
             <LineChart data={showcaseGraph.data} margin={{ top: 16, right: 10, left: 10, bottom: 8 }}>
               <CartesianGrid vertical={false} stroke="rgba(255,255,255,0.12)" />
               <XAxis
-                dataKey="label"
+                type="number"
+                dataKey="yearValue"
+                domain={[2017, 2025]}
+                ticks={[2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025]}
                 axisLine={{ stroke: "rgba(255,255,255,0.22)" }}
                 tickLine={false}
                 tick={{ fill: "#d2ddd8", fontSize: 12 }}
+                tickFormatter={(value) => `${value}`}
+                allowDecimals={false}
               />
               <YAxis
                 axisLine={false}
