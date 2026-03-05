@@ -1322,11 +1322,9 @@ const InvestmentCalculator = () => {
               De cijfers <em>spreken</em>
             </h3>
             <p style={{ marginTop: "8px", marginBottom: 0, fontSize: "17px", lineHeight: "1.5", color: "#d2ddd8" }}>
-              Deze grafiek laat zien hoe {formatCurrency(startAmount)} is gegroeid wanneer je de afgelopen jaren
-              belegd zou hebben zoals Animo dat nu mogelijk maakt. In dit voorbeeld zien we onze ambitieuze
-              portefeuille en is er, naast het startbedrag, rekening gehouden met een maandelijkse inleg van{" "}
-              {formatCurrency(showcaseGraph.avgMonthlyContribution)}. De gegevens zijn gebaseerd op historische netto
-              resultaten van vergelijkbare portefeuilles van onze beheerder, HIP Capital.
+              Deze grafiek laat zien hoe je portefeuille zou zijn gegroeid wanneer je de afgelopen jaren belegd zou
+              hebben zoals Animo dat nu mogelijk maakt. De gegevens zijn gebaseerd op historische netto resultaten van
+              vergelijkbare portefeuilles van onze beheerder, HIP Capital.
             </p>
           </div>
           <div style={{ minWidth: "220px", paddingTop: "6px", paddingLeft: "14px" }}>
