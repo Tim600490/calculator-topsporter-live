@@ -47,9 +47,6 @@ const clampEuro = (value, min = 0, max = 10000) => {
   return Math.min(max, Math.max(min, Math.round(parsed)));
 };
 
-const normalizeYear = (value, maxYear) => Math.min(maxYear, Math.max(1, Number(value) || 1));
-const normalizeMonth = (value) => Math.min(12, Math.max(1, Number(value) || 1));
-
 const InvestmentCalculator = () => {
   const [startAmount, setStartAmount] = useState(25000);
   const [phase1MonthlyDeposit, setPhase1MonthlyDeposit] = useState(7500);
@@ -59,11 +56,9 @@ const InvestmentCalculator = () => {
   const [phase3MonthlyDeposit, setPhase3MonthlyDeposit] = useState(0);
   const [phase3EndYear, setPhase3EndYear] = useState(10);
   const [investmentHorizon, setInvestmentHorizon] = useState(20);
-  const [oneTimeExtras, setOneTimeExtras] = useState([
-    { amount: 0, year: 5, month: 6 },
-    { amount: 0, year: 5, month: 6 },
-    { amount: 0, year: 5, month: 6 }
-  ]);
+  const [oneTimeExtraAmount, setOneTimeExtraAmount] = useState(0);
+  const [oneTimeExtraYear, setOneTimeExtraYear] = useState(5);
+  const [oneTimeExtraMonth, setOneTimeExtraMonth] = useState(6);
   const [startDepositsInYear2, setStartDepositsInYear2] = useState(false);
   const [profile, setProfile] = useState("Gedreven");
   const [hoveredIndex, setHoveredIndex] = useState(null);
@@ -112,22 +107,10 @@ const InvestmentCalculator = () => {
     if (phase3EndYear < phase2EndYear) {
       setPhase3EndYear(phase2EndYear);
     }
-  }, [phase1Years, phase2EndYear, phase3EndYear, investmentHorizon]);
-
-  useEffect(() => {
-    setOneTimeExtras((prev) => {
-      const next = prev.map((entry) => ({
-        amount: clampEuro(entry.amount, 0, 5000000),
-        year: normalizeYear(entry.year, investmentHorizon),
-        month: normalizeMonth(entry.month)
-      }));
-      const changed = next.some(
-        (entry, idx) =>
-          entry.amount !== prev[idx].amount || entry.year !== prev[idx].year || entry.month !== prev[idx].month
-      );
-      return changed ? next : prev;
-    });
-  }, [investmentHorizon]);
+    if (oneTimeExtraYear > investmentHorizon) {
+      setOneTimeExtraYear(investmentHorizon);
+    }
+  }, [phase1Years, phase2EndYear, phase3EndYear, oneTimeExtraYear, investmentHorizon]);
 
   const getMonthlyDepositForMonth = (absoluteMonth) => {
     const monthInDepositTimeline = startDepositsInYear2 ? absoluteMonth - 12 : absoluteMonth;
@@ -151,30 +134,12 @@ const InvestmentCalculator = () => {
     return 0;
   };
 
-  const getOneTimeExtraForMonth = (absoluteMonth) =>
-    oneTimeExtras.reduce((sum, entry) => {
-      if (entry.amount <= 0) {
-        return sum;
-      }
-      const targetMonth = (entry.year - 1) * 12 + entry.month;
-      return sum + (absoluteMonth === targetMonth ? entry.amount : 0);
-    }, 0);
-
-  const updateOneTimeExtra = (index, key, rawValue) => {
-    setOneTimeExtras((prev) =>
-      prev.map((entry, idx) => {
-        if (idx !== index) {
-          return entry;
-        }
-        if (key === "amount") {
-          return { ...entry, amount: clampEuro(rawValue, 0, 5000000) };
-        }
-        if (key === "year") {
-          return { ...entry, year: normalizeYear(rawValue, investmentHorizon) };
-        }
-        return { ...entry, month: normalizeMonth(rawValue) };
-      })
-    );
+  const getOneTimeExtraForMonth = (absoluteMonth) => {
+    if (oneTimeExtraAmount <= 0) {
+      return 0;
+    }
+    const targetMonth = (oneTimeExtraYear - 1) * 12 + oneTimeExtraMonth;
+    return absoluteMonth === targetMonth ? oneTimeExtraAmount : 0;
   };
 
   const calculationData = useMemo(() => {
@@ -225,7 +190,9 @@ const InvestmentCalculator = () => {
     phase2EndYear,
     phase3MonthlyDeposit,
     phase3EndYear,
-    oneTimeExtras,
+    oneTimeExtraAmount,
+    oneTimeExtraYear,
+    oneTimeExtraMonth,
     startDepositsInYear2,
     investmentHorizon,
     annualReturn
@@ -876,80 +843,73 @@ const InvestmentCalculator = () => {
             <div style={{ fontSize: "16px", fontWeight: "600", color: "#111827", marginBottom: "12px" }}>
               Eenmalige extra inleg
             </div>
-            {oneTimeExtras.map((entry, index) => (
-              <div key={`extra-${index}`} style={{ marginBottom: index === oneTimeExtras.length - 1 ? 0 : "14px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
-                  <span style={{ fontSize: "14px", color: "#6B7280", minWidth: "74px" }}>Bedrag {index + 1}</span>
-                  <span style={{ fontSize: "14px", color: "#111827" }}>€</span>
-                  <input
-                    type="number"
-                    min="0"
-                    max="5000000"
-                    step="1"
-                    value={entry.amount}
-                    onChange={(e) => updateOneTimeExtra(index, "amount", e.target.value)}
-                    style={{
-                      flex: 1,
-                      padding: "6px 8px",
-                      border: "1px solid #D2BB5D",
-                      borderRadius: "6px",
-                      fontSize: "14px",
-                      outline: "none",
-                      backgroundColor: "#fff",
-                      boxSizing: "border-box"
-                    }}
-                  />
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", columnGap: "16px" }}>
-                  <div style={{ minWidth: 0 }}>
-                    <div style={{ fontSize: "14px", color: "#6B7280", marginBottom: "6px" }}>
-                      Bedrag {index + 1} - Jaar
-                    </div>
-                    <input
-                      type="number"
-                      min="1"
-                      max={investmentHorizon}
-                      step="1"
-                      value={entry.year}
-                      onChange={(e) => updateOneTimeExtra(index, "year", e.target.value)}
-                      style={{
-                        width: "100%",
-                        padding: "6px 8px",
-                        border: "1px solid #D2BB5D",
-                        borderRadius: "6px",
-                        fontSize: "14px",
-                        outline: "none",
-                        backgroundColor: "#fff",
-                        boxSizing: "border-box"
-                      }}
-                    />
-                  </div>
-                  <div style={{ minWidth: 0 }}>
-                    <div style={{ fontSize: "14px", color: "#6B7280", marginBottom: "6px" }}>
-                      Bedrag {index + 1} - Maand
-                    </div>
-                    <input
-                      type="number"
-                      min="1"
-                      max="12"
-                      step="1"
-                      value={entry.month}
-                      onChange={(e) => updateOneTimeExtra(index, "month", e.target.value)}
-                      style={{
-                        width: "100%",
-                        padding: "6px 8px",
-                        border: "1px solid #D2BB5D",
-                        borderRadius: "6px",
-                        fontSize: "14px",
-                        outline: "none",
-                        backgroundColor: "#fff",
-                        boxSizing: "border-box"
-                      }}
-                    />
-                  </div>
-                </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
+              <span style={{ fontSize: "14px", color: "#6B7280", minWidth: "74px" }}>Bedrag</span>
+              <span style={{ fontSize: "14px", color: "#111827" }}>€</span>
+              <input
+                type="number"
+                min="0"
+                max="5000000"
+                step="1"
+                value={oneTimeExtraAmount}
+                onChange={(e) => setOneTimeExtraAmount(clampEuro(e.target.value, 0, 5000000))}
+                style={{
+                  flex: 1,
+                  padding: "6px 8px",
+                  border: "1px solid #D2BB5D",
+                  borderRadius: "6px",
+                  fontSize: "14px",
+                  outline: "none",
+                  backgroundColor: "#fff"
+                }}
+              />
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", columnGap: "16px" }}>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: "14px", color: "#6B7280", marginBottom: "6px" }}>Jaar</div>
+                <input
+                  type="number"
+                  min="1"
+                  max={investmentHorizon}
+                  step="1"
+                  value={oneTimeExtraYear}
+                  onChange={(e) =>
+                    setOneTimeExtraYear(Math.min(investmentHorizon, Math.max(1, Number(e.target.value) || 1)))
+                  }
+                  style={{
+                    width: "100%",
+                    padding: "6px 8px",
+                    border: "1px solid #D2BB5D",
+                    borderRadius: "6px",
+                    fontSize: "14px",
+                    outline: "none",
+                    backgroundColor: "#fff",
+                    boxSizing: "border-box"
+                  }}
+                />
               </div>
-            ))}
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: "14px", color: "#6B7280", marginBottom: "6px" }}>Maand</div>
+                <input
+                  type="number"
+                  min="1"
+                  max="12"
+                  step="1"
+                  value={oneTimeExtraMonth}
+                  onChange={(e) => setOneTimeExtraMonth(Math.min(12, Math.max(1, Number(e.target.value) || 1)))}
+                  style={{
+                    width: "100%",
+                    padding: "6px 8px",
+                    border: "1px solid #D2BB5D",
+                    borderRadius: "6px",
+                    fontSize: "14px",
+                    outline: "none",
+                    backgroundColor: "#fff",
+                    boxSizing: "border-box"
+                  }}
+                />
+              </div>
+            </div>
           </div>
 
           {/* Profile */}
