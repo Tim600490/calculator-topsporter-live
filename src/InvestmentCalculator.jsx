@@ -110,9 +110,9 @@ const InvestmentCalculator = () => {
   const [cfkReturnRate, setCfkReturnRate] = useState(2.5);
   const [cfkDurationMonths, setCfkDurationMonths] = useState(120);
   const [freeWealthPayouts, setFreeWealthPayouts] = useState([
-    { amount: 50000, fromAge: 47, toAge: 57 },
-    { amount: 0, fromAge: 47, toAge: 57 },
-    { amount: 0, fromAge: 47, toAge: 57 }
+    { amount: 0, fromAge: 35, toAge: 36 },
+    { amount: 0, fromAge: 35, toAge: 36 },
+    { amount: 0, fromAge: 35, toAge: 36 }
   ]);
   const [pensionAnimoValue, setPensionAnimoValue] = useState(0);
   const [pensionPayoutStartAge, setPensionPayoutStartAge] = useState(67);
@@ -988,10 +988,10 @@ const InvestmentCalculator = () => {
     const pensionEnd = pensionPayoutStartAge + lifeline.pensionPayoutYears;
     return [
       { key: "career", label: "Carrière", start: careerStartAge, end: careerEndAge, color: "rgba(101,195,104,0.18)" },
-      { key: "bridge", label: "Vrij Vermogen Animo", start: careerEndAge, end: cfkStartAge, color: "rgba(210,187,93,0.08)" },
+      { key: "bridge", label: "Vrij Vermogen Animo", start: careerEndAge, end: cfkStartAge, color: "transparent" },
       { key: "cfk", label: "CFK", start: cfkStartAge, end: lifeline.cfkPayoutEndAge, color: "rgba(59,130,246,0.14)" },
-      { key: "free", label: "Vrije periode", start: lifeline.cfkPayoutEndAge, end: freeEnd, color: "rgba(111,119,150,0.05)" },
-      { key: "pension", label: "Pensioen Animo", start: pensionPayoutStartAge, end: pensionEnd, color: "rgba(16,185,129,0.05)" }
+      { key: "free", label: "Vrije periode", start: lifeline.cfkPayoutEndAge, end: freeEnd, color: "transparent" },
+      { key: "pension", label: "Pensioen Animo", start: pensionPayoutStartAge, end: pensionEnd, color: "transparent" }
     ];
   }, [
     careerStartAge,
@@ -2229,7 +2229,9 @@ const InvestmentCalculator = () => {
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={lifelineCfkGraphData} margin={{ top: 18, right: 18, left: 18, bottom: 18 }}>
                 <CartesianGrid stroke="#e5e2d8" vertical={false} />
-                {lifelinePhases.map((phase) =>
+                {lifelinePhases
+                  .filter((phase) => phase.key === "career" || phase.key === "cfk")
+                  .map((phase) =>
                   phase.end > phase.start ? (
                     <ReferenceArea
                       key={`phase-${phase.key}`}
@@ -2385,7 +2387,7 @@ const InvestmentCalculator = () => {
           </div>
 
           <div style={{ background: "#fff", borderRadius: "8px", padding: "12px", border: "1px solid #e1dccb" }}>
-            <div style={{ fontSize: "14px", fontWeight: 700, marginBottom: "10px" }}>Vrij vermogen Animo</div>
+            <div style={{ fontSize: "14px", fontWeight: 700, marginBottom: "10px" }}>Vrij Vermogen Animo</div>
             <div style={{ fontSize: "12px", color: "#6B7280" }}>Verwacht eindresultaat (netto - box3)</div>
             <div style={{ fontSize: "16px", fontWeight: 700, marginTop: "6px" }}>
               {formatCurrency(freeWealthExpectedEndResult)}
