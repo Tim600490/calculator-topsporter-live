@@ -2396,8 +2396,8 @@ const InvestmentCalculator = () => {
                 key={`free-payout-${idx}`}
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "minmax(0, 1fr) 28px 56px 28px 56px",
-                  gap: "8px",
+                  gridTemplateColumns: "minmax(0, 1fr) 30px 44px 30px 44px",
+                  gap: "6px",
                   marginTop: idx === 0 ? 0 : "8px",
                   alignItems: "center",
                   width: "92%"
@@ -2421,7 +2421,18 @@ const InvestmentCalculator = () => {
                     }}
                   />
                 </div>
-                <span style={{ fontSize: "12px", color: "#6B7280" }}>van</span>
+                <span
+                  style={{
+                    fontSize: "12px",
+                    color: "#6B7280",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    height: "100%"
+                  }}
+                >
+                  van
+                </span>
                 <input
                   type="number"
                   min={startAge}
@@ -2430,15 +2441,27 @@ const InvestmentCalculator = () => {
                   onChange={(e) => updateFreeWealthPayout(idx, "fromAge", e.target.value)}
                   style={{
                     width: "100%",
-                    padding: "5px 7px",
+                    padding: "5px 4px",
                     border: "1px solid #D2BB5D",
                     borderRadius: "6px",
                     fontSize: "13px",
+                    textAlign: "center",
                     outline: "none",
                     backgroundColor: "#fff"
                   }}
                 />
-                <span style={{ fontSize: "12px", color: "#6B7280", textAlign: "center" }}>tot</span>
+                <span
+                  style={{
+                    fontSize: "12px",
+                    color: "#6B7280",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    height: "100%"
+                  }}
+                >
+                  tot
+                </span>
                 <input
                   type="number"
                   min={row.fromAge}
@@ -2447,10 +2470,11 @@ const InvestmentCalculator = () => {
                   onChange={(e) => updateFreeWealthPayout(idx, "toAge", e.target.value)}
                   style={{
                     width: "100%",
-                    padding: "5px 7px",
+                    padding: "5px 4px",
                     border: "1px solid #D2BB5D",
                     borderRadius: "6px",
                     fontSize: "13px",
+                    textAlign: "center",
                     outline: "none",
                     backgroundColor: "#fff"
                   }}
