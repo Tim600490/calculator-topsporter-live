@@ -57,6 +57,15 @@ const clampEuro = (value, min = 0, max = 10000) => {
   }
   return Math.min(max, Math.max(min, Math.round(parsed)));
 };
+const parseEuroInput = (value) => {
+  const digitsOnly = String(value ?? "").replace(/[^\d]/g, "");
+  if (!digitsOnly) {
+    return 0;
+  }
+  return Number(digitsOnly);
+};
+const formatEuroInput = (value) =>
+  new Intl.NumberFormat("nl-NL", { maximumFractionDigits: 0 }).format(Number(value) || 0);
 
 const normalizeYear = (value, maxYear) => Math.min(maxYear, Math.max(1, Number(value) || 1));
 const normalizeMonth = (value) => Math.min(12, Math.max(1, Number(value) || 1));
@@ -377,7 +386,7 @@ const InvestmentCalculator = () => {
           return row;
         }
         if (key === "amount") {
-          return { ...row, amount: clampEuro(rawValue, 0, 5000000) };
+          return { ...row, amount: clampEuro(parseEuroInput(rawValue), 0, 5000000) };
         }
         if (key === "fromAge") {
           const fromAge = Math.max(startAge, Math.round(Number(rawValue) || startAge));
@@ -2255,22 +2264,30 @@ const InvestmentCalculator = () => {
               </LineChart>
             </ResponsiveContainer>
           </div>
-          <div style={{ display: "flex", gap: "8px", marginTop: "10px", flexWrap: "wrap" }}>
-            {lifelinePhases.map((phase) => (
-              <div
-                key={`label-${phase.key}`}
-                style={{
-                  flex: `${Math.max(1, Math.round(phase.end - phase.start))} 1 0`,
-                  minWidth: "120px",
-                  textAlign: "center",
-                  fontSize: "12px",
-                  color: phase.key === "career" ? "#65c368" : phase.key === "cfk" ? "#1d4ed8" : "#1f2937",
-                  fontWeight: 600
-                }}
-              >
-                {phase.label} ({Math.round(phase.start)}-{Math.round(phase.end)})
-              </div>
-            ))}
+          <div style={{ position: "relative", marginTop: "10px", height: "18px" }}>
+            {lifelinePhases
+              .filter((phase) => phase.key === "career" || phase.key === "cfk")
+              .map((phase) => {
+                const span = Math.max(1, lifeline.maxAge - startAge);
+                const centerPct = (((phase.start + phase.end) / 2 - startAge) / span) * 100;
+                return (
+                  <div
+                    key={`label-${phase.key}`}
+                    style={{
+                      position: "absolute",
+                      left: `${centerPct}%`,
+                      transform: "translateX(-50%)",
+                      textAlign: "center",
+                      fontSize: "12px",
+                      color: phase.key === "career" ? "#65c368" : "#1d4ed8",
+                      fontWeight: 600,
+                      whiteSpace: "nowrap"
+                    }}
+                  >
+                    {phase.label} ({Math.round(phase.start)}-{Math.round(phase.end)})
+                  </div>
+                );
+              })}
           </div>
           <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "#4b5563" }}>
             <span style={{ width: "14px", height: "3px", backgroundColor: "#1d4ed8", borderRadius: "2px" }} />
@@ -2296,10 +2313,10 @@ const InvestmentCalculator = () => {
             <div style={{ display: "flex", alignItems: "center", gap: "8px", width: "50%", marginTop: "6px" }}>
               <span style={{ fontSize: "14px", color: "#111827" }}>€</span>
               <input
-                type="number"
-                min="0"
-                value={cfkPot}
-                onChange={(e) => setCfkPot(clampEuro(e.target.value, 0, 5000000))}
+                type="text"
+                inputMode="numeric"
+                value={formatEuroInput(cfkPot)}
+                onChange={(e) => setCfkPot(clampEuro(parseEuroInput(e.target.value), 0, 5000000))}
                 style={{
                   width: "100%",
                   padding: "6px 8px",
@@ -2379,19 +2396,19 @@ const InvestmentCalculator = () => {
                 key={`free-payout-${idx}`}
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "minmax(0, 1.05fr) auto minmax(66px, 0.62fr) auto minmax(66px, 0.62fr)",
+                  gridTemplateColumns: "minmax(0, 1fr) 28px 56px 28px 56px",
                   gap: "8px",
                   marginTop: idx === 0 ? 0 : "8px",
                   alignItems: "center",
-                  width: "94%"
+                  width: "92%"
                 }}
               >
                 <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                   <span style={{ fontSize: "14px", color: "#111827" }}>€</span>
                   <input
-                    type="number"
-                    min="0"
-                    value={row.amount}
+                    type="text"
+                    inputMode="numeric"
+                    value={formatEuroInput(row.amount)}
                     onChange={(e) => updateFreeWealthPayout(idx, "amount", e.target.value)}
                     style={{
                       width: "100%",
@@ -2421,7 +2438,7 @@ const InvestmentCalculator = () => {
                     backgroundColor: "#fff"
                   }}
                 />
-                <span style={{ fontSize: "12px", color: "#6B7280" }}>tot</span>
+                <span style={{ fontSize: "12px", color: "#6B7280", textAlign: "center" }}>tot</span>
                 <input
                   type="number"
                   min={row.fromAge}
