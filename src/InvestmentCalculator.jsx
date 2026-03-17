@@ -2226,22 +2226,24 @@ const InvestmentCalculator = () => {
           <div style={{ background: "#fff", borderRadius: "8px", padding: "12px", border: "1px solid #e1dccb" }}>
             <div style={{ fontSize: "14px", fontWeight: 700, marginBottom: "10px" }}>CFK</div>
             <label style={{ fontSize: "12px", color: "#6B7280" }}>CFK waarde</label>
-            <input
-              type="number"
-              min="0"
-              value={cfkPot}
-              onChange={(e) => setCfkPot(clampEuro(e.target.value, 0, 5000000))}
-              style={{
-                width: "100%",
-                marginTop: "6px",
-                padding: "6px 8px",
-                border: "1px solid #D2BB5D",
-                borderRadius: "6px",
-                fontSize: "14px",
-                outline: "none",
-                backgroundColor: "#fff"
-              }}
-            />
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", width: "50%", marginTop: "6px" }}>
+              <span style={{ fontSize: "14px", color: "#111827" }}>€</span>
+              <input
+                type="number"
+                min="0"
+                value={cfkPot}
+                onChange={(e) => setCfkPot(clampEuro(e.target.value, 0, 5000000))}
+                style={{
+                  width: "100%",
+                  padding: "6px 8px",
+                  border: "1px solid #D2BB5D",
+                  borderRadius: "6px",
+                  fontSize: "14px",
+                  outline: "none",
+                  backgroundColor: "#fff"
+                }}
+              />
+            </div>
             <label style={{ fontSize: "12px", color: "#6B7280", marginTop: "10px", display: "block" }}>
               Rendement (% p/j)
             </label>
@@ -2253,7 +2255,7 @@ const InvestmentCalculator = () => {
               value={cfkReturnRate}
               onChange={(e) => setCfkReturnRate(Number(e.target.value))}
               style={{
-                width: "100%",
+                width: "50%",
                 marginTop: "6px",
                 padding: "6px 8px",
                 border: "1px solid #D2BB5D",
