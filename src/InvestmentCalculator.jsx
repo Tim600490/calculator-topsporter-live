@@ -2319,13 +2319,14 @@ const InvestmentCalculator = () => {
                       left: getLifelinePhaseLabelLeft(phase),
                       transform: "translateX(-50%)",
                       textAlign: "center",
-                      fontSize: "12px",
+                      fontSize: "13px",
                       color: phase.key === "career" ? "#65c368" : "#1d4ed8",
                       fontWeight: 600,
                       whiteSpace: "nowrap"
                     }}
                   >
-                    {phase.label} ({Math.round(phase.start)}-{Math.round(phase.end)})
+                    <div>{phase.label} ({Math.round(phase.start)}-{Math.round(phase.end)})</div>
+                    {phase.key === "career" && <div style={{ fontSize: "12px", marginTop: "2px" }}>Opbouwfase</div>}
                   </div>
                 );
               })}
