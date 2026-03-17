@@ -71,22 +71,22 @@ const normalizeYear = (value, maxYear) => Math.min(maxYear, Math.max(1, Number(v
 const normalizeMonth = (value) => Math.min(12, Math.max(1, Number(value) || 1));
 
 const InvestmentCalculator = () => {
-  const [startAmount, setStartAmount] = useState(25000);
-  const [phase1MonthlyDeposit, setPhase1MonthlyDeposit] = useState(7500);
+  const [startAmount, setStartAmount] = useState(100000);
+  const [phase1MonthlyDeposit, setPhase1MonthlyDeposit] = useState(2000);
   const [phase1Years, setPhase1Years] = useState(5);
-  const [phase2MonthlyDeposit, setPhase2MonthlyDeposit] = useState(3000);
-  const [phase2EndYear, setPhase2EndYear] = useState(10);
+  const [phase2MonthlyDeposit, setPhase2MonthlyDeposit] = useState(0);
+  const [phase2EndYear, setPhase2EndYear] = useState(0);
   const [phase3MonthlyDeposit, setPhase3MonthlyDeposit] = useState(0);
-  const [phase3EndYear, setPhase3EndYear] = useState(10);
+  const [phase3EndYear, setPhase3EndYear] = useState(0);
   const [investmentHorizon, setInvestmentHorizon] = useState(20);
   const [startAge, setStartAge] = useState(20);
-  const [startAmount2, setStartAmount2] = useState(25000);
-  const [phase1MonthlyDeposit2, setPhase1MonthlyDeposit2] = useState(7500);
+  const [startAmount2, setStartAmount2] = useState(100000);
+  const [phase1MonthlyDeposit2, setPhase1MonthlyDeposit2] = useState(2000);
   const [phase1Years2, setPhase1Years2] = useState(5);
-  const [phase2MonthlyDeposit2, setPhase2MonthlyDeposit2] = useState(3000);
-  const [phase2EndYear2, setPhase2EndYear2] = useState(10);
+  const [phase2MonthlyDeposit2, setPhase2MonthlyDeposit2] = useState(0);
+  const [phase2EndYear2, setPhase2EndYear2] = useState(0);
   const [phase3MonthlyDeposit2, setPhase3MonthlyDeposit2] = useState(0);
-  const [phase3EndYear2, setPhase3EndYear2] = useState(10);
+  const [phase3EndYear2, setPhase3EndYear2] = useState(0);
   const [investmentHorizon2, setInvestmentHorizon2] = useState(20);
   const [startAge2, setStartAge2] = useState(20);
   const [aowAge, setAowAge] = useState(67);
@@ -197,14 +197,16 @@ const InvestmentCalculator = () => {
       setPhase3EndYear(investmentHorizon);
       return;
     }
-    if (phase2EndYear < phase1Years) {
-      setPhase2EndYear(phase1Years);
+    const minPhase2End = phase2MonthlyDeposit > 0 || phase3MonthlyDeposit > 0 ? phase1Years : 0;
+    if (phase2EndYear < minPhase2End) {
+      setPhase2EndYear(minPhase2End);
       return;
     }
-    if (phase3EndYear < phase2EndYear) {
-      setPhase3EndYear(phase2EndYear);
+    const minPhase3End = phase3MonthlyDeposit > 0 ? phase2EndYear : 0;
+    if (phase3EndYear < minPhase3End) {
+      setPhase3EndYear(minPhase3End);
     }
-  }, [phase1Years, phase2EndYear, phase3EndYear, investmentHorizon]);
+  }, [phase1Years, phase2EndYear, phase3EndYear, phase2MonthlyDeposit, phase3MonthlyDeposit, investmentHorizon]);
 
   useEffect(() => {
     if (phase1Years2 > investmentHorizon2) {
@@ -219,14 +221,16 @@ const InvestmentCalculator = () => {
       setPhase3EndYear2(investmentHorizon2);
       return;
     }
-    if (phase2EndYear2 < phase1Years2) {
-      setPhase2EndYear2(phase1Years2);
+    const minPhase2End = phase2MonthlyDeposit2 > 0 || phase3MonthlyDeposit2 > 0 ? phase1Years2 : 0;
+    if (phase2EndYear2 < minPhase2End) {
+      setPhase2EndYear2(minPhase2End);
       return;
     }
-    if (phase3EndYear2 < phase2EndYear2) {
-      setPhase3EndYear2(phase2EndYear2);
+    const minPhase3End = phase3MonthlyDeposit2 > 0 ? phase2EndYear2 : 0;
+    if (phase3EndYear2 < minPhase3End) {
+      setPhase3EndYear2(minPhase3End);
     }
-  }, [phase1Years2, phase2EndYear2, phase3EndYear2, investmentHorizon2]);
+  }, [phase1Years2, phase2EndYear2, phase3EndYear2, phase2MonthlyDeposit2, phase3MonthlyDeposit2, investmentHorizon2]);
 
   useEffect(() => {
     if (startAge < 18) {
@@ -1194,6 +1198,16 @@ const InvestmentCalculator = () => {
           worstCaseBalanceCurrent,
           bestCaseBalanceCurrent
         } = model;
+        const phase2MinYear = phase2MonthlyDeposit > 0 || phase3MonthlyDeposit > 0 ? phase1Years : 0;
+        const phase2FillPercentage =
+          investmentHorizon - phase2MinYear === 0
+            ? 0
+            : ((phase2EndYear - phase2MinYear) / (investmentHorizon - phase2MinYear)) * 100;
+        const phase3MinYear = phase3MonthlyDeposit > 0 ? phase2EndYear : 0;
+        const phase3FillPercentage =
+          investmentHorizon - phase3MinYear === 0
+            ? 0
+            : ((phase3EndYear - phase3MinYear) / (investmentHorizon - phase3MinYear)) * 100;
 
         return (
       <div
@@ -1629,7 +1643,7 @@ const InvestmentCalculator = () => {
             <div style={{ position: "relative" }}>
               <input
                 type="range"
-                min={phase1Years}
+                min={phase2MinYear}
                 max={investmentHorizon}
                 step="1"
                 value={phase2EndYear}
@@ -1638,15 +1652,7 @@ const InvestmentCalculator = () => {
                   width: "100%",
                   height: "8px",
                   borderRadius: "4px",
-                  background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${
-                    investmentHorizon - phase1Years === 0
-                      ? 0
-                      : ((phase2EndYear - phase1Years) / (investmentHorizon - phase1Years)) * 100
-                  }%, #E5E7EB ${
-                    investmentHorizon - phase1Years === 0
-                      ? 0
-                      : ((phase2EndYear - phase1Years) / (investmentHorizon - phase1Years)) * 100
-                  }%, #E5E7EB 100%)`,
+                  background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${phase2FillPercentage}%, #E5E7EB ${phase2FillPercentage}%, #E5E7EB 100%)`,
                   outline: "none",
                   appearance: "none",
                   cursor: "pointer"
@@ -1661,7 +1667,7 @@ const InvestmentCalculator = () => {
                   marginTop: "8px"
                 }}
               >
-                <span>{phase1Years} jaar</span>
+                <span>{phase2MinYear} jaar</span>
                 <span>{investmentHorizon} jaar</span>
               </div>
             </div>
@@ -1758,7 +1764,7 @@ const InvestmentCalculator = () => {
             <div style={{ position: "relative" }}>
               <input
                 type="range"
-                min={phase2EndYear}
+                min={phase3MinYear}
                 max={investmentHorizon}
                 step="1"
                 value={phase3EndYear}
@@ -1767,15 +1773,7 @@ const InvestmentCalculator = () => {
                   width: "100%",
                   height: "8px",
                   borderRadius: "4px",
-                  background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${
-                    investmentHorizon - phase2EndYear === 0
-                      ? 0
-                      : ((phase3EndYear - phase2EndYear) / (investmentHorizon - phase2EndYear)) * 100
-                  }%, #E5E7EB ${
-                    investmentHorizon - phase2EndYear === 0
-                      ? 0
-                      : ((phase3EndYear - phase2EndYear) / (investmentHorizon - phase2EndYear)) * 100
-                  }%, #E5E7EB 100%)`,
+                  background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${phase3FillPercentage}%, #E5E7EB ${phase3FillPercentage}%, #E5E7EB 100%)`,
                   outline: "none",
                   appearance: "none",
                   cursor: "pointer"
@@ -1790,7 +1788,7 @@ const InvestmentCalculator = () => {
                   marginTop: "8px"
                 }}
               >
-                <span>{phase2EndYear} jaar</span>
+                <span>{phase3MinYear} jaar</span>
                 <span>{investmentHorizon} jaar</span>
               </div>
             </div>
