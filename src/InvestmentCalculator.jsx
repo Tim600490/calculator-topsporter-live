@@ -2292,7 +2292,7 @@ const InvestmentCalculator = () => {
         >
           <div style={{ background: "#fff", borderRadius: "8px", padding: "12px", border: "1px solid #e1dccb" }}>
             <div style={{ fontSize: "14px", fontWeight: 700, marginBottom: "10px" }}>CFK</div>
-            <label style={{ fontSize: "12px", color: "#6B7280" }}>CFK waarde</label>
+            <label style={{ fontSize: "12px", color: "#6B7280" }}>CFK waarde (bruto - box1)</label>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", width: "50%", marginTop: "6px" }}>
               <span style={{ fontSize: "14px", color: "#111827" }}>€</span>
               <input
@@ -2369,7 +2369,7 @@ const InvestmentCalculator = () => {
 
           <div style={{ background: "#fff", borderRadius: "8px", padding: "12px", border: "1px solid #e1dccb" }}>
             <div style={{ fontSize: "14px", fontWeight: 700, marginBottom: "10px" }}>Vrij vermogen Animo</div>
-            <div style={{ fontSize: "12px", color: "#6B7280" }}>Verwacht eindresultaat</div>
+            <div style={{ fontSize: "12px", color: "#6B7280" }}>Verwacht eindresultaat (netto - box3)</div>
             <div style={{ fontSize: "16px", fontWeight: 700, marginTop: "6px" }}>
               {formatCurrency(freeWealthExpectedEndResult)}
             </div>
@@ -2377,7 +2377,14 @@ const InvestmentCalculator = () => {
             {freeWealthPayouts.map((row, idx) => (
               <div
                 key={`free-payout-${idx}`}
-                style={{ display: "grid", gridTemplateColumns: "1.2fr auto 0.7fr auto 0.7fr", gap: "8px", marginTop: idx === 0 ? 0 : "8px", alignItems: "center" }}
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "minmax(0, 1.05fr) auto minmax(66px, 0.62fr) auto minmax(66px, 0.62fr)",
+                  gap: "8px",
+                  marginTop: idx === 0 ? 0 : "8px",
+                  alignItems: "center",
+                  width: "94%"
+                }}
               >
                 <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                   <span style={{ fontSize: "14px", color: "#111827" }}>€</span>
@@ -2388,10 +2395,10 @@ const InvestmentCalculator = () => {
                     onChange={(e) => updateFreeWealthPayout(idx, "amount", e.target.value)}
                     style={{
                       width: "100%",
-                      padding: "6px 8px",
+                      padding: "5px 7px",
                       border: "1px solid #D2BB5D",
                       borderRadius: "6px",
-                      fontSize: "14px",
+                      fontSize: "13px",
                       outline: "none",
                       backgroundColor: "#fff"
                     }}
@@ -2406,10 +2413,10 @@ const InvestmentCalculator = () => {
                   onChange={(e) => updateFreeWealthPayout(idx, "fromAge", e.target.value)}
                   style={{
                     width: "100%",
-                    padding: "6px 8px",
+                    padding: "5px 7px",
                     border: "1px solid #D2BB5D",
                     borderRadius: "6px",
-                    fontSize: "14px",
+                    fontSize: "13px",
                     outline: "none",
                     backgroundColor: "#fff"
                   }}
@@ -2423,10 +2430,10 @@ const InvestmentCalculator = () => {
                   onChange={(e) => updateFreeWealthPayout(idx, "toAge", e.target.value)}
                   style={{
                     width: "100%",
-                    padding: "6px 8px",
+                    padding: "5px 7px",
                     border: "1px solid #D2BB5D",
                     borderRadius: "6px",
-                    fontSize: "14px",
+                    fontSize: "13px",
                     outline: "none",
                     backgroundColor: "#fff"
                   }}
