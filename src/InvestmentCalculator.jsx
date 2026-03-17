@@ -1010,7 +1010,7 @@ const InvestmentCalculator = () => {
     return [
       { key: "career", label: "Carrière", start: careerStartAge, end: careerEndAge, color: "rgba(101,195,104,0.18)" },
       { key: "bridge", label: "Vrij Vermogen Animo", start: careerEndAge, end: cfkStartAge, color: "transparent" },
-      { key: "cfk", label: "CFK", start: cfkStartAge, end: lifeline.cfkPayoutEndAge, color: "rgba(59,130,246,0.14)" },
+      { key: "cfk", label: "CFK", start: cfkStartAge, end: lifeline.cfkPayoutEndAge, color: "rgba(13,42,40,0.14)" },
       { key: "free", label: "Vrije periode", start: lifeline.cfkPayoutEndAge, end: freeEnd, color: "transparent" },
       { key: "pension", label: "Pensioen Animo", start: pensionPayoutStartAge, end: pensionEnd, color: "transparent" }
     ];
@@ -2302,8 +2302,8 @@ const InvestmentCalculator = () => {
                   tickLine={false}
                   width={68}
                 />
-                {hasCfk && <Line type="monotone" dataKey="cfk" stroke="#1d4ed8" strokeWidth={3} dot={false} />}
-                <Line type="monotone" dataKey="vva" stroke="#9d174d" strokeWidth={3} dot={false} />
+                {hasCfk && <Line type="monotone" dataKey="cfk" stroke="#0d2a28" strokeWidth={3} dot={false} />}
+                <Line type="monotone" dataKey="vva" stroke="#d2bb5d" strokeWidth={3} dot={false} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -2320,7 +2320,7 @@ const InvestmentCalculator = () => {
                       transform: "translateX(-50%)",
                       textAlign: "center",
                       fontSize: "13px",
-                      color: phase.key === "career" ? "#65c368" : "#1d4ed8",
+                      color: phase.key === "career" ? "#65c368" : "#0d2a28",
                       fontWeight: 600,
                       whiteSpace: "nowrap"
                     }}
@@ -2335,12 +2335,12 @@ const InvestmentCalculator = () => {
             <div
               style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "#4b5563" }}
             >
-              <span style={{ width: "14px", height: "3px", backgroundColor: "#1d4ed8", borderRadius: "2px" }} />
+              <span style={{ width: "14px", height: "3px", backgroundColor: "#0d2a28", borderRadius: "2px" }} />
               CFK vermogen
             </div>
           )}
           <div style={{ marginTop: "6px", display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "#4b5563" }}>
-            <span style={{ width: "14px", height: "3px", backgroundColor: "#9d174d", borderRadius: "2px" }} />
+            <span style={{ width: "14px", height: "3px", backgroundColor: "#d2bb5d", borderRadius: "2px" }} />
             Vrij Vermogen Animo
           </div>
         </div>
