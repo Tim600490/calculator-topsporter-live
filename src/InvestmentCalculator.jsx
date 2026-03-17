@@ -1051,13 +1051,75 @@ const InvestmentCalculator = () => {
       <div
         key={`calculator-${calculatorIndex}`}
         style={{
-          display: "flex",
-          gap: "32px",
-          flexDirection: isDesktop ? "row" : "column",
-          alignItems: "flex-start",
-          marginTop: isDesktop ? (calculatorIndex === 0 ? "120px" : "180px") : (calculatorIndex === 0 ? "0" : "112px")
+          marginTop: isDesktop ? (calculatorIndex === 0 ? "56px" : "210px") : (calculatorIndex === 0 ? "0" : "128px")
         }}
       >
+        <div
+          style={{
+            display: "flex",
+            gap: "32px",
+            flexDirection: isDesktop ? "row" : "column",
+            alignItems: "center",
+            marginBottom: isDesktop ? "18px" : "14px"
+          }}
+        >
+          <div style={{ width: isDesktop ? "40%" : "100%", display: "flex", justifyContent: "center" }}>
+            <div
+              style={{
+                fontSize: isDesktop ? "50px" : "34px",
+                lineHeight: 1.05,
+                fontWeight: 700,
+                color: "#0d2a28",
+                textAlign: "center"
+              }}
+            >
+              {calculatorIndex === 0 ? "Vrij Vermogen" : "Pensioen vermogen"}
+            </div>
+          </div>
+          <div style={{ width: isDesktop ? "60%" : "100%", display: "flex", justifyContent: "center" }}>
+            <div
+              style={{
+                backgroundColor: "#032c2c",
+                border: "2px solid #cfb455",
+                borderRadius: "14px",
+                textAlign: "center",
+                padding: "14px 20px 16px",
+                minWidth: "246px"
+              }}
+            >
+              <div
+                style={{
+                  fontSize: "13px",
+                  color: "#e7efea",
+                  marginBottom: "8px",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.35px"
+                }}
+              >
+                Verwacht eindresultaat*
+              </div>
+              <div
+                style={{
+                  fontSize: "41px",
+                  fontWeight: 700,
+                  color: "#eff6f1",
+                  lineHeight: 1
+                }}
+              >
+                {formatCurrency(finalBalanceCurrent)}
+                <span style={{ fontSize: "20px", verticalAlign: "top" }}>*</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          style={{
+            display: "flex",
+            gap: "32px",
+            flexDirection: isDesktop ? "row" : "column",
+            alignItems: "flex-start"
+          }}
+        >
         {/* Left Panel - Input Controls (40% on desktop) */}
         <div
           style={{
@@ -1784,74 +1846,6 @@ const InvestmentCalculator = () => {
             position: "relative"
           }}
         >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              position: isDesktop ? "absolute" : "relative",
-              left: isDesktop ? "0" : "auto",
-              transform: "none",
-              top: isDesktop ? "-120px" : "0",
-              marginBottom: isDesktop ? "0" : "16px",
-              zIndex: 2,
-              width: isDesktop ? "100%" : "auto",
-              pointerEvents: "none",
-              gap: "24px"
-            }}
-          >
-            {isDesktop ? (
-              <div
-                style={{
-                  flex: 1,
-                  textAlign: "left",
-                  fontSize: "34px",
-                  lineHeight: 1.1,
-                  fontWeight: 700,
-                  color: "#0d2a28",
-                  paddingLeft: "8px"
-                }}
-              >
-                {calculatorIndex === 0 ? "Vrij Vermogen" : "Pensioen vermogen"}
-              </div>
-            ) : null}
-            <div
-              style={{
-                backgroundColor: "#032c2c",
-                border: "2px solid #cfb455",
-                borderRadius: "14px",
-                textAlign: "center",
-                padding: "14px 20px 16px",
-                minWidth: "246px",
-                marginLeft: isDesktop ? "auto" : "0",
-                marginRight: isDesktop ? "auto" : "0"
-              }}
-            >
-              <div
-                style={{
-                  fontSize: "13px",
-                  color: "#e7efea",
-                  marginBottom: "8px",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.35px"
-                }}
-              >
-                Verwacht eindresultaat*
-              </div>
-              <div
-                style={{
-                  fontSize: "41px",
-                  fontWeight: 700,
-                  color: "#eff6f1",
-                  lineHeight: 1
-                }}
-              >
-                {formatCurrency(finalBalanceCurrent)}
-                <span style={{ fontSize: "20px", verticalAlign: "top" }}>*</span>
-              </div>
-            </div>
-          </div>
-
           {/* Chart */}
           <div
             style={{
@@ -2025,6 +2019,7 @@ const InvestmentCalculator = () => {
             </div>
           </div>
         </div>
+      </div>
       </div>
         );
       })}
