@@ -1055,7 +1055,7 @@ const InvestmentCalculator = () => {
           gap: "32px",
           flexDirection: isDesktop ? "row" : "column",
           alignItems: "flex-start",
-          marginTop: isDesktop ? (calculatorIndex === 0 ? "120px" : "128px") : (calculatorIndex === 0 ? "0" : "72px")
+          marginTop: isDesktop ? (calculatorIndex === 0 ? "120px" : "180px") : (calculatorIndex === 0 ? "0" : "112px")
         }}
       >
         {/* Left Panel - Input Controls (40% on desktop) */}
@@ -1787,17 +1787,34 @@ const InvestmentCalculator = () => {
           <div
             style={{
               display: "flex",
-              justifyContent: "center",
+              justifyContent: "space-between",
+              alignItems: "center",
               position: isDesktop ? "absolute" : "relative",
-              left: isDesktop ? "50%" : "auto",
-              transform: isDesktop ? "translateX(-50%)" : "none",
+              left: isDesktop ? "0" : "auto",
+              transform: "none",
               top: isDesktop ? "-120px" : "0",
               marginBottom: isDesktop ? "0" : "16px",
               zIndex: 2,
               width: isDesktop ? "100%" : "auto",
-              pointerEvents: "none"
+              pointerEvents: "none",
+              gap: "24px"
             }}
           >
+            {isDesktop ? (
+              <div
+                style={{
+                  flex: 1,
+                  textAlign: "left",
+                  fontSize: "34px",
+                  lineHeight: 1.1,
+                  fontWeight: 700,
+                  color: "#0d2a28",
+                  paddingLeft: "8px"
+                }}
+              >
+                {calculatorIndex === 0 ? "Vrij Vermogen" : "Pensioen vermogen"}
+              </div>
+            ) : null}
             <div
               style={{
                 backgroundColor: "#032c2c",
@@ -1805,7 +1822,9 @@ const InvestmentCalculator = () => {
                 borderRadius: "14px",
                 textAlign: "center",
                 padding: "14px 20px 16px",
-                minWidth: "246px"
+                minWidth: "246px",
+                marginLeft: isDesktop ? "auto" : "0",
+                marginRight: isDesktop ? "auto" : "0"
               }}
             >
               <div
