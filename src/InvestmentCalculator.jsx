@@ -101,7 +101,8 @@ const InvestmentCalculator = () => {
   const [cfkReturnRate, setCfkReturnRate] = useState(2.5);
   const [cfkDurationMonths, setCfkDurationMonths] = useState(120);
   const [freeWealthAnnualWithdrawal, setFreeWealthAnnualWithdrawal] = useState(50000);
-  const [freeWealthStartPayoutAge, setFreeWealthStartPayoutAge] = useState(47);
+  const [freeWealthPayoutFromAge, setFreeWealthPayoutFromAge] = useState(47);
+  const [freeWealthPayoutToAge, setFreeWealthPayoutToAge] = useState(57);
   const [pensionAnimoValue, setPensionAnimoValue] = useState(0);
   const [pensionPayoutStartAge, setPensionPayoutStartAge] = useState(67);
   const [hoveredIndex, setHoveredIndex] = useState(null);
@@ -224,6 +225,16 @@ const InvestmentCalculator = () => {
       setStartAge2(18);
     }
   }, [startAge2]);
+
+  useEffect(() => {
+    if (freeWealthPayoutFromAge < startAge) {
+      setFreeWealthPayoutFromAge(startAge);
+      return;
+    }
+    if (freeWealthPayoutToAge < freeWealthPayoutFromAge) {
+      setFreeWealthPayoutToAge(freeWealthPayoutFromAge);
+    }
+  }, [freeWealthPayoutFromAge, freeWealthPayoutToAge, startAge]);
 
   useEffect(() => {
     setOneTimeExtras((prev) => {
@@ -765,18 +776,9 @@ const InvestmentCalculator = () => {
   ]);
 
   const lifeline = useMemo(() => {
-    const getWealthAtAge = (age) => {
-      if (age <= startAge) {
-        return startAmount;
-      }
-      const yearsFromStart = Math.max(1, Math.round(age - startAge));
-      const clampedYear = Math.min(yearsFromStart, calculationData.length);
-      const row = calculationData[clampedYear - 1];
-      return row?.balance ?? startAmount;
-    };
-
-    const freeWealthStartValue = getWealthAtAge(freeWealthStartPayoutAge);
-    const careerEndValue = getWealthAtAge(careerEndAge);
+    const careerEndValue =
+      calculationData[Math.max(0, Math.min(calculationData.length - 1, careerEndAge - startAge - 1))]?.balance ??
+      startAmount;
     const cfkDurationYears = cfkDurationMonths / 12;
     const cfkGrowthRate = cfkReturnRate / 100;
     const cfkBalanceAtCareerEnd = cfkPot;
@@ -790,14 +792,15 @@ const InvestmentCalculator = () => {
     const pensionAnnualPayout = pensionPayoutYears > 0 ? pensionAnimoValue / pensionPayoutYears : 0;
 
     let cfkBalanceDuringPayout = cfkBalanceAtPayoutStart;
-    let freeWealthBalance = freeWealthStartValue;
+    let freeWealthBalance = startAmount;
     let pensionBalance = pensionAnimoValue;
-    let freeWealthEndAge = freeWealthStartPayoutAge;
+    let freeWealthEndAge = freeWealthPayoutToAge;
 
     const maxAge = Math.ceil(
       Math.max(
         cfkPayoutEndAge,
-        freeWealthStartPayoutAge + 20,
+        freeWealthPayoutToAge + 5,
+        startAge + investmentHorizon + 1,
         pensionPayoutStartAge + pensionPayoutYears,
         aowAge + 1,
         careerEndAge + 1
@@ -829,16 +832,15 @@ const InvestmentCalculator = () => {
         cfkBalance = 0;
       }
 
-      if (age < freeWealthStartPayoutAge) {
-        freeWealthBalance = getWealthAtAge(age);
-      } else if (freeWealthBalance > 0) {
+      if (age >= freeWealthPayoutFromAge && age <= freeWealthPayoutToAge && freeWealthBalance > 0) {
         freeIncome = Math.min(freeWealthAnnualWithdrawal, freeWealthBalance);
         freeWealthBalance = Math.max(0, freeWealthBalance - freeIncome);
-        freeWealthBalance = freeWealthBalance * (1 + annualReturn);
         if (freeWealthBalance === 0) {
           freeWealthEndAge = age;
         }
       }
+
+      const freeWealthBalanceForAge = freeWealthBalance;
 
       if (age < pensionPayoutStartAge) {
         pensionBalance = pensionAnimoValue;
@@ -859,16 +861,29 @@ const InvestmentCalculator = () => {
       potData.push({
         age,
         cfk: cfkBalance,
-        vrij: freeWealthBalance,
+        vrij: freeWealthBalanceForAge,
         pensioen: pensionBalance
       });
+
+      const yearOffset = age - startAge;
+      for (let month = 1; month <= 12; month++) {
+        const absoluteMonth = yearOffset * 12 + month;
+        const withinCalculatorHorizon = absoluteMonth <= investmentHorizon * 12;
+        const activeDeposit = withinCalculatorHorizon ? getMonthlyDepositForMonth(absoluteMonth) : 0;
+        const oneTimeExtra = withinCalculatorHorizon ? getOneTimeExtraForMonth(absoluteMonth) : 0;
+        freeWealthBalance = freeWealthBalance * (1 + annualReturn / 12);
+        freeWealthBalance += activeDeposit + oneTimeExtra;
+      }
     }
 
     return {
       incomeData,
       potData,
       careerEndValue,
-      freeWealthStartValue,
+      freeWealthStartValue:
+        potData.find((row) => row.age === freeWealthPayoutFromAge)?.vrij ??
+        potData[0]?.vrij ??
+        startAmount,
       cfkAnnualPayout,
       cfkBalanceAtCareerEnd,
       cfkBalanceAtPayoutStart,
@@ -888,7 +903,11 @@ const InvestmentCalculator = () => {
     cfkReturnRate,
     cfkStartAge,
     freeWealthAnnualWithdrawal,
-    freeWealthStartPayoutAge,
+    freeWealthPayoutFromAge,
+    freeWealthPayoutToAge,
+    getMonthlyDepositForMonth,
+    getOneTimeExtraForMonth,
+    investmentHorizon,
     pensionAnimoValue,
     pensionPayoutStartAge,
     startAge,
@@ -916,7 +935,7 @@ const InvestmentCalculator = () => {
   }, [lifeline.maxAge, startAge]);
 
   const lifelinePhases = useMemo(() => {
-    const freeEnd = Math.max(freeWealthStartPayoutAge + 1, lifeline.freeWealthEndAge);
+    const freeEnd = Math.max(freeWealthPayoutToAge + 1, lifeline.freeWealthEndAge);
     const pensionEnd = pensionPayoutStartAge + lifeline.pensionPayoutYears;
     return [
       { key: "career", label: "Carrière", start: careerStartAge, end: careerEndAge, color: "rgba(101,195,104,0.18)" },
@@ -929,7 +948,7 @@ const InvestmentCalculator = () => {
     careerStartAge,
     careerEndAge,
     cfkStartAge,
-    freeWealthStartPayoutAge,
+    freeWealthPayoutToAge,
     lifeline.cfkPayoutEndAge,
     lifeline.freeWealthEndAge,
     lifeline.pensionPayoutYears,
@@ -940,13 +959,13 @@ const InvestmentCalculator = () => {
     let hitZero = false;
     return lifeline.potData.map((row) => {
       if (hitZero) {
-        return { age: row.age, cfk: null };
+        return { age: row.age, cfk: null, vva: row.vrij };
       }
       const isZero = row.cfk <= 0;
       if (isZero) {
         hitZero = true;
       }
-      return { age: row.age, cfk: row.cfk };
+      return { age: row.age, cfk: row.cfk, vva: row.vrij };
     });
   }, [lifeline.potData]);
 
@@ -2189,6 +2208,7 @@ const InvestmentCalculator = () => {
                   width={68}
                 />
                 <Line type="monotone" dataKey="cfk" stroke="#1d4ed8" strokeWidth={3} dot={false} />
+                <Line type="monotone" dataKey="vva" stroke="#9d174d" strokeWidth={3} dot={false} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -2212,6 +2232,10 @@ const InvestmentCalculator = () => {
           <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "#4b5563" }}>
             <span style={{ width: "14px", height: "3px", backgroundColor: "#1d4ed8", borderRadius: "2px" }} />
             CFK vermogen
+          </div>
+          <div style={{ marginTop: "6px", display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "#4b5563" }}>
+            <span style={{ width: "14px", height: "3px", backgroundColor: "#9d174d", borderRadius: "2px" }} />
+            Vrij Vermogen Animo
           </div>
         </div>
 
@@ -2302,49 +2326,65 @@ const InvestmentCalculator = () => {
 
           <div style={{ background: "#fff", borderRadius: "8px", padding: "12px", border: "1px solid #e1dccb" }}>
             <div style={{ fontSize: "14px", fontWeight: 700, marginBottom: "10px" }}>Vrij vermogen Animo</div>
-            <div style={{ fontSize: "12px", color: "#6B7280" }}>Verwacht vermogen</div>
+            <div style={{ fontSize: "12px", color: "#6B7280" }}>Verwacht eindresultaat</div>
             <div style={{ fontSize: "16px", fontWeight: 700, marginTop: "6px" }}>
               {formatCurrency(finalBalance)}
             </div>
             <label style={{ fontSize: "12px", color: "#6B7280", marginTop: "10px", display: "block" }}>
-              Start uitkering (leeftijd)
+              Uitkering
             </label>
-            <input
-              type="number"
-              min="30"
-              max="70"
-              value={freeWealthStartPayoutAge}
-              onChange={(e) => setFreeWealthStartPayoutAge(Number(e.target.value))}
-              style={{
-                width: "100%",
-                marginTop: "6px",
-                padding: "6px 8px",
-                border: "1px solid #D2BB5D",
-                borderRadius: "6px",
-                fontSize: "14px",
-                outline: "none",
-                backgroundColor: "#fff"
-              }}
-            />
-            <label style={{ fontSize: "12px", color: "#6B7280", marginTop: "10px", display: "block" }}>
-              Jaarlijkse uitkering
-            </label>
-            <input
-              type="number"
-              min="0"
-              value={freeWealthAnnualWithdrawal}
-              onChange={(e) => setFreeWealthAnnualWithdrawal(clampEuro(e.target.value, 0, 5000000))}
-              style={{
-                width: "100%",
-                marginTop: "6px",
-                padding: "6px 8px",
-                border: "1px solid #D2BB5D",
-                borderRadius: "6px",
-                fontSize: "14px",
-                outline: "none",
-                backgroundColor: "#fff"
-              }}
-            />
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "6px" }}>
+              <span style={{ fontSize: "14px", color: "#111827" }}>€</span>
+              <input
+                type="number"
+                min="0"
+                value={freeWealthAnnualWithdrawal}
+                onChange={(e) => setFreeWealthAnnualWithdrawal(clampEuro(e.target.value, 0, 5000000))}
+                style={{
+                  width: "44%",
+                  padding: "6px 8px",
+                  border: "1px solid #D2BB5D",
+                  borderRadius: "6px",
+                  fontSize: "14px",
+                  outline: "none",
+                  backgroundColor: "#fff"
+                }}
+              />
+              <span style={{ fontSize: "12px", color: "#6B7280" }}>van</span>
+              <input
+                type="number"
+                min={startAge}
+                max="90"
+                value={freeWealthPayoutFromAge}
+                onChange={(e) => setFreeWealthPayoutFromAge(Number(e.target.value))}
+                style={{
+                  width: "22%",
+                  padding: "6px 8px",
+                  border: "1px solid #D2BB5D",
+                  borderRadius: "6px",
+                  fontSize: "14px",
+                  outline: "none",
+                  backgroundColor: "#fff"
+                }}
+              />
+              <span style={{ fontSize: "12px", color: "#6B7280" }}>tot</span>
+              <input
+                type="number"
+                min={freeWealthPayoutFromAge}
+                max="95"
+                value={freeWealthPayoutToAge}
+                onChange={(e) => setFreeWealthPayoutToAge(Number(e.target.value))}
+                style={{
+                  width: "22%",
+                  padding: "6px 8px",
+                  border: "1px solid #D2BB5D",
+                  borderRadius: "6px",
+                  fontSize: "14px",
+                  outline: "none",
+                  backgroundColor: "#fff"
+                }}
+              />
+            </div>
           </div>
 
           <div style={{ background: "#fff", borderRadius: "8px", padding: "12px", border: "1px solid #e1dccb" }}>
