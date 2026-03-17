@@ -1131,15 +1131,24 @@ const InvestmentCalculator = () => {
   return (
     <div
       style={{
-        maxWidth: "1200px",
-        margin: "0 auto",
-        padding: "24px",
-        backgroundColor: "#F7F5E9",
+        width: "100%",
         minHeight: "100vh",
+        backgroundColor: "#0d2a28",
+        padding: "24px 0",
         fontFamily:
           'Satoshi, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
       }}
     >
+      <div
+        style={{
+          maxWidth: "1200px",
+          margin: "0 auto",
+          padding: "24px",
+          backgroundColor: "#F7F5E9",
+          fontFamily:
+            'Satoshi, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+        }}
+      >
       {[0, 1].map((calculatorIndex) => {
         const isPrimary = calculatorIndex === 0;
         const model = getCalculatorModel(isPrimary);
@@ -2652,6 +2661,7 @@ const InvestmentCalculator = () => {
           border: none;
         }
       `}</style>
+      </div>
     </div>
   );
 };
