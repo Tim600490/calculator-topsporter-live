@@ -120,8 +120,10 @@ const InvestmentCalculator = () => {
   const [hoveredIndex2, setHoveredIndex2] = useState(null);
   const chartContainerRef = useRef(null);
   const chartContainerRef2 = useRef(null);
+  const lifelineChartContainerRef = useRef(null);
   const [chartSize, setChartSize] = useState({ width: 0, height: 0 });
   const [chartSize2, setChartSize2] = useState({ width: 0, height: 0 });
+  const [lifelineChartSize, setLifelineChartSize] = useState({ width: 0, height: 0 });
 
   // Risk profile returns (exact net annual returns)
   const riskProfiles = {
@@ -529,6 +531,22 @@ const InvestmentCalculator = () => {
       setChartSize2({
         width: chartContainerRef2.current.clientWidth,
         height: chartContainerRef2.current.clientHeight
+      });
+    };
+
+    updateSize();
+    window.addEventListener("resize", updateSize);
+    return () => window.removeEventListener("resize", updateSize);
+  }, []);
+
+  useEffect(() => {
+    const updateSize = () => {
+      if (!lifelineChartContainerRef.current) {
+        return;
+      }
+      setLifelineChartSize({
+        width: lifelineChartContainerRef.current.clientWidth,
+        height: lifelineChartContainerRef.current.clientHeight
       });
     };
 
@@ -1020,6 +1038,20 @@ const InvestmentCalculator = () => {
   }, [lifeline.potData]);
 
   const freeWealthExpectedEndResult = lifeline.potData[lifeline.potData.length - 1]?.vrij ?? 0;
+  const getLifelinePhaseLabelLeft = (phase) => {
+    if (!lifelineChartSize.width) {
+      return "50%";
+    }
+    const marginLeft = 18;
+    const marginRight = 18;
+    const yAxisWidth = 68;
+    const span = Math.max(1, lifeline.maxAge - startAge);
+    const plotWidth = lifelineChartSize.width - marginLeft - marginRight - yAxisWidth;
+    const centerAge = (phase.start + phase.end) / 2;
+    const ratio = (centerAge - startAge) / span;
+    const x = marginLeft + yAxisWidth + Math.max(0, Math.min(1, ratio)) * Math.max(0, plotWidth);
+    return `${x}px`;
+  };
 
   const getCalculatorModel = (isPrimary) =>
     isPrimary
@@ -2225,7 +2257,7 @@ const InvestmentCalculator = () => {
         </div>
 
         <div style={{ marginTop: "16px", border: "1px solid #ded8c7", borderRadius: "8px", background: "#fbf9f1", padding: "12px" }}>
-          <div style={{ height: "300px" }}>
+          <div ref={lifelineChartContainerRef} style={{ height: "300px" }}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={lifelineCfkGraphData} margin={{ top: 18, right: 18, left: 18, bottom: 18 }}>
                 <CartesianGrid stroke="#e5e2d8" vertical={false} />
@@ -2270,14 +2302,12 @@ const InvestmentCalculator = () => {
             {lifelinePhases
               .filter((phase) => phase.key === "career" || phase.key === "cfk")
               .map((phase) => {
-                const span = Math.max(1, lifeline.maxAge - startAge);
-                const centerPct = (((phase.start + phase.end) / 2 - startAge) / span) * 100;
                 return (
                   <div
                     key={`label-${phase.key}`}
                     style={{
                       position: "absolute",
-                      left: `${centerPct}%`,
+                      left: getLifelinePhaseLabelLeft(phase),
                       transform: "translateX(-50%)",
                       textAlign: "center",
                       fontSize: "12px",
