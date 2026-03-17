@@ -1,5 +1,16 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Line,
+  LineChart,
+  ReferenceArea,
+  ReferenceLine,
+  ResponsiveContainer,
+  XAxis,
+  YAxis
+} from "recharts";
 
 const AnchoredBarTooltip = ({ point, label, left, top, formatCurrency }) => {
   if (!point) {
@@ -124,10 +135,8 @@ const InvestmentCalculator = () => {
   const annualReturn = riskProfiles[profile];
   const annualReturn2 = riskProfiles[profile2];
   const careerStartAge = startAge;
-  const careerEndAge = startAge + 15;
+  const careerEndAge = 35;
   const cfkStartAge = careerEndAge + 3;
-  const cfkEndAge = cfkStartAge + 10;
-  const freeWealthStartAge = cfkEndAge;
 
   const cfkDurationRange = useMemo(() => {
     const amount = cfkPot;
@@ -769,22 +778,26 @@ const InvestmentCalculator = () => {
 
     const freeWealthStartValue = getWealthAtAge(freeWealthStartPayoutAge);
     const careerEndValue = getWealthAtAge(careerEndAge);
-    const cfkMonthlyPayout = cfkDurationMonths > 0 ? cfkPot / cfkDurationMonths : 0;
-    const cfkAnnualPayout = cfkMonthlyPayout * 12;
     const cfkDurationYears = cfkDurationMonths / 12;
+    const cfkGrowthRate = cfkReturnRate / 100;
+    const cfkBalanceAtCareerEnd = cfkPot;
+    const cfkBufferYears = Math.max(0, cfkStartAge - careerEndAge);
+    const cfkBalanceAtPayoutStart = cfkBalanceAtCareerEnd * Math.pow(1 + cfkGrowthRate, cfkBufferYears);
+    const cfkAnnualPayout = cfkDurationYears > 0 ? cfkBalanceAtPayoutStart / cfkDurationYears : 0;
+    const cfkPayoutEndAge = cfkStartAge + cfkDurationYears;
 
     const pensionPayoutYears =
       pensionAnimoValue > 0 ? Math.max(5, Math.min(20, Math.ceil(pensionAnimoValue / 27192))) : 0;
     const pensionAnnualPayout = pensionPayoutYears > 0 ? pensionAnimoValue / pensionPayoutYears : 0;
 
-    let cfkBalance = cfkPot;
+    let cfkBalanceDuringPayout = cfkBalanceAtPayoutStart;
     let freeWealthBalance = freeWealthStartValue;
     let pensionBalance = pensionAnimoValue;
     let freeWealthEndAge = freeWealthStartPayoutAge;
 
     const maxAge = Math.ceil(
       Math.max(
-        cfkStartAge + cfkDurationYears,
+        cfkPayoutEndAge,
         freeWealthStartPayoutAge + 20,
         pensionPayoutStartAge + pensionPayoutYears,
         aowAge + 1,
@@ -799,16 +812,21 @@ const InvestmentCalculator = () => {
       let cfkIncome = 0;
       let freeIncome = 0;
       let pensionIncome = 0;
+      let cfkBalance = 0;
 
-      if (age >= cfkStartAge && age < cfkStartAge + cfkDurationYears) {
-        cfkIncome = cfkAnnualPayout;
-        cfkBalance = cfkBalance * (1 + cfkReturnRate / 100) - cfkAnnualPayout;
-        if (cfkBalance < 0) {
-          cfkBalance = 0;
-        }
+      if (age < careerEndAge) {
+        // During active career we show the CFK input as base level.
+        cfkBalance = cfkBalanceAtCareerEnd;
       } else if (age < cfkStartAge) {
-        cfkBalance = cfkPot;
-      } else if (age >= cfkStartAge + cfkDurationYears) {
+        // Three-year bridge period after career end; CFK keeps compounding.
+        const yearsSinceCareerEnd = age - careerEndAge;
+        cfkBalance = cfkBalanceAtCareerEnd * Math.pow(1 + cfkGrowthRate, yearsSinceCareerEnd);
+      } else if (age >= cfkStartAge && age < cfkPayoutEndAge) {
+        // During payout years balance decreases by yearly payout, but keeps returning.
+        cfkBalance = cfkBalanceDuringPayout;
+        cfkIncome = cfkAnnualPayout;
+        cfkBalanceDuringPayout = Math.max(0, cfkBalanceDuringPayout * (1 + cfkGrowthRate) - cfkAnnualPayout);
+      } else {
         cfkBalance = 0;
       }
 
@@ -853,6 +871,9 @@ const InvestmentCalculator = () => {
       careerEndValue,
       freeWealthStartValue,
       cfkAnnualPayout,
+      cfkBalanceAtCareerEnd,
+      cfkBalanceAtPayoutStart,
+      cfkPayoutEndAge,
       pensionAnnualPayout,
       pensionPayoutYears,
       freeWealthEndAge,
@@ -896,25 +917,34 @@ const InvestmentCalculator = () => {
   }, [lifeline.maxAge, startAge]);
 
   const lifelinePhases = useMemo(() => {
-    const cfkEnd = cfkStartAge + cfkDurationMonths / 12;
     const freeEnd = Math.max(freeWealthStartPayoutAge + 1, lifeline.freeWealthEndAge);
     const pensionEnd = pensionPayoutStartAge + lifeline.pensionPayoutYears;
     return [
-      { label: "Carrière", start: careerStartAge, end: careerEndAge, lines: ["cfk", "vrij"] },
-      { label: "CFK", start: cfkStartAge, end: cfkEnd, lines: ["cfk"] },
-      { label: "Vrij vermogen Animo", start: freeWealthStartPayoutAge, end: freeEnd, lines: ["vrij"] },
-      { label: "Pensioen Animo", start: pensionPayoutStartAge, end: pensionEnd, lines: ["pensioen"] }
+      { key: "career", label: "Carrière", start: careerStartAge, end: careerEndAge, color: "rgba(13,42,40,0.05)" },
+      { key: "bridge", label: "Vrij Vermogen Animo", start: careerEndAge, end: cfkStartAge, color: "rgba(210,187,93,0.08)" },
+      { key: "cfk", label: "CFK", start: cfkStartAge, end: lifeline.cfkPayoutEndAge, color: "rgba(59,130,246,0.08)" },
+      { key: "free", label: "Vrije periode", start: lifeline.cfkPayoutEndAge, end: freeEnd, color: "rgba(111,119,150,0.05)" },
+      { key: "pension", label: "Pensioen Animo", start: pensionPayoutStartAge, end: pensionEnd, color: "rgba(16,185,129,0.05)" }
     ];
   }, [
     careerStartAge,
     careerEndAge,
-    cfkDurationMonths,
     cfkStartAge,
     freeWealthStartPayoutAge,
+    lifeline.cfkPayoutEndAge,
     lifeline.freeWealthEndAge,
     lifeline.pensionPayoutYears,
     pensionPayoutStartAge
   ]);
+
+  const lifelineCfkGraphData = useMemo(
+    () =>
+      lifeline.potData.map((row) => ({
+        age: row.age,
+        cfk: row.cfk
+      })),
+    [lifeline.potData]
+  );
 
   const getCalculatorModel = (isPrimary) =>
     isPrimary
@@ -2119,72 +2149,66 @@ const InvestmentCalculator = () => {
           </div>
         </div>
 
-        <div style={{ marginTop: "16px", display: "flex", gap: "8px", alignItems: "stretch" }}>
-          {(() => {
-            const sparkPoints = (direction) => {
-              if (direction === "down") {
-                return "0,4 15,8 30,14 45,20 60,28";
-              }
-              if (direction === "flat") {
-                return "0,16 60,16";
-              }
-              return "0,28 15,20 30,14 45,8 60,4";
-            };
-            return lifelinePhases.map((phase) => {
-              const duration = Math.max(1, phase.end - phase.start);
-              const showFreeDown = freeWealthAnnualWithdrawal > 0;
-              const lineConfig = {
-                cfk: phase.label === "CFK" ? "down" : "up",
-                vrij: phase.label === "Vrij vermogen Animo" ? (showFreeDown ? "down" : "flat") : "up",
-                pensioen: "down"
-              };
-
-              return (
-                <div
-                  key={`${phase.label}-${phase.start}`}
-                  style={{
-                    flex: `${duration} 1 0`,
-                    minWidth: "120px",
-                    border: "1px solid #ded8c7",
-                    borderRadius: "8px",
-                    padding: "10px 12px",
-                    backgroundColor: "#fbf9f1"
-                  }}
-                >
-                  <div style={{ fontSize: "12px", fontWeight: 700, color: "#1f2a2a" }}>{phase.label}</div>
-                  <div style={{ fontSize: "11px", color: "#7c807a", marginBottom: "6px" }}>
-                    {Math.round(phase.start)}–{Math.round(phase.end)}j
-                  </div>
-                  <svg width="60" height="32" viewBox="0 0 60 32" aria-hidden="true">
-                    {phase.lines.includes("cfk") ? (
-                      <polyline
-                        points={sparkPoints(lineConfig.cfk)}
-                        fill="none"
-                        stroke="#c7a636"
-                        strokeWidth="2"
-                      />
-                    ) : null}
-                    {phase.lines.includes("vrij") ? (
-                      <polyline
-                        points={sparkPoints(lineConfig.vrij)}
-                        fill="none"
-                        stroke="#0d2a28"
-                        strokeWidth="2"
-                      />
-                    ) : null}
-                    {phase.lines.includes("pensioen") ? (
-                      <polyline
-                        points={sparkPoints(lineConfig.pensioen)}
-                        fill="none"
-                        stroke="#6672a8"
-                        strokeWidth="2"
-                      />
-                    ) : null}
-                  </svg>
-                </div>
-              );
-            });
-          })()}
+        <div style={{ marginTop: "16px", border: "1px solid #ded8c7", borderRadius: "8px", background: "#fbf9f1", padding: "12px" }}>
+          <div style={{ height: "300px" }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={lifelineCfkGraphData} margin={{ top: 18, right: 18, left: 18, bottom: 18 }}>
+                <CartesianGrid stroke="#e5e2d8" vertical={false} />
+                {lifelinePhases.map((phase) =>
+                  phase.end > phase.start ? (
+                    <ReferenceArea
+                      key={`phase-${phase.key}`}
+                      x1={phase.start}
+                      x2={phase.end}
+                      fill={phase.color}
+                      strokeOpacity={0}
+                    />
+                  ) : null
+                )}
+                <ReferenceLine x={careerEndAge} stroke="#737373" strokeDasharray="4 4" />
+                <ReferenceLine x={cfkStartAge} stroke="#737373" strokeDasharray="4 4" />
+                <ReferenceLine x={lifeline.cfkPayoutEndAge} stroke="#737373" strokeDasharray="4 4" />
+                <XAxis
+                  type="number"
+                  dataKey="age"
+                  domain={[startAge, lifeline.maxAge]}
+                  ticks={lifelineTicks}
+                  tick={{ fontSize: 11, fill: "#4b5563" }}
+                  axisLine={{ stroke: "#d8d2bf" }}
+                  tickLine={false}
+                />
+                <YAxis
+                  tick={{ fontSize: 11, fill: "#4b5563" }}
+                  tickFormatter={formatCurrencyShort}
+                  axisLine={false}
+                  tickLine={false}
+                  width={68}
+                />
+                <Line type="monotone" dataKey="cfk" stroke="#1d4ed8" strokeWidth={3} dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+          <div style={{ display: "flex", gap: "8px", marginTop: "10px", flexWrap: "wrap" }}>
+            {lifelinePhases.map((phase) => (
+              <div
+                key={`label-${phase.key}`}
+                style={{
+                  flex: `${Math.max(1, Math.round(phase.end - phase.start))} 1 0`,
+                  minWidth: "120px",
+                  textAlign: "center",
+                  fontSize: "12px",
+                  color: "#1f2937",
+                  fontWeight: 600
+                }}
+              >
+                {phase.label} ({Math.round(phase.start)}-{Math.round(phase.end)})
+              </div>
+            ))}
+          </div>
+          <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "#4b5563" }}>
+            <span style={{ width: "14px", height: "3px", backgroundColor: "#1d4ed8", borderRadius: "2px" }} />
+            CFK vermogen (op basis van CFK waarde, rendement en uitkeringsduur)
+          </div>
         </div>
 
         <div
