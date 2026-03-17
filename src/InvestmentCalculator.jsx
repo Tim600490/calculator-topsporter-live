@@ -2307,7 +2307,7 @@ const InvestmentCalculator = () => {
               </LineChart>
             </ResponsiveContainer>
           </div>
-          <div style={{ position: "relative", marginTop: "10px", height: "18px" }}>
+          <div style={{ position: "relative", marginTop: "4px", height: "28px" }}>
             {lifelinePhases
               .filter((phase) => phase.key === "career" || (phase.key === "cfk" && hasCfk))
               .map((phase) => {
