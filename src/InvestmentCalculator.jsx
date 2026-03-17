@@ -124,6 +124,7 @@ const InvestmentCalculator = () => {
   const [chartSize, setChartSize] = useState({ width: 0, height: 0 });
   const [chartSize2, setChartSize2] = useState({ width: 0, height: 0 });
   const [lifelineChartSize, setLifelineChartSize] = useState({ width: 0, height: 0 });
+  const hasCfk = cfkPot > 0;
 
   // Risk profile returns (exact net annual returns)
   const riskProfiles = {
@@ -1022,6 +1023,9 @@ const InvestmentCalculator = () => {
   ]);
 
   const lifelineCfkGraphData = useMemo(() => {
+    if (!hasCfk) {
+      return lifeline.potData.map((row) => ({ age: row.age, cfk: null, vva: row.vrij }));
+    }
     let hitZero = false;
     return lifeline.potData.map((row) => {
       if (hitZero) {
@@ -1033,7 +1037,7 @@ const InvestmentCalculator = () => {
       }
       return { age: row.age, cfk: row.cfk, vva: row.vrij };
     });
-  }, [lifeline.potData]);
+  }, [hasCfk, lifeline.potData]);
 
   const freeWealthExpectedEndResult = lifeline.potData[lifeline.potData.length - 1]?.vrij ?? 0;
   const getLifelinePhaseLabelLeft = (phase) => {
@@ -2269,7 +2273,7 @@ const InvestmentCalculator = () => {
               <LineChart data={lifelineCfkGraphData} margin={{ top: 18, right: 18, left: 18, bottom: 18 }}>
                 <CartesianGrid stroke="#e5e2d8" vertical={false} />
                 {lifelinePhases
-                  .filter((phase) => phase.key === "career" || phase.key === "cfk")
+                  .filter((phase) => phase.key === "career" || (phase.key === "cfk" && hasCfk))
                   .map((phase) =>
                   phase.end > phase.start ? (
                     <ReferenceArea
@@ -2282,8 +2286,8 @@ const InvestmentCalculator = () => {
                   ) : null
                 )}
                 <ReferenceLine x={careerEndAge} stroke="#737373" strokeDasharray="4 4" />
-                <ReferenceLine x={cfkStartAge} stroke="#737373" strokeDasharray="4 4" />
-                <ReferenceLine x={lifeline.cfkPayoutEndAge} stroke="#737373" strokeDasharray="4 4" />
+                {hasCfk && <ReferenceLine x={cfkStartAge} stroke="#737373" strokeDasharray="4 4" />}
+                {hasCfk && <ReferenceLine x={lifeline.cfkPayoutEndAge} stroke="#737373" strokeDasharray="4 4" />}
                 <XAxis
                   type="number"
                   dataKey="age"
@@ -2300,14 +2304,14 @@ const InvestmentCalculator = () => {
                   tickLine={false}
                   width={68}
                 />
-                <Line type="monotone" dataKey="cfk" stroke="#1d4ed8" strokeWidth={3} dot={false} />
+                {hasCfk && <Line type="monotone" dataKey="cfk" stroke="#1d4ed8" strokeWidth={3} dot={false} />}
                 <Line type="monotone" dataKey="vva" stroke="#9d174d" strokeWidth={3} dot={false} />
               </LineChart>
             </ResponsiveContainer>
           </div>
           <div style={{ position: "relative", marginTop: "10px", height: "18px" }}>
             {lifelinePhases
-              .filter((phase) => phase.key === "career" || phase.key === "cfk")
+              .filter((phase) => phase.key === "career" || (phase.key === "cfk" && hasCfk))
               .map((phase) => {
                 return (
                   <div
@@ -2328,10 +2332,14 @@ const InvestmentCalculator = () => {
                 );
               })}
           </div>
-          <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "#4b5563" }}>
-            <span style={{ width: "14px", height: "3px", backgroundColor: "#1d4ed8", borderRadius: "2px" }} />
-            CFK vermogen
-          </div>
+          {hasCfk && (
+            <div
+              style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "#4b5563" }}
+            >
+              <span style={{ width: "14px", height: "3px", backgroundColor: "#1d4ed8", borderRadius: "2px" }} />
+              CFK vermogen
+            </div>
+          )}
           <div style={{ marginTop: "6px", display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "#4b5563" }}>
             <span style={{ width: "14px", height: "3px", backgroundColor: "#9d174d", borderRadius: "2px" }} />
             Vrij Vermogen Animo
