@@ -104,7 +104,6 @@ const InvestmentCalculator = () => {
   const [freeWealthStartPayoutAge, setFreeWealthStartPayoutAge] = useState(47);
   const [pensionAnimoValue, setPensionAnimoValue] = useState(0);
   const [pensionPayoutStartAge, setPensionPayoutStartAge] = useState(67);
-  const [otherWealth, setOtherWealth] = useState(50000);
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const [hoveredIndex2, setHoveredIndex2] = useState(null);
   const chartContainerRef = useRef(null);
@@ -920,9 +919,9 @@ const InvestmentCalculator = () => {
     const freeEnd = Math.max(freeWealthStartPayoutAge + 1, lifeline.freeWealthEndAge);
     const pensionEnd = pensionPayoutStartAge + lifeline.pensionPayoutYears;
     return [
-      { key: "career", label: "Carrière", start: careerStartAge, end: careerEndAge, color: "rgba(13,42,40,0.05)" },
+      { key: "career", label: "Carrière", start: careerStartAge, end: careerEndAge, color: "rgba(101,195,104,0.18)" },
       { key: "bridge", label: "Vrij Vermogen Animo", start: careerEndAge, end: cfkStartAge, color: "rgba(210,187,93,0.08)" },
-      { key: "cfk", label: "CFK", start: cfkStartAge, end: lifeline.cfkPayoutEndAge, color: "rgba(59,130,246,0.08)" },
+      { key: "cfk", label: "CFK", start: cfkStartAge, end: lifeline.cfkPayoutEndAge, color: "rgba(59,130,246,0.14)" },
       { key: "free", label: "Vrije periode", start: lifeline.cfkPayoutEndAge, end: freeEnd, color: "rgba(111,119,150,0.05)" },
       { key: "pension", label: "Pensioen Animo", start: pensionPayoutStartAge, end: pensionEnd, color: "rgba(16,185,129,0.05)" }
     ];
@@ -937,14 +936,19 @@ const InvestmentCalculator = () => {
     pensionPayoutStartAge
   ]);
 
-  const lifelineCfkGraphData = useMemo(
-    () =>
-      lifeline.potData.map((row) => ({
-        age: row.age,
-        cfk: row.cfk
-      })),
-    [lifeline.potData]
-  );
+  const lifelineCfkGraphData = useMemo(() => {
+    let hitZero = false;
+    return lifeline.potData.map((row) => {
+      if (hitZero) {
+        return { age: row.age, cfk: null };
+      }
+      const isZero = row.cfk <= 0;
+      if (isZero) {
+        hitZero = true;
+      }
+      return { age: row.age, cfk: row.cfk };
+    });
+  }, [lifeline.potData]);
 
   const getCalculatorModel = (isPrimary) =>
     isPrimary
@@ -2197,7 +2201,7 @@ const InvestmentCalculator = () => {
                   minWidth: "120px",
                   textAlign: "center",
                   fontSize: "12px",
-                  color: "#1f2937",
+                  color: phase.key === "career" ? "#65c368" : phase.key === "cfk" ? "#1d4ed8" : "#1f2937",
                   fontWeight: 600
                 }}
               >
@@ -2207,7 +2211,7 @@ const InvestmentCalculator = () => {
           </div>
           <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "#4b5563" }}>
             <span style={{ width: "14px", height: "3px", backgroundColor: "#1d4ed8", borderRadius: "2px" }} />
-            CFK vermogen (op basis van CFK waarde, rendement en uitkeringsduur)
+            CFK vermogen
           </div>
         </div>
 
@@ -2216,7 +2220,7 @@ const InvestmentCalculator = () => {
             marginTop: "20px",
             display: "grid",
             gap: "16px",
-            gridTemplateColumns: isDesktop ? "repeat(4, minmax(0, 1fr))" : "1fr"
+            gridTemplateColumns: isDesktop ? "repeat(3, minmax(0, 1fr))" : "1fr"
           }}
         >
           <div style={{ background: "#fff", borderRadius: "8px", padding: "12px", border: "1px solid #e1dccb" }}>
@@ -2405,24 +2409,6 @@ const InvestmentCalculator = () => {
             </div>
           </div>
 
-          <div style={{ background: "#fff", borderRadius: "8px", padding: "12px", border: "1px solid #e1dccb" }}>
-            <div style={{ fontSize: "14px", fontWeight: 700, marginBottom: "10px" }}>Overige vermogen</div>
-            <input
-              type="number"
-              min="0"
-              value={otherWealth}
-              onChange={(e) => setOtherWealth(clampEuro(e.target.value, 0, 5000000))}
-              style={{
-                width: "100%",
-                padding: "6px 8px",
-                border: "1px solid #D2BB5D",
-                borderRadius: "6px",
-                fontSize: "14px",
-                outline: "none",
-                backgroundColor: "#fff"
-              }}
-            />
-          </div>
         </div>
 
         <div style={{ marginTop: "24px", display: "grid", gap: "20px" }}>
