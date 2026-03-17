@@ -835,9 +835,10 @@ const InvestmentCalculator = () => {
       startAmount;
     const cfkDurationYears = cfkDurationMonths / 12;
     const cfkGrowthRate = cfkReturnRate / 100;
-    const cfkBalanceAtCareerEnd = cfkPot;
-    const cfkBufferYears = Math.max(0, cfkStartAge - careerEndAge);
-    const cfkBalanceAtPayoutStart = cfkBalanceAtCareerEnd * Math.pow(1 + cfkGrowthRate, cfkBufferYears);
+    const cfkYearsToCareerEnd = Math.max(0, careerEndAge - startAge);
+    const cfkYearsToPayoutStart = Math.max(0, cfkStartAge - startAge);
+    const cfkBalanceAtCareerEnd = cfkPot * Math.pow(1 + cfkGrowthRate, cfkYearsToCareerEnd);
+    const cfkBalanceAtPayoutStart = cfkPot * Math.pow(1 + cfkGrowthRate, cfkYearsToPayoutStart);
     const cfkAnnualPayout = cfkDurationYears > 0 ? cfkBalanceAtPayoutStart / cfkDurationYears : 0;
     const cfkPayoutEndAge = cfkStartAge + cfkDurationYears;
 
@@ -874,13 +875,10 @@ const InvestmentCalculator = () => {
       let pensionIncome = 0;
       let cfkBalance = 0;
 
-      if (age < careerEndAge) {
-        // During active career we show the CFK input as base level.
-        cfkBalance = cfkBalanceAtCareerEnd;
-      } else if (age < cfkStartAge) {
-        // Three-year bridge period after career end; CFK keeps compounding.
-        const yearsSinceCareerEnd = age - careerEndAge;
-        cfkBalance = cfkBalanceAtCareerEnd * Math.pow(1 + cfkGrowthRate, yearsSinceCareerEnd);
+      if (age < cfkStartAge) {
+        // CFK grows yearly from start age up to payout start age.
+        const yearsSinceStart = Math.max(0, age - startAge);
+        cfkBalance = cfkPot * Math.pow(1 + cfkGrowthRate, yearsSinceStart);
       } else if (age >= cfkStartAge && age < cfkPayoutEndAge) {
         // During payout years balance decreases by yearly payout, but keeps returning.
         cfkBalance = cfkBalanceDuringPayout;
