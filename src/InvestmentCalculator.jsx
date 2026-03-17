@@ -1051,7 +1051,7 @@ const InvestmentCalculator = () => {
       <div
         key={`calculator-${calculatorIndex}`}
         style={{
-          marginTop: isDesktop ? (calculatorIndex === 0 ? "56px" : "210px") : (calculatorIndex === 0 ? "0" : "128px")
+          marginTop: isDesktop ? (calculatorIndex === 0 ? "56px" : "140px") : (calculatorIndex === 0 ? "0" : "88px")
         }}
       >
         <div
@@ -1066,7 +1066,7 @@ const InvestmentCalculator = () => {
           <div style={{ width: isDesktop ? "40%" : "100%", display: "flex", justifyContent: "center" }}>
             <div
               style={{
-                fontSize: isDesktop ? "50px" : "34px",
+                fontSize: isDesktop ? "42px" : "30px",
                 lineHeight: 1.05,
                 fontWeight: 700,
                 color: "#0d2a28",
