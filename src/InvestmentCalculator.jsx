@@ -68,6 +68,7 @@ const InvestmentCalculator = () => {
   ]);
   const [startDepositsInYear2, setStartDepositsInYear2] = useState(false);
   const [profile, setProfile] = useState("Gedreven");
+  const [isCalculatorExpanded, setIsCalculatorExpanded] = useState(false);
   const [cfkPot, setCfkPot] = useState(200000);
   const [cfkReturnRate, setCfkReturnRate] = useState(2.5);
   const [cfkDurationMonths, setCfkDurationMonths] = useState(120);
@@ -851,23 +852,43 @@ const InvestmentCalculator = () => {
             </div>
           </div>
 
-          {/* Phase 1 End Year */}
-          <div style={{ marginBottom: "32px" }}>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: "16px"
-              }}
-            >
-              <label style={{ fontSize: "18px", fontWeight: "500", color: "#111827" }}>
-                Fase 1 tot jaar
-              </label>
-              <span style={{ fontSize: "20px", fontWeight: "bold" }}>
-                {phase1Years} jaar
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => setIsCalculatorExpanded((prev) => !prev)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                setIsCalculatorExpanded((prev) => !prev);
+              }
+            }}
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "12px",
+              cursor: "pointer",
+              userSelect: "none"
+            }}
+          >
+            <span style={{ fontSize: "18px", fontWeight: "600", color: "#111827" }}>Fase 1 tot jaar</span>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <span style={{ fontSize: "18px", fontWeight: "700" }}>{phase1Years} jaar</span>
+              <span
+                style={{
+                  display: "inline-block",
+                  transform: isCalculatorExpanded ? "rotate(180deg)" : "rotate(0deg)",
+                  transition: "transform 200ms ease",
+                  fontSize: "18px"
+                }}
+              >
+                ▾
               </span>
             </div>
+          </div>
+
+          {/* Phase 1 End Year */}
+          <div style={{ marginBottom: "32px" }}>
             <div style={{ position: "relative" }}>
               <input
                 type="range"
@@ -901,76 +922,85 @@ const InvestmentCalculator = () => {
             </div>
           </div>
 
-          {/* Monthly Deposit - Phase 2 */}
-          <div style={{ marginBottom: "32px" }}>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: "16px"
-              }}
-            >
-              <label style={{ fontSize: "18px", fontWeight: "500", color: "#111827" }}>
-                Inleg p/m fase 2
-              </label>
-              <span style={{ fontSize: "20px", fontWeight: "bold" }}>
-                {formatCurrency(phase2MonthlyDeposit)}
-              </span>
-            </div>
-            <div style={{ position: "relative" }}>
-              <input
-                type="range"
-                min="0"
-                max="10000"
-                step="100"
-                value={phase2MonthlyDeposit}
-                onChange={(e) => setPhase2MonthlyDeposit(Number(e.target.value))}
-                style={{
-                  width: "100%",
-                  height: "8px",
-                  borderRadius: "4px",
-                  background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${(phase2MonthlyDeposit / 10000) * 100}%, #E5E7EB ${(phase2MonthlyDeposit / 10000) * 100}%, #E5E7EB 100%)`,
-                  outline: "none",
-                  appearance: "none",
-                  cursor: "pointer"
-                }}
-              />
+          <div
+            style={{
+              maxHeight: isCalculatorExpanded ? "2600px" : "0px",
+              overflow: "hidden",
+              transition: "max-height 300ms ease, opacity 200ms ease",
+              opacity: isCalculatorExpanded ? 1 : 0,
+              pointerEvents: isCalculatorExpanded ? "auto" : "none"
+            }}
+          >
+            {/* Monthly Deposit - Phase 2 */}
+            <div style={{ marginBottom: "32px" }}>
               <div
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
-                  fontSize: "14px",
-                  color: "#6B7280",
-                  marginTop: "8px"
+                  alignItems: "center",
+                  marginBottom: "16px"
                 }}
               >
-                <span>€0</span>
-                <span>€10.000</span>
+                <label style={{ fontSize: "18px", fontWeight: "500", color: "#111827" }}>
+                  Inleg p/m fase 2
+                </label>
+                <span style={{ fontSize: "20px", fontWeight: "bold" }}>
+                  {formatCurrency(phase2MonthlyDeposit)}
+                </span>
               </div>
-              <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "8px" }}>
-                <span style={{ fontSize: "14px", color: "#6B7280" }}>Exact p/m:</span>
-                <span style={{ fontSize: "14px", color: "#111827" }}>€</span>
+              <div style={{ position: "relative" }}>
                 <input
-                  type="number"
+                  type="range"
                   min="0"
                   max="10000"
-                  step="1"
+                  step="100"
                   value={phase2MonthlyDeposit}
-                  onChange={(e) => setPhase2MonthlyDeposit(clampEuro(e.target.value))}
+                  onChange={(e) => setPhase2MonthlyDeposit(Number(e.target.value))}
                   style={{
-                    width: "120px",
-                    padding: "6px 8px",
-                    border: "1px solid #D2BB5D",
-                    borderRadius: "6px",
-                    fontSize: "14px",
+                    width: "100%",
+                    height: "8px",
+                    borderRadius: "4px",
+                    background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${(phase2MonthlyDeposit / 10000) * 100}%, #E5E7EB ${(phase2MonthlyDeposit / 10000) * 100}%, #E5E7EB 100%)`,
                     outline: "none",
-                    backgroundColor: "#fff"
+                    appearance: "none",
+                    cursor: "pointer"
                   }}
                 />
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    fontSize: "14px",
+                    color: "#6B7280",
+                    marginTop: "8px"
+                  }}
+                >
+                  <span>€0</span>
+                  <span>€10.000</span>
+                </div>
+                <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "8px" }}>
+                  <span style={{ fontSize: "14px", color: "#6B7280" }}>Exact p/m:</span>
+                  <span style={{ fontSize: "14px", color: "#111827" }}>€</span>
+                  <input
+                    type="number"
+                    min="0"
+                    max="10000"
+                    step="1"
+                    value={phase2MonthlyDeposit}
+                    onChange={(e) => setPhase2MonthlyDeposit(clampEuro(e.target.value))}
+                    style={{
+                      width: "120px",
+                      padding: "6px 8px",
+                      border: "1px solid #D2BB5D",
+                      borderRadius: "6px",
+                      fontSize: "14px",
+                      outline: "none",
+                      backgroundColor: "#fff"
+                    }}
+                  />
+                </div>
               </div>
             </div>
-          </div>
 
           {/* Phase 2 End Year */}
           <div style={{ marginBottom: "32px" }}>
@@ -1346,8 +1376,8 @@ const InvestmentCalculator = () => {
               <option value="Ambitieus">Ambitieus</option>
             </select>
           </div>
-
         </div>
+          </div>
 
         {/* Right Panel - Results (60% on desktop) */}
         <div
