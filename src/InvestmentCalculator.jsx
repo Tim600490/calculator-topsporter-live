@@ -855,6 +855,7 @@ const InvestmentCalculator = () => {
           <div
             role="button"
             tabIndex={0}
+            aria-expanded={isCalculatorExpanded}
             onClick={() => setIsCalculatorExpanded((prev) => !prev)}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {
@@ -868,7 +869,11 @@ const InvestmentCalculator = () => {
               alignItems: "center",
               marginBottom: "12px",
               cursor: "pointer",
-              userSelect: "none"
+              userSelect: "none",
+              border: "1px solid #d8d2bf",
+              borderRadius: "8px",
+              padding: "10px 12px",
+              backgroundColor: "#fbf9f1"
             }}
           >
             <span style={{ fontSize: "18px", fontWeight: "600", color: "#111827" }}>Fase 1 tot jaar</span>
@@ -876,13 +881,21 @@ const InvestmentCalculator = () => {
               <span style={{ fontSize: "18px", fontWeight: "700" }}>{phase1Years} jaar</span>
               <span
                 style={{
-                  display: "inline-block",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: "28px",
+                  height: "28px",
+                  borderRadius: "999px",
+                  border: "1px solid #d8d2bf",
+                  backgroundColor: "#ffffff",
                   transform: isCalculatorExpanded ? "rotate(180deg)" : "rotate(0deg)",
-                  transition: "transform 200ms ease",
-                  fontSize: "18px"
+                  transition: "transform 200ms ease"
                 }}
               >
-                ▾
+                <svg width="12" height="8" viewBox="0 0 12 8" aria-hidden="true">
+                  <path d="M1 1l5 5 5-5" fill="none" stroke="#111827" strokeWidth="1.7" strokeLinecap="round" />
+                </svg>
               </span>
             </div>
           </div>
@@ -922,15 +935,15 @@ const InvestmentCalculator = () => {
             </div>
           </div>
 
-          <div
-            style={{
-              maxHeight: isCalculatorExpanded ? "2600px" : "0px",
-              overflow: "hidden",
-              transition: "max-height 300ms ease, opacity 200ms ease",
-              opacity: isCalculatorExpanded ? 1 : 0,
-              pointerEvents: isCalculatorExpanded ? "auto" : "none"
-            }}
-          >
+          <div style={{ display: "grid", gridTemplateRows: isCalculatorExpanded ? "1fr" : "0fr", transition: "grid-template-rows 320ms ease" }}>
+            <div
+              style={{
+                overflow: "hidden",
+                opacity: isCalculatorExpanded ? 1 : 0,
+                transition: "opacity 200ms ease",
+                pointerEvents: isCalculatorExpanded ? "auto" : "none"
+              }}
+            >
             {/* Monthly Deposit - Phase 2 */}
             <div style={{ marginBottom: "32px" }}>
               <div
@@ -1376,6 +1389,7 @@ const InvestmentCalculator = () => {
               <option value="Ambitieus">Ambitieus</option>
             </select>
           </div>
+            </div>
         </div>
           </div>
 
