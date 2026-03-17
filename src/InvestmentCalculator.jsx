@@ -664,14 +664,15 @@ const InvestmentCalculator = () => {
           'Satoshi, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
       }}
     >
-      {/* Main Content - Desktop: Side by Side */}
+      {[0, 1].map((calculatorIndex) => (
       <div
+        key={`calculator-${calculatorIndex}`}
         style={{
           display: "flex",
           gap: "32px",
           flexDirection: isDesktop ? "row" : "column",
           alignItems: "flex-start",
-          marginTop: isDesktop ? "120px" : "0"
+          marginTop: isDesktop ? (calculatorIndex === 0 ? "120px" : "48px") : (calculatorIndex === 0 ? "0" : "24px")
         }}
       >
         {/* Left Panel - Input Controls (40% on desktop) */}
@@ -1459,7 +1460,7 @@ const InvestmentCalculator = () => {
               height: "100%"
             }}
           >
-            <div style={{ height: "450px", position: "relative" }} ref={chartContainerRef}>
+            <div style={{ height: "450px", position: "relative" }} ref={calculatorIndex === 0 ? chartContainerRef : null}>
               <div
                 style={{
                   position: "absolute",
@@ -1485,7 +1486,7 @@ const InvestmentCalculator = () => {
                   <line x1="270" y1="210" x2="270" y2="306" stroke="#F7F5E9" strokeWidth="42" strokeLinecap="round" />
                 </svg>
               </div>
-              {hoveredPoint && tooltipAnchor ? (
+              {calculatorIndex === 0 && hoveredPoint && tooltipAnchor ? (
                 <AnchoredBarTooltip
                   point={hoveredPoint}
                   label={hoveredPoint.year}
@@ -1499,7 +1500,7 @@ const InvestmentCalculator = () => {
                   <BarChart
                     data={calculationData}
                     margin={{ top: 20, right: 30, left: 20, bottom: 40 }}
-                    onMouseLeave={() => setHoveredIndex(null)}
+                    onMouseLeave={calculatorIndex === 0 ? () => setHoveredIndex(null) : undefined}
                   >
                     <defs>
                       <linearGradient id="whiteGradient" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -1546,21 +1547,21 @@ const InvestmentCalculator = () => {
                       stroke="#D1D5DB"
                       strokeWidth={1}
                       radius={[0, 0, 4, 4]}
-                      onMouseOver={(_, index) => setHoveredIndex(index)}
+                      onMouseOver={calculatorIndex === 0 ? (_, index) => setHoveredIndex(index) : undefined}
                     />
                     <Bar
                       dataKey="deposits"
                       stackId="stack"
                       fill="url(#darkGradient)"
                       radius={[0, 0, 0, 0]}
-                      onMouseOver={(_, index) => setHoveredIndex(index)}
+                      onMouseOver={calculatorIndex === 0 ? (_, index) => setHoveredIndex(index) : undefined}
                     />
                     <Bar
                       dataKey="interest"
                       stackId="stack"
                       fill="url(#goldGradient)"
                       radius={[4, 4, 0, 0]}
-                      onMouseOver={(_, index) => setHoveredIndex(index)}
+                      onMouseOver={calculatorIndex === 0 ? (_, index) => setHoveredIndex(index) : undefined}
                     />
                   </BarChart>
                 </ResponsiveContainer>
@@ -1623,6 +1624,7 @@ const InvestmentCalculator = () => {
           </div>
         </div>
       </div>
+      ))}
 
       <section
         style={{
