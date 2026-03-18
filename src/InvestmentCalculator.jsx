@@ -208,6 +208,7 @@ const InvestmentCalculator = () => {
   const [freeWealthPayouts, setFreeWealthPayouts] = useState([
     { amount: 0, fromAge: 35, toAge: 36 },
     { amount: 0, fromAge: 35, toAge: 36 },
+    { amount: 0, fromAge: 35, toAge: 36 },
     { amount: 0, fromAge: 35, toAge: 36 }
   ]);
   const [hoveredIndex, setHoveredIndex] = useState(null);
