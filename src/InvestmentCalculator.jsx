@@ -50,6 +50,53 @@ const AnchoredBarTooltip = ({ point, label, left, top, formatCurrency }) => {
   );
 };
 
+const AnchoredIncomeTooltip = ({ point, label, left, top, formatCurrency }) => {
+  if (!point) {
+    return null;
+  }
+
+  const rows = [
+    { key: "vrij", color: "#d2bb5d", label: "Vrij Vermogen Animo", value: point.vrij || 0, bruto: false },
+    { key: "cfk", color: "#0d2a28", label: "CFK", value: point.cfk || 0, bruto: true },
+    { key: "pensioen", color: "#6672a8", label: "Pensioen Animo", value: point.pensioen || 0, bruto: true }
+  ].filter((row) => row.value > 0);
+
+  return (
+    <div
+      style={{
+        backgroundColor: "rgba(45, 45, 45, 0.95)",
+        color: "#fff",
+        borderRadius: "6px",
+        padding: "8px 10px",
+        fontSize: "12px",
+        lineHeight: "1.35",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+        position: "absolute",
+        left,
+        top,
+        transform: "translate(-50%, calc(-100% - 3px))",
+        zIndex: 5,
+        whiteSpace: "nowrap"
+      }}
+    >
+      <div style={{ fontWeight: 700, marginBottom: "4px" }}>{label}</div>
+      {rows.length === 0 ? (
+        <div style={{ color: "rgba(255,255,255,0.8)" }}>Geen uitkering</div>
+      ) : (
+        rows.map((row) => (
+          <div key={row.key} style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "2px" }}>
+            <span style={{ width: "8px", height: "8px", background: row.color }} />
+            <span>
+              {row.label}
+              {row.bruto ? <span style={{ fontSize: "10px", opacity: 0.85 }}> bruto</span> : ""}: {formatCurrency(row.value)}
+            </span>
+          </div>
+        ))
+      )}
+    </div>
+  );
+};
+
 const clampEuro = (value, min = 0, max = 10000) => {
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) {
@@ -116,6 +163,7 @@ const InvestmentCalculator = () => {
   ]);
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const [hoveredIndex2, setHoveredIndex2] = useState(null);
+  const [hoveredIncomeIndex, setHoveredIncomeIndex] = useState(null);
   const chartContainerRef = useRef(null);
   const chartContainerRef2 = useRef(null);
   const lifelineChartContainerRef = useRef(null);
@@ -728,6 +776,28 @@ const InvestmentCalculator = () => {
 
     return { left, top };
   }, [calculationData2, chartSize2.height, chartSize2.width, hoveredIndex2, hoveredPoint2]);
+  const hoveredIncomePoint = hoveredIncomeIndex != null ? lifeline.incomeData[hoveredIncomeIndex] : null;
+  const incomeTooltipAnchor = useMemo(() => {
+    if (!hoveredIncomePoint || !incomeChartSize.width || !incomeChartSize.height || lifeline.incomeData.length === 0) {
+      return null;
+    }
+
+    const margin = { top: 10, right: 16, left: 0, bottom: 4 };
+    const yAxisWidth = 60;
+    const plotWidth = incomeChartSize.width - margin.left - margin.right - yAxisWidth;
+    const plotHeight = incomeChartSize.height - margin.top - margin.bottom;
+    if (plotWidth <= 0 || plotHeight <= 0) {
+      return null;
+    }
+
+    const step = plotWidth / lifeline.incomeData.length;
+    const left = margin.left + yAxisWidth + step * hoveredIncomeIndex + step / 2;
+    const maxTotal = Math.max(...lifeline.incomeData.map((row) => (row.cfk || 0) + (row.vrij || 0) + (row.pensioen || 0)), 1);
+    const total = (hoveredIncomePoint.cfk || 0) + (hoveredIncomePoint.vrij || 0) + (hoveredIncomePoint.pensioen || 0);
+    const top = margin.top + (1 - total / maxTotal) * plotHeight;
+
+    return { left, top };
+  }, [hoveredIncomePoint, incomeChartSize.width, incomeChartSize.height, lifeline.incomeData, hoveredIncomeIndex]);
 
   const barYearTicks = useMemo(() => {
     const horizon = Math.max(1, investmentHorizon);
@@ -2610,6 +2680,15 @@ const InvestmentCalculator = () => {
           <div>
             <div style={{ fontSize: "15px", fontWeight: 700, marginBottom: "8px" }}>Inkomensoverzicht per jaar</div>
             <div ref={incomeChartContainerRef} style={{ height: "220px", position: "relative" }}>
+              {hoveredIncomePoint && incomeTooltipAnchor ? (
+                <AnchoredIncomeTooltip
+                  point={hoveredIncomePoint}
+                  label={hoveredIncomePoint.age}
+                  left={incomeTooltipAnchor.left}
+                  top={incomeTooltipAnchor.top}
+                  formatCurrency={formatCurrency}
+                />
+              ) : null}
               {careerEndAge > careerStartAge && (
                 <div
                   style={{
@@ -2630,7 +2709,11 @@ const InvestmentCalculator = () => {
                 </div>
               )}
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={lifeline.incomeData} margin={{ top: 10, right: 16, left: 0, bottom: 4 }}>
+                <BarChart
+                  data={lifeline.incomeData}
+                  margin={{ top: 10, right: 16, left: 0, bottom: 4 }}
+                  onMouseLeave={() => setHoveredIncomeIndex(null)}
+                >
                   {careerEndAge > careerStartAge && (
                     <ReferenceArea
                       x1={careerStartAge}
@@ -2650,10 +2733,16 @@ const InvestmentCalculator = () => {
                   <YAxis
                     tick={{ fontSize: 11, fill: "#6B7280" }}
                     tickFormatter={(value) => Math.round(value).toLocaleString("nl-NL")}
+                    width={60}
                   />
-                  <Bar dataKey="cfk" stackId="income" fill="#0d2a28" />
-                  <Bar dataKey="vrij" stackId="income" fill="#d2bb5d" />
-                  <Bar dataKey="pensioen" stackId="income" fill="#6672a8" />
+                  <Bar dataKey="cfk" stackId="income" fill="#0d2a28" onMouseOver={(_, index) => setHoveredIncomeIndex(index)} />
+                  <Bar dataKey="vrij" stackId="income" fill="#d2bb5d" onMouseOver={(_, index) => setHoveredIncomeIndex(index)} />
+                  <Bar
+                    dataKey="pensioen"
+                    stackId="income"
+                    fill="#6672a8"
+                    onMouseOver={(_, index) => setHoveredIncomeIndex(index)}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </div>
