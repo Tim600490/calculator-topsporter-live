@@ -119,9 +119,11 @@ const InvestmentCalculator = () => {
   const chartContainerRef = useRef(null);
   const chartContainerRef2 = useRef(null);
   const lifelineChartContainerRef = useRef(null);
+  const incomeChartContainerRef = useRef(null);
   const [chartSize, setChartSize] = useState({ width: 0, height: 0 });
   const [chartSize2, setChartSize2] = useState({ width: 0, height: 0 });
   const [lifelineChartSize, setLifelineChartSize] = useState({ width: 0, height: 0 });
+  const [incomeChartSize, setIncomeChartSize] = useState({ width: 0, height: 0 });
   const hasCfk = cfkPot > 0;
 
   // Risk profile returns (exact net annual returns)
@@ -550,6 +552,22 @@ const InvestmentCalculator = () => {
       setLifelineChartSize({
         width: lifelineChartContainerRef.current.clientWidth,
         height: lifelineChartContainerRef.current.clientHeight
+      });
+    };
+
+    updateSize();
+    window.addEventListener("resize", updateSize);
+    return () => window.removeEventListener("resize", updateSize);
+  }, []);
+
+  useEffect(() => {
+    const updateSize = () => {
+      if (!incomeChartContainerRef.current) {
+        return;
+      }
+      setIncomeChartSize({
+        width: incomeChartContainerRef.current.clientWidth,
+        height: incomeChartContainerRef.current.clientHeight
       });
     };
 
@@ -1077,6 +1095,20 @@ const InvestmentCalculator = () => {
     const span = Math.max(1, lifeline.maxAge - startAge);
     const plotWidth = lifelineChartSize.width - marginLeft - marginRight - yAxisWidth;
     const centerAge = (phase.start + phase.end) / 2;
+    const ratio = (centerAge - startAge) / span;
+    const x = marginLeft + yAxisWidth + Math.max(0, Math.min(1, ratio)) * Math.max(0, plotWidth);
+    return `${x}px`;
+  };
+  const getIncomeCareerLabelLeft = () => {
+    if (!incomeChartSize.width) {
+      return "50%";
+    }
+    const marginLeft = 0;
+    const marginRight = 16;
+    const yAxisWidth = 60;
+    const span = Math.max(1, lifeline.maxAge - startAge);
+    const plotWidth = incomeChartSize.width - marginLeft - marginRight - yAxisWidth;
+    const centerAge = (careerStartAge + careerEndAge) / 2;
     const ratio = (centerAge - startAge) / span;
     const x = marginLeft + yAxisWidth + Math.max(0, Math.min(1, ratio)) * Math.max(0, plotWidth);
     return `${x}px`;
@@ -2604,7 +2636,26 @@ const InvestmentCalculator = () => {
         <div style={{ marginTop: "24px", display: "grid", gap: "20px" }}>
           <div>
             <div style={{ fontSize: "15px", fontWeight: 700, marginBottom: "8px" }}>Inkomensoverzicht per jaar</div>
-            <div style={{ height: "220px" }}>
+            <div ref={incomeChartContainerRef} style={{ height: "220px", position: "relative" }}>
+              {careerEndAge > careerStartAge && (
+                <div
+                  style={{
+                    position: "absolute",
+                    left: getIncomeCareerLabelLeft(),
+                    top: "39%",
+                    transform: "translate(-50%, -50%)",
+                    fontSize: "12px",
+                    lineHeight: 1.15,
+                    color: "rgba(0,0,0,0.45)",
+                    textAlign: "center",
+                    pointerEvents: "none",
+                    zIndex: 2
+                  }}
+                >
+                  <div>Inkomsten</div>
+                  <div>uit voetbal</div>
+                </div>
+              )}
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={lifeline.incomeData} margin={{ top: 10, right: 16, left: 0, bottom: 4 }}>
                   {careerEndAge > careerStartAge && (
