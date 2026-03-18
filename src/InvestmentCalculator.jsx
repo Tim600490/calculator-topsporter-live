@@ -192,9 +192,9 @@ const InvestmentCalculator = () => {
     { amount: 0, year: 5, month: 6 }
   ]);
   const [oneTimeExtras2, setOneTimeExtras2] = useState([
-    { amount: 0, year: 5, month: 6 },
-    { amount: 0, year: 5, month: 6 },
-    { amount: 0, year: 5, month: 6 }
+    { amount: 0, year: 1, month: 12 },
+    { amount: 0, year: 2, month: 12 },
+    { amount: 0, year: 3, month: 12 }
   ]);
   const [startDepositsInYear2, setStartDepositsInYear2] = useState(false);
   const [startDepositsInYear22, setStartDepositsInYear22] = useState(false);
