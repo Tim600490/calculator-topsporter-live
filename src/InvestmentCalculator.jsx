@@ -2607,6 +2607,16 @@ const InvestmentCalculator = () => {
             <div style={{ height: "220px" }}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={lifeline.incomeData} margin={{ top: 10, right: 16, left: 0, bottom: 4 }}>
+                  {careerEndAge > careerStartAge && (
+                    <ReferenceArea
+                      x1={careerStartAge}
+                      x2={careerEndAge}
+                      fill="rgba(101,195,104,0.18)"
+                      strokeOpacity={0}
+                    />
+                  )}
+                  <ReferenceLine x={careerStartAge} stroke="#8a8a8a" strokeDasharray="3 4" />
+                  <ReferenceLine x={careerEndAge} stroke="#8a8a8a" strokeDasharray="3 4" />
                   <XAxis
                     dataKey="age"
                     ticks={lifelineTicks}
