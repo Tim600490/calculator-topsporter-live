@@ -2612,8 +2612,8 @@ const InvestmentCalculator = () => {
                     tick={{ fontSize: 11, fill: "#6B7280" }}
                     tickFormatter={(value) => Math.round(value).toLocaleString("nl-NL")}
                   />
-                  <Bar dataKey="cfk" stackId="income" fill="#c7a636" />
-                  <Bar dataKey="vrij" stackId="income" fill="#0d2a28" />
+                  <Bar dataKey="cfk" stackId="income" fill="#0d2a28" />
+                  <Bar dataKey="vrij" stackId="income" fill="#d2bb5d" />
                   <Bar dataKey="pensioen" stackId="income" fill="#6672a8" />
                 </BarChart>
               </ResponsiveContainer>
@@ -2636,8 +2636,8 @@ const InvestmentCalculator = () => {
                     tick={{ fontSize: 11, fill: "#6B7280" }}
                     tickFormatter={(value) => Math.round(value).toLocaleString("nl-NL")}
                   />
-                  <Bar dataKey="cfk" stackId="pots" fill="#c7a636" />
-                  <Bar dataKey="vrij" stackId="pots" fill="#0d2a28" />
+                  <Bar dataKey="cfk" stackId="pots" fill="#0d2a28" />
+                  <Bar dataKey="vrij" stackId="pots" fill="#d2bb5d" />
                   <Bar dataKey="pensioen" stackId="pots" fill="#6672a8" />
                 </BarChart>
               </ResponsiveContainer>
@@ -2669,12 +2669,12 @@ const InvestmentCalculator = () => {
           border: none;
         }
 
-        .cfk-duration-slider::-webkit-slider-thumb {
-          background: #0d2a28;
+        input.cfk-duration-slider::-webkit-slider-thumb {
+          background: #0d2a28 !important;
         }
 
-        .cfk-duration-slider::-moz-range-thumb {
-          background: #0d2a28;
+        input.cfk-duration-slider::-moz-range-thumb {
+          background: #0d2a28 !important;
         }
       `}</style>
       </div>
