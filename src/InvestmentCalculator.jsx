@@ -56,7 +56,7 @@ const AnchoredIncomeTooltip = ({ point, label, left, top, formatCurrency }) => {
   }
 
   const rows = [
-    { key: "vrij", color: "#d2bb5d", label: "Vrij Vermogen Animo", value: point.vrij || 0, bruto: false },
+    { key: "vrij", color: "#d2bb5d", label: "Vrij Vermogen Animo", value: point.vrij || 0, bruto: false, netto: true },
     { key: "cfk", color: "#0d2a28", label: "CFK", value: point.cfk || 0, bruto: true },
     { key: "pensioen", color: "#6672a8", label: "Pensioen Animo", value: point.pensioen || 0, bruto: true }
   ].filter((row) => row.value > 0);
@@ -88,7 +88,56 @@ const AnchoredIncomeTooltip = ({ point, label, left, top, formatCurrency }) => {
             <span style={{ width: "8px", height: "8px", background: row.color }} />
             <span>
               {row.label}
-              {row.bruto ? <span style={{ fontSize: "10px", opacity: 0.85 }}> bruto</span> : ""}: {formatCurrency(row.value)}
+              {row.bruto ? <span style={{ fontSize: "10px", opacity: 0.85 }}> bruto</span> : ""}
+              {row.netto ? <span style={{ fontSize: "10px", opacity: 0.85 }}> netto</span> : ""}: {formatCurrency(row.value)}
+            </span>
+          </div>
+        ))
+      )}
+    </div>
+  );
+};
+
+const AnchoredPotTooltip = ({ point, label, left, top, formatCurrency }) => {
+  if (!point) {
+    return null;
+  }
+
+  const rows = [
+    { key: "vrij", color: "#d2bb5d", label: "Vrij Vermogen Animo", value: point.vrij || 0, bruto: false, netto: true },
+    { key: "cfk", color: "#0d2a28", label: "CFK", value: point.cfk || 0, bruto: true },
+    { key: "pensioen", color: "#6672a8", label: "Pensioen Animo", value: point.pensioen || 0, bruto: true }
+  ].filter((row) => row.value > 0);
+
+  return (
+    <div
+      style={{
+        backgroundColor: "rgba(45, 45, 45, 0.95)",
+        color: "#fff",
+        borderRadius: "6px",
+        padding: "8px 10px",
+        fontSize: "12px",
+        lineHeight: "1.35",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+        position: "absolute",
+        left,
+        top,
+        transform: "translate(-50%, calc(-100% - 3px))",
+        zIndex: 5,
+        whiteSpace: "nowrap"
+      }}
+    >
+      <div style={{ fontWeight: 700, marginBottom: "4px" }}>{label}</div>
+      {rows.length === 0 ? (
+        <div style={{ color: "rgba(255,255,255,0.8)" }}>Geen vermogen</div>
+      ) : (
+        rows.map((row) => (
+          <div key={row.key} style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "2px" }}>
+            <span style={{ width: "8px", height: "8px", background: row.color }} />
+            <span>
+              {row.label}
+              {row.bruto ? <span style={{ fontSize: "10px", opacity: 0.85 }}> bruto</span> : ""}
+              {row.netto ? <span style={{ fontSize: "10px", opacity: 0.85 }}> netto</span> : ""}: {formatCurrency(row.value)}
             </span>
           </div>
         ))
@@ -164,14 +213,17 @@ const InvestmentCalculator = () => {
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const [hoveredIndex2, setHoveredIndex2] = useState(null);
   const [hoveredIncomeIndex, setHoveredIncomeIndex] = useState(null);
+  const [hoveredPotIndex, setHoveredPotIndex] = useState(null);
   const chartContainerRef = useRef(null);
   const chartContainerRef2 = useRef(null);
   const lifelineChartContainerRef = useRef(null);
   const incomeChartContainerRef = useRef(null);
+  const potChartContainerRef = useRef(null);
   const [chartSize, setChartSize] = useState({ width: 0, height: 0 });
   const [chartSize2, setChartSize2] = useState({ width: 0, height: 0 });
   const [lifelineChartSize, setLifelineChartSize] = useState({ width: 0, height: 0 });
   const [incomeChartSize, setIncomeChartSize] = useState({ width: 0, height: 0 });
+  const [potChartSize, setPotChartSize] = useState({ width: 0, height: 0 });
   const hasCfk = cfkPot > 0;
 
   // Risk profile returns (exact net annual returns)
@@ -568,6 +620,22 @@ const InvestmentCalculator = () => {
       setChartSize({
         width: chartContainerRef.current.clientWidth,
         height: chartContainerRef.current.clientHeight
+      });
+    };
+
+    updateSize();
+    window.addEventListener("resize", updateSize);
+    return () => window.removeEventListener("resize", updateSize);
+  }, []);
+
+  useEffect(() => {
+    const updateSize = () => {
+      if (!potChartContainerRef.current) {
+        return;
+      }
+      setPotChartSize({
+        width: potChartContainerRef.current.clientWidth,
+        height: potChartContainerRef.current.clientHeight
       });
     };
 
@@ -1150,6 +1218,28 @@ const InvestmentCalculator = () => {
 
     return { left, top };
   }, [hoveredIncomePoint, incomeChartSize.width, incomeChartSize.height, lifeline.incomeData, hoveredIncomeIndex]);
+  const hoveredPotPoint = hoveredPotIndex != null ? lifeline.potData[hoveredPotIndex] : null;
+  const potTooltipAnchor = useMemo(() => {
+    if (!hoveredPotPoint || !potChartSize.width || !potChartSize.height || lifeline.potData.length === 0) {
+      return null;
+    }
+
+    const margin = { top: 10, right: 16, left: 0, bottom: 4 };
+    const yAxisWidth = 60;
+    const plotWidth = potChartSize.width - margin.left - margin.right - yAxisWidth;
+    const plotHeight = potChartSize.height - margin.top - margin.bottom;
+    if (plotWidth <= 0 || plotHeight <= 0) {
+      return null;
+    }
+
+    const step = plotWidth / lifeline.potData.length;
+    const left = margin.left + yAxisWidth + step * hoveredPotIndex + step / 2;
+    const maxTotal = Math.max(...lifeline.potData.map((row) => (row.cfk || 0) + (row.vrij || 0) + (row.pensioen || 0)), 1);
+    const total = (hoveredPotPoint.cfk || 0) + (hoveredPotPoint.vrij || 0) + (hoveredPotPoint.pensioen || 0);
+    const top = margin.top + (1 - total / maxTotal) * plotHeight;
+
+    return { left, top };
+  }, [hoveredPotPoint, potChartSize.width, potChartSize.height, lifeline.potData, hoveredPotIndex]);
 
   const freeWealthExpectedEndResult = lifeline.potData[lifeline.potData.length - 1]?.vrij ?? 0;
   const pensionExpectedEndResult = lifeline.pensionCapitalAtAow ?? 0;
@@ -2750,9 +2840,22 @@ const InvestmentCalculator = () => {
             <div style={{ fontSize: "15px", fontWeight: 700, marginBottom: "8px" }}>
               Vermogensoverzicht per jaar
             </div>
-            <div style={{ height: "220px" }}>
+            <div ref={potChartContainerRef} style={{ height: "220px", position: "relative" }}>
+              {hoveredPotPoint && potTooltipAnchor ? (
+                <AnchoredPotTooltip
+                  point={hoveredPotPoint}
+                  label={hoveredPotPoint.age}
+                  left={potTooltipAnchor.left}
+                  top={potTooltipAnchor.top}
+                  formatCurrency={formatCurrency}
+                />
+              ) : null}
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={lifeline.potData} margin={{ top: 10, right: 16, left: 0, bottom: 4 }}>
+                <BarChart
+                  data={lifeline.potData}
+                  margin={{ top: 10, right: 16, left: 0, bottom: 4 }}
+                  onMouseLeave={() => setHoveredPotIndex(null)}
+                >
                   <XAxis
                     dataKey="age"
                     ticks={lifelineTicks}
@@ -2762,10 +2865,16 @@ const InvestmentCalculator = () => {
                   <YAxis
                     tick={{ fontSize: 11, fill: "#6B7280" }}
                     tickFormatter={(value) => Math.round(value).toLocaleString("nl-NL")}
+                    width={60}
                   />
-                  <Bar dataKey="cfk" stackId="pots" fill="#0d2a28" />
-                  <Bar dataKey="vrij" stackId="pots" fill="#d2bb5d" />
-                  <Bar dataKey="pensioen" stackId="pots" fill="#6672a8" />
+                  <Bar dataKey="cfk" stackId="pots" fill="#0d2a28" onMouseOver={(_, index) => setHoveredPotIndex(index)} />
+                  <Bar dataKey="vrij" stackId="pots" fill="#d2bb5d" onMouseOver={(_, index) => setHoveredPotIndex(index)} />
+                  <Bar
+                    dataKey="pensioen"
+                    stackId="pots"
+                    fill="#6672a8"
+                    onMouseOver={(_, index) => setHoveredPotIndex(index)}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </div>
