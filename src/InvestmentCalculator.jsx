@@ -225,6 +225,7 @@ const InvestmentCalculator = () => {
   const [incomeChartSize, setIncomeChartSize] = useState({ width: 0, height: 0 });
   const [potChartSize, setPotChartSize] = useState({ width: 0, height: 0 });
   const hasCfk = cfkPot > 0;
+  const freeWealthHorizonAge = startAge + investmentHorizon;
 
   // Risk profile returns (exact net annual returns)
   const riskProfiles = {
@@ -1182,20 +1183,25 @@ const InvestmentCalculator = () => {
 
   const lifelineCfkGraphData = useMemo(() => {
     if (!hasCfk) {
-      return lifeline.potData.map((row) => ({ age: row.age, cfk: null, vva: row.vrij, pensioen: row.pensioen }));
+      return lifeline.potData.map((row) => ({
+        age: row.age,
+        cfk: null,
+        vva: row.age <= freeWealthHorizonAge ? row.vrij : null,
+        pensioen: row.pensioen
+      }));
     }
     let hitZero = false;
     return lifeline.potData.map((row) => {
       if (hitZero) {
-        return { age: row.age, cfk: null, vva: row.vrij, pensioen: row.pensioen };
+        return { age: row.age, cfk: null, vva: row.age <= freeWealthHorizonAge ? row.vrij : null, pensioen: row.pensioen };
       }
       const isZero = row.cfk <= 0;
       if (isZero) {
         hitZero = true;
       }
-      return { age: row.age, cfk: row.cfk, vva: row.vrij, pensioen: row.pensioen };
+      return { age: row.age, cfk: row.cfk, vva: row.age <= freeWealthHorizonAge ? row.vrij : null, pensioen: row.pensioen };
     });
-  }, [hasCfk, lifeline.potData]);
+  }, [hasCfk, freeWealthHorizonAge, lifeline.potData]);
   const hoveredIncomePoint = hoveredIncomeIndex != null ? lifeline.incomeData[hoveredIncomeIndex] : null;
   const incomeTooltipAnchor = useMemo(() => {
     if (!hoveredIncomePoint || !incomeChartSize.width || !incomeChartSize.height || lifeline.incomeData.length === 0) {
@@ -1241,7 +1247,10 @@ const InvestmentCalculator = () => {
     return { left, top };
   }, [hoveredPotPoint, potChartSize.width, potChartSize.height, lifeline.potData, hoveredPotIndex]);
 
-  const freeWealthExpectedEndResult = lifeline.potData[lifeline.potData.length - 1]?.vrij ?? 0;
+  const freeWealthExpectedEndResult =
+    lifeline.potData.find((row) => row.age === freeWealthHorizonAge)?.vrij ??
+    lifeline.potData[lifeline.potData.length - 1]?.vrij ??
+    0;
   const pensionExpectedEndResult = lifeline.pensionCapitalAtAow ?? 0;
   const hasPension = pensionExpectedEndResult > 0;
   const getLifelinePhaseLabelLeft = (phase) => {
