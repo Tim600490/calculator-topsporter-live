@@ -2234,7 +2234,8 @@ const InvestmentCalculator = () => {
             borderRadius: "8px",
             border: "1px solid rgba(210,187,93,0.35)",
             padding: "18px",
-            width: "100%"
+            boxSizing: "border-box",
+            maxWidth: "100%"
           }}
         >
           <h3 style={{ margin: 0, fontSize: "28px", lineHeight: "1.1" }}>
