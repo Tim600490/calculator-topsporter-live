@@ -1268,7 +1268,11 @@ const InvestmentCalculator = () => {
       <div
         key={`calculator-${calculatorIndex}`}
         style={{
-          marginTop: isDesktop ? (calculatorIndex === 0 ? "56px" : "32px") : (calculatorIndex === 0 ? "0" : "32px")
+          marginTop: calculatorIndex === 0 ? "0" : "32px",
+          backgroundColor: "#f5f2e9",
+          borderRadius: "10px",
+          border: "1px solid #d6d1c2",
+          padding: "24px"
         }}
       >
         <div
