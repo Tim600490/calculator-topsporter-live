@@ -2246,13 +2246,14 @@ const InvestmentCalculator = () => {
           </p>
           <div style={{ marginTop: "6px", height: "320px" }}>
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={showcaseGraph.data} margin={{ top: 16, right: 10, left: 10, bottom: 8 }}>
+              <LineChart data={showcaseGraph.data} margin={{ top: 16, right: 26, left: 18, bottom: 8 }}>
                 <CartesianGrid vertical={false} stroke="rgba(255,255,255,0.12)" />
                 <XAxis
                   type="number"
                   dataKey="yearValue"
                   domain={[2017, 2025]}
                   ticks={[2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025]}
+                  padding={{ left: 6, right: 14 }}
                   axisLine={{ stroke: "rgba(255,255,255,0.22)" }}
                   tickLine={false}
                   tick={{ fill: "#d2ddd8", fontSize: 12 }}
