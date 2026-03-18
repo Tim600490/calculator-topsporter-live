@@ -2311,9 +2311,14 @@ const InvestmentCalculator = () => {
                     />
                   ) : null
                 )}
-                <ReferenceLine x={careerEndAge} stroke="#737373" strokeDasharray="4 4" />
-                {hasCfk && <ReferenceLine x={cfkStartAge} stroke="#737373" strokeDasharray="4 4" />}
-                {hasCfk && <ReferenceLine x={lifeline.cfkPayoutEndAge} stroke="#737373" strokeDasharray="4 4" />}
+                <ReferenceLine x={careerStartAge} stroke="#8a8a8a" strokeDasharray="3 4" />
+                <ReferenceLine x={careerEndAge} stroke="#8a8a8a" strokeDasharray="3 4" />
+                {hasCfk && <ReferenceLine x={cfkStartAge} stroke="#8a8a8a" strokeDasharray="3 4" />}
+                {hasCfk && <ReferenceLine x={lifeline.cfkPayoutEndAge} stroke="#8a8a8a" strokeDasharray="3 4" />}
+                {hasPension && <ReferenceLine x={aowAge} stroke="#8a8a8a" strokeDasharray="3 4" />}
+                {hasPension && (
+                  <ReferenceLine x={aowAge + lifeline.pensionPayoutYears} stroke="#8a8a8a" strokeDasharray="3 4" />
+                )}
                 <XAxis
                   type="number"
                   dataKey="age"
