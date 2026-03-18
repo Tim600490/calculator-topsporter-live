@@ -776,29 +776,6 @@ const InvestmentCalculator = () => {
 
     return { left, top };
   }, [calculationData2, chartSize2.height, chartSize2.width, hoveredIndex2, hoveredPoint2]);
-  const hoveredIncomePoint = hoveredIncomeIndex != null ? lifeline.incomeData[hoveredIncomeIndex] : null;
-  const incomeTooltipAnchor = useMemo(() => {
-    if (!hoveredIncomePoint || !incomeChartSize.width || !incomeChartSize.height || lifeline.incomeData.length === 0) {
-      return null;
-    }
-
-    const margin = { top: 10, right: 16, left: 0, bottom: 4 };
-    const yAxisWidth = 60;
-    const plotWidth = incomeChartSize.width - margin.left - margin.right - yAxisWidth;
-    const plotHeight = incomeChartSize.height - margin.top - margin.bottom;
-    if (plotWidth <= 0 || plotHeight <= 0) {
-      return null;
-    }
-
-    const step = plotWidth / lifeline.incomeData.length;
-    const left = margin.left + yAxisWidth + step * hoveredIncomeIndex + step / 2;
-    const maxTotal = Math.max(...lifeline.incomeData.map((row) => (row.cfk || 0) + (row.vrij || 0) + (row.pensioen || 0)), 1);
-    const total = (hoveredIncomePoint.cfk || 0) + (hoveredIncomePoint.vrij || 0) + (hoveredIncomePoint.pensioen || 0);
-    const top = margin.top + (1 - total / maxTotal) * plotHeight;
-
-    return { left, top };
-  }, [hoveredIncomePoint, incomeChartSize.width, incomeChartSize.height, lifeline.incomeData, hoveredIncomeIndex]);
-
   const barYearTicks = useMemo(() => {
     const horizon = Math.max(1, investmentHorizon);
     let step = 1;
@@ -1151,6 +1128,28 @@ const InvestmentCalculator = () => {
       return { age: row.age, cfk: row.cfk, vva: row.vrij, pensioen: row.pensioen };
     });
   }, [hasCfk, lifeline.potData]);
+  const hoveredIncomePoint = hoveredIncomeIndex != null ? lifeline.incomeData[hoveredIncomeIndex] : null;
+  const incomeTooltipAnchor = useMemo(() => {
+    if (!hoveredIncomePoint || !incomeChartSize.width || !incomeChartSize.height || lifeline.incomeData.length === 0) {
+      return null;
+    }
+
+    const margin = { top: 10, right: 16, left: 0, bottom: 4 };
+    const yAxisWidth = 60;
+    const plotWidth = incomeChartSize.width - margin.left - margin.right - yAxisWidth;
+    const plotHeight = incomeChartSize.height - margin.top - margin.bottom;
+    if (plotWidth <= 0 || plotHeight <= 0) {
+      return null;
+    }
+
+    const step = plotWidth / lifeline.incomeData.length;
+    const left = margin.left + yAxisWidth + step * hoveredIncomeIndex + step / 2;
+    const maxTotal = Math.max(...lifeline.incomeData.map((row) => (row.cfk || 0) + (row.vrij || 0) + (row.pensioen || 0)), 1);
+    const total = (hoveredIncomePoint.cfk || 0) + (hoveredIncomePoint.vrij || 0) + (hoveredIncomePoint.pensioen || 0);
+    const top = margin.top + (1 - total / maxTotal) * plotHeight;
+
+    return { left, top };
+  }, [hoveredIncomePoint, incomeChartSize.width, incomeChartSize.height, lifeline.incomeData, hoveredIncomeIndex]);
 
   const freeWealthExpectedEndResult = lifeline.potData[lifeline.potData.length - 1]?.vrij ?? 0;
   const pensionExpectedEndResult = lifeline.pensionCapitalAtAow ?? 0;
