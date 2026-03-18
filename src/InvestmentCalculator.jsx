@@ -2394,7 +2394,10 @@ const InvestmentCalculator = () => {
           }}
         >
           <div style={{ background: "#fff", borderRadius: "8px", padding: "12px", border: "1px solid #e1dccb" }}>
-            <div style={{ fontSize: "14px", fontWeight: 700, marginBottom: "10px" }}>CFK</div>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "14px", fontWeight: 700, marginBottom: "10px" }}>
+              <span>CFK</span>
+              <span style={{ width: "14px", height: "3px", backgroundColor: "#0d2a28", borderRadius: "2px" }} />
+            </div>
             <label style={{ fontSize: "12px", color: "#6B7280" }}>CFK waarde (bruto - box1)</label>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", width: "50%", marginTop: "6px" }}>
               <span style={{ fontSize: "14px", color: "#111827" }}>€</span>
@@ -2442,6 +2445,7 @@ const InvestmentCalculator = () => {
               Uitkeringsduur (maanden)
             </label>
             <input
+              className="cfk-duration-slider"
               type="range"
               min={cfkDurationRange.min}
               max={cfkDurationRange.max}
@@ -2453,7 +2457,7 @@ const InvestmentCalculator = () => {
                 marginTop: "6px",
                 height: "6px",
                 borderRadius: "4px",
-                background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${
+                background: `linear-gradient(to right, #0d2a28 0%, #0d2a28 ${
                   cfkDurationRange.max === cfkDurationRange.min
                     ? 100
                     : ((cfkDurationMonths - cfkDurationRange.min) / (cfkDurationRange.max - cfkDurationRange.min)) * 100
@@ -2471,7 +2475,10 @@ const InvestmentCalculator = () => {
           </div>
 
           <div style={{ background: "#fff", borderRadius: "8px", padding: "12px", border: "1px solid #e1dccb" }}>
-            <div style={{ fontSize: "14px", fontWeight: 700, marginBottom: "10px" }}>Vrij Vermogen Animo</div>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "14px", fontWeight: 700, marginBottom: "10px" }}>
+              <span>Vrij Vermogen Animo</span>
+              <span style={{ width: "14px", height: "3px", backgroundColor: "#d2bb5d", borderRadius: "2px" }} />
+            </div>
             <div style={{ fontSize: "12px", color: "#6B7280" }}>Verwacht eindresultaat (netto - box3)</div>
             <div style={{ fontSize: "16px", fontWeight: 700, marginTop: "6px" }}>
               {formatCurrency(freeWealthExpectedEndResult)}
@@ -2570,7 +2577,10 @@ const InvestmentCalculator = () => {
           </div>
 
           <div style={{ background: "#fff", borderRadius: "8px", padding: "12px", border: "1px solid #e1dccb" }}>
-            <div style={{ fontSize: "14px", fontWeight: 700, marginBottom: "10px" }}>Pensioen Animo</div>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "14px", fontWeight: 700, marginBottom: "10px" }}>
+              <span>Pensioen Animo</span>
+              <span style={{ width: "14px", height: "3px", backgroundColor: "#6672a8", borderRadius: "2px" }} />
+            </div>
             <div style={{ fontSize: "12px", color: "#6B7280" }}>Verwacht eindresultaat (bruto - box1)</div>
             <div style={{ fontSize: "16px", fontWeight: 700, marginTop: "6px" }}>{formatCurrency(pensionExpectedEndResult)}</div>
             <div style={{ fontSize: "12px", color: "#6B7280", marginTop: "10px" }}>
@@ -2657,6 +2667,14 @@ const InvestmentCalculator = () => {
           border: 2px solid #fff;
           box-shadow: 0 2px 4px rgba(0,0,0,0.2);
           border: none;
+        }
+
+        .cfk-duration-slider::-webkit-slider-thumb {
+          background: #0d2a28;
+        }
+
+        .cfk-duration-slider::-moz-range-thumb {
+          background: #0d2a28;
         }
       `}</style>
       </div>
