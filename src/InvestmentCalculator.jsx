@@ -71,18 +71,18 @@ const normalizeYear = (value, maxYear) => Math.min(maxYear, Math.max(1, Number(v
 const normalizeMonth = (value) => Math.min(12, Math.max(1, Number(value) || 1));
 
 const InvestmentCalculator = () => {
-  const [startAmount, setStartAmount] = useState(100000);
-  const [phase1MonthlyDeposit, setPhase1MonthlyDeposit] = useState(2000);
-  const [phase1Years, setPhase1Years] = useState(5);
+  const [startAmount, setStartAmount] = useState(0);
+  const [phase1MonthlyDeposit, setPhase1MonthlyDeposit] = useState(0);
+  const [phase1Years, setPhase1Years] = useState(0);
   const [phase2MonthlyDeposit, setPhase2MonthlyDeposit] = useState(0);
   const [phase2EndYear, setPhase2EndYear] = useState(0);
   const [phase3MonthlyDeposit, setPhase3MonthlyDeposit] = useState(0);
   const [phase3EndYear, setPhase3EndYear] = useState(0);
   const [investmentHorizon, setInvestmentHorizon] = useState(20);
   const [startAge, setStartAge] = useState(20);
-  const [startAmount2, setStartAmount2] = useState(100000);
-  const [phase1MonthlyDeposit2, setPhase1MonthlyDeposit2] = useState(2000);
-  const [phase1Years2, setPhase1Years2] = useState(5);
+  const [startAmount2, setStartAmount2] = useState(0);
+  const [phase1MonthlyDeposit2, setPhase1MonthlyDeposit2] = useState(0);
+  const [phase1Years2, setPhase1Years2] = useState(0);
   const [phase2MonthlyDeposit2, setPhase2MonthlyDeposit2] = useState(0);
   const [phase2EndYear2, setPhase2EndYear2] = useState(0);
   const [phase3MonthlyDeposit2, setPhase3MonthlyDeposit2] = useState(0);
@@ -106,7 +106,7 @@ const InvestmentCalculator = () => {
   const [profile2, setProfile2] = useState("Gedreven");
   const [isCalculatorExpanded, setIsCalculatorExpanded] = useState(false);
   const [isCalculatorExpanded2, setIsCalculatorExpanded2] = useState(false);
-  const [cfkPot, setCfkPot] = useState(200000);
+  const [cfkPot, setCfkPot] = useState(0);
   const [cfkReturnRate, setCfkReturnRate] = useState(2.5);
   const [cfkDurationMonths, setCfkDurationMonths] = useState(120);
   const [freeWealthPayouts, setFreeWealthPayouts] = useState([
