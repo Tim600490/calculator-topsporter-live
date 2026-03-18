@@ -1268,7 +1268,7 @@ const InvestmentCalculator = () => {
       <div
         key={`calculator-${calculatorIndex}`}
         style={{
-          marginTop: isDesktop ? (calculatorIndex === 0 ? "56px" : "140px") : (calculatorIndex === 0 ? "0" : "88px")
+          marginTop: isDesktop ? (calculatorIndex === 0 ? "56px" : "32px") : (calculatorIndex === 0 ? "0" : "32px")
         }}
       >
         <div
@@ -2036,51 +2036,6 @@ const InvestmentCalculator = () => {
               <option value="Ambitieus">Ambitieus</option>
             </select>
           </div>
-          {isPrimary && isCalculatorExpanded && (
-            <section
-              style={{
-                marginTop: "10px",
-                background: "#0d2a28",
-                color: "#eaf2ef",
-                borderRadius: "8px",
-                border: "1px solid rgba(210,187,93,0.35)",
-                padding: "14px"
-              }}
-            >
-              <h3 style={{ margin: 0, fontSize: "20px", lineHeight: "1.1" }}>
-                De cijfers <em>spreken</em>
-              </h3>
-              <p style={{ marginTop: "6px", marginBottom: "10px", fontSize: "12px", lineHeight: "1.45", color: "#d2ddd8" }}>
-                Deze grafiek laat zien hoe je portefeuille zou zijn gegroeid wanneer je de afgelopen jaren belegd zou
-                hebben zoals Animo dat nu mogelijk maakt.
-              </p>
-              <div style={{ marginTop: "6px", height: "210px" }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={showcaseGraph.data} margin={{ top: 8, right: 6, left: 0, bottom: 6 }}>
-                    <CartesianGrid vertical={false} stroke="rgba(255,255,255,0.12)" />
-                    <XAxis
-                      type="number"
-                      dataKey="yearValue"
-                      domain={[2017, 2025]}
-                      ticks={[2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025]}
-                      axisLine={{ stroke: "rgba(255,255,255,0.22)" }}
-                      tickLine={false}
-                      tick={{ fill: "#d2ddd8", fontSize: 10 }}
-                      tickFormatter={(value) => `${value}`}
-                      allowDecimals={false}
-                    />
-                    <YAxis
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fill: "#d2ddd8", fontSize: 10 }}
-                      tickFormatter={(value) => Math.round(value).toLocaleString("nl-NL")}
-                    />
-                    <Line type="monotone" dataKey="balance" stroke="#d9bf56" strokeWidth={2.5} dot={false} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </section>
-          )}
             </div>
         </div>
           </div>
@@ -2266,6 +2221,52 @@ const InvestmentCalculator = () => {
           </div>
         </div>
       </div>
+      {isPrimary && isCalculatorExpanded && (
+        <section
+          style={{
+            marginTop: "20px",
+            background: "#0d2a28",
+            color: "#eaf2ef",
+            borderRadius: "8px",
+            border: "1px solid rgba(210,187,93,0.35)",
+            padding: "18px",
+            width: "100%"
+          }}
+        >
+          <h3 style={{ margin: 0, fontSize: "28px", lineHeight: "1.1" }}>
+            De cijfers <em>spreken</em>
+          </h3>
+          <p style={{ marginTop: "8px", marginBottom: "14px", fontSize: "14px", lineHeight: "1.45", color: "#d2ddd8" }}>
+            Deze grafiek laat zien hoe je portefeuille zou zijn gegroeid wanneer je de afgelopen jaren belegd zou
+            hebben zoals Animo dat nu mogelijk maakt.
+          </p>
+          <div style={{ marginTop: "6px", height: "320px" }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={showcaseGraph.data} margin={{ top: 16, right: 10, left: 10, bottom: 8 }}>
+                <CartesianGrid vertical={false} stroke="rgba(255,255,255,0.12)" />
+                <XAxis
+                  type="number"
+                  dataKey="yearValue"
+                  domain={[2017, 2025]}
+                  ticks={[2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025]}
+                  axisLine={{ stroke: "rgba(255,255,255,0.22)" }}
+                  tickLine={false}
+                  tick={{ fill: "#d2ddd8", fontSize: 12 }}
+                  tickFormatter={(value) => `${value}`}
+                  allowDecimals={false}
+                />
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: "#d2ddd8", fontSize: 12 }}
+                  tickFormatter={(value) => Math.round(value).toLocaleString("nl-NL")}
+                />
+                <Line type="monotone" dataKey="balance" stroke="#d9bf56" strokeWidth={3} dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </section>
+      )}
       </div>
         );
       })}
