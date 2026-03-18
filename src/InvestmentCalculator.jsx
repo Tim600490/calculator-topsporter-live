@@ -89,7 +89,7 @@ const InvestmentCalculator = () => {
   const [phase3EndYear2, setPhase3EndYear2] = useState(0);
   const [investmentHorizon2, setInvestmentHorizon2] = useState(20);
   const [startAge2, setStartAge2] = useState(20);
-  const [aowAge, setAowAge] = useState(67);
+  const aowAge = 68;
   const [oneTimeExtras, setOneTimeExtras] = useState([
     { amount: 0, year: 5, month: 6 },
     { amount: 0, year: 5, month: 6 },
@@ -114,8 +114,6 @@ const InvestmentCalculator = () => {
     { amount: 0, fromAge: 35, toAge: 36 },
     { amount: 0, fromAge: 35, toAge: 36 }
   ]);
-  const [pensionAnimoValue, setPensionAnimoValue] = useState(0);
-  const [pensionPayoutStartAge, setPensionPayoutStartAge] = useState(67);
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const [hoveredIndex2, setHoveredIndex2] = useState(null);
   const chartContainerRef = useRef(null);
@@ -847,13 +845,30 @@ const InvestmentCalculator = () => {
     const cfkAnnualPayout = cfkDurationYears > 0 ? cfkBalanceAtPayoutStart / cfkDurationYears : 0;
     const cfkPayoutEndAge = cfkStartAge + cfkDurationYears;
 
+    const getPensionBalanceAtAge = (age) => {
+      if (age < startAge2) {
+        return 0;
+      }
+      let balance = startAmount2;
+      const months = (age - startAge2) * 12;
+      for (let month = 1; month <= months; month++) {
+        const withinCalculatorHorizon = month <= investmentHorizon2 * 12;
+        const activeDeposit = withinCalculatorHorizon ? getMonthlyDepositForMonth2(month) : 0;
+        const oneTimeExtra = withinCalculatorHorizon ? getOneTimeExtraForMonth2(month) : 0;
+        balance = balance * (1 + annualReturn2 / 12);
+        balance += activeDeposit + oneTimeExtra;
+      }
+      return Math.max(0, balance);
+    };
+    const pensionCapitalAtAow = getPensionBalanceAtAge(aowAge);
     const pensionPayoutYears =
-      pensionAnimoValue > 0 ? Math.max(5, Math.min(20, Math.ceil(pensionAnimoValue / 27192))) : 0;
-    const pensionAnnualPayout = pensionPayoutYears > 0 ? pensionAnimoValue / pensionPayoutYears : 0;
+      pensionCapitalAtAow > 0 ? Math.max(5, Math.min(20, Math.ceil(pensionCapitalAtAow / 27192))) : 0;
+    const pensionAnnualPayout = pensionPayoutYears > 0 ? pensionCapitalAtAow / pensionPayoutYears : 0;
 
     let cfkBalanceDuringPayout = cfkBalanceAtPayoutStart;
     let freeWealthBalance = startAmount;
-    let pensionBalance = pensionAnimoValue;
+    let pensionBalance = 0;
+    let pensionBalanceDuringPayout = pensionCapitalAtAow;
     let freeWealthEndAge = startAge + investmentHorizon;
     const maxPayoutToAge = freeWealthPayouts.reduce(
       (max, row) => (row.amount > 0 ? Math.max(max, row.toAge) : max),
@@ -865,7 +880,7 @@ const InvestmentCalculator = () => {
         cfkPayoutEndAge,
         maxPayoutToAge + 5,
         startAge + investmentHorizon + 1,
-        pensionPayoutStartAge + pensionPayoutYears,
+        aowAge + pensionPayoutYears,
         aowAge + 1,
         careerEndAge + 1
       )
@@ -910,12 +925,13 @@ const InvestmentCalculator = () => {
 
       const freeWealthBalanceForAge = freeWealthBalance;
 
-      if (age < pensionPayoutStartAge) {
-        pensionBalance = pensionAnimoValue;
-      } else if (age < pensionPayoutStartAge + pensionPayoutYears && pensionPayoutYears > 0) {
+      if (age < aowAge) {
+        pensionBalance = getPensionBalanceAtAge(age);
+      } else if (age < aowAge + pensionPayoutYears && pensionPayoutYears > 0) {
+        pensionBalance = pensionBalanceDuringPayout;
         pensionIncome = pensionAnnualPayout;
-        pensionBalance = Math.max(0, pensionBalance - pensionAnnualPayout);
-      } else if (age >= pensionPayoutStartAge + pensionPayoutYears) {
+        pensionBalanceDuringPayout = Math.max(0, pensionBalanceDuringPayout - pensionAnnualPayout);
+      } else if (age >= aowAge + pensionPayoutYears) {
         pensionBalance = 0;
       }
 
@@ -956,6 +972,7 @@ const InvestmentCalculator = () => {
       cfkBalanceAtCareerEnd,
       cfkBalanceAtPayoutStart,
       cfkPayoutEndAge,
+      pensionCapitalAtAow,
       pensionAnnualPayout,
       pensionPayoutYears,
       freeWealthEndAge,
@@ -964,6 +981,7 @@ const InvestmentCalculator = () => {
   }, [
     aowAge,
     annualReturn,
+    annualReturn2,
     calculationData,
     careerEndAge,
     cfkDurationMonths,
@@ -974,10 +992,13 @@ const InvestmentCalculator = () => {
     getMonthlyDepositForMonth,
     getOneTimeExtraForMonth,
     investmentHorizon,
-    pensionAnimoValue,
-    pensionPayoutStartAge,
+    investmentHorizon2,
+    getMonthlyDepositForMonth2,
+    getOneTimeExtraForMonth2,
     startAge,
-    startAmount
+    startAge2,
+    startAmount,
+    startAmount2
   ]);
 
   const lifelineTicks = useMemo(() => {
@@ -1006,15 +1027,16 @@ const InvestmentCalculator = () => {
       startAge
     );
     const freeEnd = Math.max(maxPayoutToAge + 1, lifeline.freeWealthEndAge);
-    const pensionEnd = pensionPayoutStartAge + lifeline.pensionPayoutYears;
+    const pensionEnd = aowAge + lifeline.pensionPayoutYears;
     return [
       { key: "career", label: "Carrière", start: careerStartAge, end: careerEndAge, color: "rgba(101,195,104,0.18)" },
       { key: "bridge", label: "Vrij Vermogen Animo", start: careerEndAge, end: cfkStartAge, color: "transparent" },
       { key: "cfk", label: "CFK", start: cfkStartAge, end: lifeline.cfkPayoutEndAge, color: "rgba(13,42,40,0.14)" },
       { key: "free", label: "Vrije periode", start: lifeline.cfkPayoutEndAge, end: freeEnd, color: "transparent" },
-      { key: "pension", label: "Pensioen Animo", start: pensionPayoutStartAge, end: pensionEnd, color: "transparent" }
+      { key: "pension", label: "Pensioen Animo", start: aowAge, end: pensionEnd, color: "rgba(102,114,168,0.14)" }
     ];
   }, [
+    aowAge,
     careerStartAge,
     careerEndAge,
     cfkStartAge,
@@ -1022,28 +1044,29 @@ const InvestmentCalculator = () => {
     startAge,
     lifeline.cfkPayoutEndAge,
     lifeline.freeWealthEndAge,
-    lifeline.pensionPayoutYears,
-    pensionPayoutStartAge
+    lifeline.pensionPayoutYears
   ]);
 
   const lifelineCfkGraphData = useMemo(() => {
     if (!hasCfk) {
-      return lifeline.potData.map((row) => ({ age: row.age, cfk: null, vva: row.vrij }));
+      return lifeline.potData.map((row) => ({ age: row.age, cfk: null, vva: row.vrij, pensioen: row.pensioen }));
     }
     let hitZero = false;
     return lifeline.potData.map((row) => {
       if (hitZero) {
-        return { age: row.age, cfk: null, vva: row.vrij };
+        return { age: row.age, cfk: null, vva: row.vrij, pensioen: row.pensioen };
       }
       const isZero = row.cfk <= 0;
       if (isZero) {
         hitZero = true;
       }
-      return { age: row.age, cfk: row.cfk, vva: row.vrij };
+      return { age: row.age, cfk: row.cfk, vva: row.vrij, pensioen: row.pensioen };
     });
   }, [hasCfk, lifeline.potData]);
 
   const freeWealthExpectedEndResult = lifeline.potData[lifeline.potData.length - 1]?.vrij ?? 0;
+  const pensionExpectedEndResult = lifeline.pensionCapitalAtAow ?? 0;
+  const hasPension = pensionExpectedEndResult > 0;
   const getLifelinePhaseLabelLeft = (phase) => {
     if (!lifelineChartSize.width) {
       return "50%";
@@ -2271,7 +2294,12 @@ const InvestmentCalculator = () => {
               <LineChart data={lifelineCfkGraphData} margin={{ top: 18, right: 18, left: 18, bottom: 18 }}>
                 <CartesianGrid stroke="#e5e2d8" vertical={false} />
                 {lifelinePhases
-                  .filter((phase) => phase.key === "career" || (phase.key === "cfk" && hasCfk))
+                  .filter(
+                    (phase) =>
+                      phase.key === "career" ||
+                      (phase.key === "cfk" && hasCfk) ||
+                      (phase.key === "pension" && hasPension)
+                  )
                   .map((phase) =>
                   phase.end > phase.start ? (
                     <ReferenceArea
@@ -2304,12 +2332,18 @@ const InvestmentCalculator = () => {
                 />
                 {hasCfk && <Line type="monotone" dataKey="cfk" stroke="#0d2a28" strokeWidth={3} dot={false} />}
                 <Line type="monotone" dataKey="vva" stroke="#d2bb5d" strokeWidth={3} dot={false} />
+                {hasPension && <Line type="monotone" dataKey="pensioen" stroke="#6672a8" strokeWidth={3} dot={false} />}
               </LineChart>
             </ResponsiveContainer>
           </div>
           <div style={{ position: "relative", marginTop: "4px", height: "28px" }}>
             {lifelinePhases
-              .filter((phase) => phase.key === "career" || (phase.key === "cfk" && hasCfk))
+              .filter(
+                (phase) =>
+                  phase.key === "career" ||
+                  (phase.key === "cfk" && hasCfk) ||
+                  (phase.key === "pension" && hasPension)
+              )
               .map((phase) => {
                 return (
                   <div
@@ -2320,7 +2354,7 @@ const InvestmentCalculator = () => {
                       transform: "translateX(-50%)",
                       textAlign: "center",
                       fontSize: "13px",
-                      color: phase.key === "career" ? "#65c368" : "#0d2a28",
+                      color: phase.key === "career" ? "#65c368" : phase.key === "pension" ? "#6672a8" : "#0d2a28",
                       fontWeight: 600,
                       whiteSpace: "nowrap"
                     }}
@@ -2343,6 +2377,12 @@ const InvestmentCalculator = () => {
             <span style={{ width: "14px", height: "3px", backgroundColor: "#d2bb5d", borderRadius: "2px" }} />
             Vrij Vermogen Animo
           </div>
+          {hasPension && (
+            <div style={{ marginTop: "6px", display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "#4b5563" }}>
+              <span style={{ width: "14px", height: "3px", backgroundColor: "#6672a8", borderRadius: "2px" }} />
+              Pensioen Animo
+            </div>
+          )}
         </div>
 
         <div
@@ -2531,65 +2571,16 @@ const InvestmentCalculator = () => {
 
           <div style={{ background: "#fff", borderRadius: "8px", padding: "12px", border: "1px solid #e1dccb" }}>
             <div style={{ fontSize: "14px", fontWeight: 700, marginBottom: "10px" }}>Pensioen Animo</div>
-            <label style={{ fontSize: "12px", color: "#6B7280" }}>Kapitaal</label>
-            <input
-              type="number"
-              min="0"
-              value={pensionAnimoValue}
-              onChange={(e) => setPensionAnimoValue(clampEuro(e.target.value, 0, 5000000))}
-              style={{
-                width: "100%",
-                marginTop: "6px",
-                padding: "6px 8px",
-                border: "1px solid #D2BB5D",
-                borderRadius: "6px",
-                fontSize: "14px",
-                outline: "none",
-                backgroundColor: "#fff"
-              }}
-            />
-            <label style={{ fontSize: "12px", color: "#6B7280", marginTop: "10px", display: "block" }}>
-              Start uitkering (leeftijd)
-            </label>
-            <input
-              type="number"
-              min="55"
-              max="75"
-              value={pensionPayoutStartAge}
-              onChange={(e) => setPensionPayoutStartAge(Number(e.target.value))}
-              style={{
-                width: "100%",
-                marginTop: "6px",
-                padding: "6px 8px",
-                border: "1px solid #D2BB5D",
-                borderRadius: "6px",
-                fontSize: "14px",
-                outline: "none",
-                backgroundColor: "#fff"
-              }}
-            />
-            <label style={{ fontSize: "12px", color: "#6B7280", marginTop: "10px", display: "block" }}>
-              AOW leeftijd
-            </label>
-            <input
-              type="number"
-              min="60"
-              max="75"
-              value={aowAge}
-              onChange={(e) => setAowAge(Number(e.target.value))}
-              style={{
-                width: "100%",
-                marginTop: "6px",
-                padding: "6px 8px",
-                border: "1px solid #D2BB5D",
-                borderRadius: "6px",
-                fontSize: "14px",
-                outline: "none",
-                backgroundColor: "#fff"
-              }}
-            />
-            <div style={{ fontSize: "12px", color: "#6B7280", marginTop: "8px" }}>
-              Min. uitkeringsduur: {lifeline.pensionPayoutYears} jaar
+            <div style={{ fontSize: "12px", color: "#6B7280" }}>Verwacht eindresultaat (bruto - box1)</div>
+            <div style={{ fontSize: "16px", fontWeight: 700, marginTop: "6px" }}>{formatCurrency(pensionExpectedEndResult)}</div>
+            <div style={{ fontSize: "12px", color: "#6B7280", marginTop: "10px" }}>
+              Start uitkering: {aowAge} jaar
+            </div>
+            <div style={{ fontSize: "12px", color: "#6B7280", marginTop: "6px" }}>
+              Uitkeringsduur: {lifeline.pensionPayoutYears} jaar
+            </div>
+            <div style={{ fontSize: "12px", color: "#6B7280", marginTop: "6px" }}>
+              Jaarlijkse uitkering: {formatCurrency(lifeline.pensionAnnualPayout)}
             </div>
           </div>
 
