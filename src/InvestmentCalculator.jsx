@@ -1495,6 +1495,8 @@ const InvestmentCalculator = () => {
           margin: "0 auto",
           padding: "24px",
           backgroundColor: "#F7F5E9",
+          display: "flex",
+          flexDirection: "column",
           fontFamily:
             'Satoshi, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
         }}
@@ -2566,7 +2568,9 @@ const InvestmentCalculator = () => {
 
       <section
         style={{
-          marginTop: "32px",
+          order: -1,
+          marginTop: "0",
+          marginBottom: "32px",
           backgroundColor: "#f5f2e9",
           borderRadius: "10px",
           border: "1px solid #d6d1c2",
