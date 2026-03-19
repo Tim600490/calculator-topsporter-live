@@ -6,6 +6,7 @@ import {
   Line,
   LineChart,
   ReferenceArea,
+  ReferenceDot,
   ReferenceLine,
   ResponsiveContainer,
   XAxis,
@@ -1259,13 +1260,28 @@ const InvestmentCalculator = () => {
   ]);
   const lifelineChartView = useMemo(() => {
     if (lifelineZoomMode === "week") {
+      const dayLabels = {
+        1: "maandag",
+        2: "dinsdag",
+        3: "woensdag",
+        4: "donderdag",
+        5: "vrijdag",
+        6: "zaterdag",
+        7: "zondag"
+      };
+      const maxWeekValue = Math.max(
+        ...lifelineWeekGraphData.map((row) => Math.max(row.cfk || 0, row.vva || 0, row.pensioen || 0)),
+        0
+      );
+      const weekMarkerTopValue = maxWeekValue > 0 ? maxWeekValue * 0.72 : 2.3;
       return {
         data: lifelineWeekGraphData,
         xDataKey: "day",
         xDomain: [1, 7],
         xTicks: [1, 2, 3, 4, 5, 6, 7],
-        xTickFormatter: (value) => `${value}`,
-        showWeekNote: true
+        xTickFormatter: (value) => dayLabels[value] ?? `${value}`,
+        showWeekNote: true,
+        weekMarkerTopValue
       };
     }
     if (lifelineZoomMode === "career") {
@@ -1283,7 +1299,8 @@ const InvestmentCalculator = () => {
         xDomain: [careerStartAge, careerEndAge],
         xTicks,
         xTickFormatter: undefined,
-        showWeekNote: false
+        showWeekNote: false,
+        weekMarkerTopValue: 0
       };
     }
     return {
@@ -1292,7 +1309,8 @@ const InvestmentCalculator = () => {
       xDomain: [startAge, lifeline.maxAge],
       xTicks: lifelineTicks,
       xTickFormatter: undefined,
-      showWeekNote: false
+      showWeekNote: false,
+      weekMarkerTopValue: 0
     };
   }, [
     careerEndAge,
@@ -2607,12 +2625,29 @@ const InvestmentCalculator = () => {
                   <ReferenceLine key={`marker-${marker}`} x={marker} stroke="#8a8a8a" strokeDasharray="3 4" />
                 ))}
                 {lifelineChartView.showWeekNote && (
-                  <ReferenceLine
-                    x={7}
-                    stroke="#8a8a8a"
-                    strokeDasharray="3 4"
-                    label={{ value: "eerstvolgende wedstrijd", position: "insideTopRight", fill: "#4b5563", fontSize: 11 }}
-                  />
+                  <>
+                    <ReferenceLine
+                      segment={[
+                        { x: 6, y: 0 },
+                        { x: 6, y: lifelineChartView.weekMarkerTopValue }
+                      ]}
+                      stroke="#111827"
+                      strokeWidth={2}
+                    />
+                    <ReferenceDot
+                      x={6}
+                      y={lifelineChartView.weekMarkerTopValue}
+                      r={0}
+                      ifOverflow="extendDomain"
+                      label={{
+                        value: "Eerstvolgende wedstrijd",
+                        position: "top",
+                        fill: "#111827",
+                        fontSize: 14,
+                        fontWeight: 700
+                      }}
+                    />
+                  </>
                 )}
                 <XAxis
                   type="number"
