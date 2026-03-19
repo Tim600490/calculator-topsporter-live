@@ -202,6 +202,7 @@ const InvestmentCalculator = () => {
   const [profile2, setProfile2] = useState("Gedreven");
   const [isCalculatorExpanded, setIsCalculatorExpanded] = useState(false);
   const [isCalculatorExpanded2, setIsCalculatorExpanded2] = useState(false);
+  const [lifelineZoomMode, setLifelineZoomMode] = useState("week");
   const [cfkPot, setCfkPot] = useState(0);
   const [cfkReturnRate, setCfkReturnRate] = useState(2.5);
   const [cfkDurationMonths, setCfkDurationMonths] = useState(120);
@@ -225,6 +226,7 @@ const InvestmentCalculator = () => {
   const [lifelineChartSize, setLifelineChartSize] = useState({ width: 0, height: 0 });
   const [incomeChartSize, setIncomeChartSize] = useState({ width: 0, height: 0 });
   const [potChartSize, setPotChartSize] = useState({ width: 0, height: 0 });
+  const subtleOverlayTextColor = "rgba(0,0,0,0.45)";
   const hasCfk = cfkPot > 0;
   const freeWealthHorizonAge = startAge + investmentHorizon;
 
@@ -1203,6 +1205,105 @@ const InvestmentCalculator = () => {
       return { age: row.age, cfk: row.cfk, vva: row.age <= freeWealthHorizonAge ? row.vrij : null, pensioen: row.pensioen };
     });
   }, [hasCfk, freeWealthHorizonAge, lifeline.potData]);
+  const hasPension = (lifeline.pensionCapitalAtAow ?? 0) > 0;
+  const lifelineWeekGraphData = useMemo(() => {
+    const firstRow = lifelineCfkGraphData[0] ?? { cfk: null, vva: 0, pensioen: 0 };
+    const weekStartCfk = hasCfk ? firstRow.cfk ?? 0 : null;
+    const weekStartVva = firstRow.vva ?? 0;
+    const weekStartPensioen = hasPension ? firstRow.pensioen ?? 0 : null;
+    return Array.from({ length: 7 }, (_, index) => ({
+      day: index + 1,
+      cfk: weekStartCfk,
+      vva: weekStartVva,
+      pensioen: weekStartPensioen
+    }));
+  }, [lifelineCfkGraphData, hasCfk, hasPension]);
+  const lifelineVisiblePhases = useMemo(() => {
+    if (lifelineZoomMode === "week") {
+      return [];
+    }
+    if (lifelineZoomMode === "career") {
+      return lifelinePhases.filter((phase) => phase.key === "career" && phase.end > phase.start);
+    }
+    return lifelinePhases.filter(
+      (phase) =>
+        phase.end > phase.start &&
+        (phase.key === "career" || (phase.key === "cfk" && hasCfk) || (phase.key === "pension" && hasPension))
+    );
+  }, [hasCfk, hasPension, lifelinePhases, lifelineZoomMode]);
+  const lifelinePhaseBoundaries = useMemo(() => {
+    if (lifelineZoomMode === "week") {
+      return [];
+    }
+    if (lifelineZoomMode === "career") {
+      return [careerStartAge, careerEndAge];
+    }
+    const markers = [careerStartAge, careerEndAge];
+    if (hasCfk) {
+      markers.push(cfkStartAge, lifeline.cfkPayoutEndAge);
+    }
+    if (hasPension) {
+      markers.push(aowAge, aowAge + lifeline.pensionPayoutYears);
+    }
+    return Array.from(new Set(markers)).sort((a, b) => a - b);
+  }, [
+    aowAge,
+    careerEndAge,
+    careerStartAge,
+    cfkStartAge,
+    hasCfk,
+    hasPension,
+    lifeline.cfkPayoutEndAge,
+    lifeline.pensionPayoutYears,
+    lifelineZoomMode
+  ]);
+  const lifelineChartView = useMemo(() => {
+    if (lifelineZoomMode === "week") {
+      return {
+        data: lifelineWeekGraphData,
+        xDataKey: "day",
+        xDomain: [1, 7],
+        xTicks: [1, 2, 3, 4, 5, 6, 7],
+        xTickFormatter: (value) => `${value}`,
+        showWeekNote: true
+      };
+    }
+    if (lifelineZoomMode === "career") {
+      const data = lifelineCfkGraphData.filter((row) => row.age >= careerStartAge && row.age <= careerEndAge);
+      const xTicks = [];
+      for (let age = careerStartAge; age <= careerEndAge; age += 1) {
+        xTicks.push(age);
+      }
+      if (xTicks[xTicks.length - 1] !== careerEndAge) {
+        xTicks.push(careerEndAge);
+      }
+      return {
+        data,
+        xDataKey: "age",
+        xDomain: [careerStartAge, careerEndAge],
+        xTicks,
+        xTickFormatter: undefined,
+        showWeekNote: false
+      };
+    }
+    return {
+      data: lifelineCfkGraphData,
+      xDataKey: "age",
+      xDomain: [startAge, lifeline.maxAge],
+      xTicks: lifelineTicks,
+      xTickFormatter: undefined,
+      showWeekNote: false
+    };
+  }, [
+    careerEndAge,
+    careerStartAge,
+    lifeline.maxAge,
+    lifelineCfkGraphData,
+    lifelineTicks,
+    lifelineWeekGraphData,
+    lifelineZoomMode,
+    startAge
+  ]);
   const hoveredIncomePoint = hoveredIncomeIndex != null ? lifeline.incomeData[hoveredIncomeIndex] : null;
   const incomeTooltipAnchor = useMemo(() => {
     if (!hoveredIncomePoint || !incomeChartSize.width || !incomeChartSize.height || lifeline.incomeData.length === 0) {
@@ -1253,18 +1354,17 @@ const InvestmentCalculator = () => {
     lifeline.potData[lifeline.potData.length - 1]?.vrij ??
     0;
   const pensionExpectedEndResult = lifeline.pensionCapitalAtAow ?? 0;
-  const hasPension = pensionExpectedEndResult > 0;
-  const getLifelinePhaseLabelLeft = (phase) => {
+  const getLifelinePhaseLabelLeft = (phase, domainStart, domainEnd) => {
     if (!lifelineChartSize.width) {
       return "50%";
     }
     const marginLeft = 18;
     const marginRight = 18;
     const yAxisWidth = 68;
-    const span = Math.max(1, lifeline.maxAge - startAge);
+    const span = Math.max(1, domainEnd - domainStart);
     const plotWidth = lifelineChartSize.width - marginLeft - marginRight - yAxisWidth;
     const centerAge = (phase.start + phase.end) / 2;
-    const ratio = (centerAge - startAge) / span;
+    const ratio = (centerAge - domainStart) / span;
     const x = marginLeft + yAxisWidth + Math.max(0, Math.min(1, ratio)) * Math.max(0, plotWidth);
     return `${x}px`;
   };
@@ -2463,18 +2563,36 @@ const InvestmentCalculator = () => {
         </div>
 
         <div style={{ marginTop: "16px", border: "1px solid #ded8c7", borderRadius: "8px", background: "#fbf9f1", padding: "12px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "8px" }}>
+            {[
+              { key: "week", label: "Week" },
+              { key: "career", label: "Carrière" },
+              { key: "full", label: "Volledig" }
+            ].map((mode) => (
+              <button
+                key={mode.key}
+                type="button"
+                onClick={() => setLifelineZoomMode(mode.key)}
+                style={{
+                  border: `1px solid ${subtleOverlayTextColor}`,
+                  color: subtleOverlayTextColor,
+                  backgroundColor: lifelineZoomMode === mode.key ? "rgba(0,0,0,0.08)" : "transparent",
+                  borderRadius: "4px",
+                  padding: "3px 8px",
+                  fontSize: "11px",
+                  lineHeight: 1.2,
+                  cursor: "pointer"
+                }}
+              >
+                {mode.label}
+              </button>
+            ))}
+          </div>
           <div ref={lifelineChartContainerRef} style={{ height: "300px" }}>
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={lifelineCfkGraphData} margin={{ top: 18, right: 18, left: 18, bottom: 18 }}>
+              <LineChart data={lifelineChartView.data} margin={{ top: 18, right: 18, left: 18, bottom: 18 }}>
                 <CartesianGrid stroke="#e5e2d8" vertical={false} />
-                {lifelinePhases
-                  .filter(
-                    (phase) =>
-                      phase.key === "career" ||
-                      (phase.key === "cfk" && hasCfk) ||
-                      (phase.key === "pension" && hasPension)
-                  )
-                  .map((phase) =>
+                {lifelineVisiblePhases.map((phase) =>
                   phase.end > phase.start ? (
                     <ReferenceArea
                       key={`phase-${phase.key}`}
@@ -2485,22 +2603,26 @@ const InvestmentCalculator = () => {
                     />
                   ) : null
                 )}
-                <ReferenceLine x={careerStartAge} stroke="#8a8a8a" strokeDasharray="3 4" />
-                <ReferenceLine x={careerEndAge} stroke="#8a8a8a" strokeDasharray="3 4" />
-                {hasCfk && <ReferenceLine x={cfkStartAge} stroke="#8a8a8a" strokeDasharray="3 4" />}
-                {hasCfk && <ReferenceLine x={lifeline.cfkPayoutEndAge} stroke="#8a8a8a" strokeDasharray="3 4" />}
-                {hasPension && <ReferenceLine x={aowAge} stroke="#8a8a8a" strokeDasharray="3 4" />}
-                {hasPension && (
-                  <ReferenceLine x={aowAge + lifeline.pensionPayoutYears} stroke="#8a8a8a" strokeDasharray="3 4" />
+                {lifelinePhaseBoundaries.map((marker) => (
+                  <ReferenceLine key={`marker-${marker}`} x={marker} stroke="#8a8a8a" strokeDasharray="3 4" />
+                ))}
+                {lifelineChartView.showWeekNote && (
+                  <ReferenceLine
+                    x={7}
+                    stroke="#8a8a8a"
+                    strokeDasharray="3 4"
+                    label={{ value: "eerstvolgende wedstrijd", position: "insideTopRight", fill: "#4b5563", fontSize: 11 }}
+                  />
                 )}
                 <XAxis
                   type="number"
-                  dataKey="age"
-                  domain={[startAge, lifeline.maxAge]}
-                  ticks={lifelineTicks}
+                  dataKey={lifelineChartView.xDataKey}
+                  domain={lifelineChartView.xDomain}
+                  ticks={lifelineChartView.xTicks}
                   tick={{ fontSize: 11, fill: "#4b5563" }}
                   axisLine={{ stroke: "#d8d2bf" }}
                   tickLine={false}
+                  tickFormatter={lifelineChartView.xTickFormatter}
                 />
                 <YAxis
                   tick={{ fontSize: 11, fill: "#4b5563" }}
@@ -2515,21 +2637,15 @@ const InvestmentCalculator = () => {
               </LineChart>
             </ResponsiveContainer>
           </div>
-          <div style={{ position: "relative", marginTop: "4px", height: "28px" }}>
-            {lifelinePhases
-              .filter(
-                (phase) =>
-                  phase.key === "career" ||
-                  (phase.key === "cfk" && hasCfk) ||
-                  (phase.key === "pension" && hasPension)
-              )
-              .map((phase) => {
+          {lifelineVisiblePhases.length > 0 && (
+            <div style={{ position: "relative", marginTop: "4px", height: "28px" }}>
+              {lifelineVisiblePhases.map((phase) => {
                 return (
                   <div
                     key={`label-${phase.key}`}
                     style={{
                       position: "absolute",
-                      left: getLifelinePhaseLabelLeft(phase),
+                      left: getLifelinePhaseLabelLeft(phase, lifelineChartView.xDomain[0], lifelineChartView.xDomain[1]),
                       transform: "translateX(-50%)",
                       textAlign: "center",
                       fontSize: "13px",
@@ -2543,7 +2659,8 @@ const InvestmentCalculator = () => {
                   </div>
                 );
               })}
-          </div>
+            </div>
+          )}
           {hasCfk && (
             <div
               style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "#4b5563" }}
@@ -2797,7 +2914,7 @@ const InvestmentCalculator = () => {
                     transform: "translate(-50%, -50%)",
                     fontSize: "12px",
                     lineHeight: 1.15,
-                    color: "rgba(0,0,0,0.45)",
+                    color: subtleOverlayTextColor,
                     textAlign: "center",
                     pointerEvents: "none",
                     zIndex: 2
