@@ -1371,6 +1371,7 @@ const InvestmentCalculator = () => {
     lifeline.potData.find((row) => row.age === freeWealthHorizonAge)?.vrij ??
     lifeline.potData[lifeline.potData.length - 1]?.vrij ??
     0;
+  const hasFreeWealth = lifeline.potData.some((row) => (row.vrij || 0) > 0);
   const pensionExpectedEndResult = lifeline.pensionCapitalAtAow ?? 0;
   const getLifelinePhaseLabelLeft = (phase, domainStart, domainEnd) => {
     if (!lifelineChartSize.width) {
@@ -2671,7 +2672,7 @@ const InvestmentCalculator = () => {
                   width={68}
                 />
                 {hasCfk && <Line type="monotone" dataKey="cfk" stroke="#0d2a28" strokeWidth={3} dot={false} />}
-                <Line type="monotone" dataKey="vva" stroke="#d2bb5d" strokeWidth={3} dot={false} />
+                {hasFreeWealth && <Line type="monotone" dataKey="vva" stroke="#d2bb5d" strokeWidth={3} dot={false} />}
                 {hasPension && <Line type="monotone" dataKey="pensioen" stroke="#6672a8" strokeWidth={3} dot={false} />}
               </LineChart>
             </ResponsiveContainer>
@@ -2708,10 +2709,12 @@ const InvestmentCalculator = () => {
               CFK vermogen
             </div>
           )}
-          <div style={{ marginTop: "6px", display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "#4b5563" }}>
-            <span style={{ width: "14px", height: "3px", backgroundColor: "#d2bb5d", borderRadius: "2px" }} />
-            Vrij Vermogen Animo
-          </div>
+          {hasFreeWealth && (
+            <div style={{ marginTop: "6px", display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "#4b5563" }}>
+              <span style={{ width: "14px", height: "3px", backgroundColor: "#d2bb5d", borderRadius: "2px" }} />
+              Vrij Vermogen Animo
+            </div>
+          )}
           {hasPension && (
             <div style={{ marginTop: "6px", display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "#4b5563" }}>
               <span style={{ width: "14px", height: "3px", backgroundColor: "#6672a8", borderRadius: "2px" }} />
