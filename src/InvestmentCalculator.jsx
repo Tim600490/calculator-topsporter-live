@@ -9,6 +9,7 @@ import {
   ReferenceDot,
   ReferenceLine,
   ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis
 } from "recharts";
@@ -139,6 +140,68 @@ const AnchoredPotTooltip = ({ point, label, left, top, formatCurrency }) => {
               {row.label}
               {row.bruto ? <span style={{ fontSize: "10px", opacity: 0.85 }}> bruto</span> : ""}
               {row.netto ? <span style={{ fontSize: "10px", opacity: 0.85 }}> netto</span> : ""}: {formatCurrency(row.value)}
+            </span>
+          </div>
+        ))
+      )}
+    </div>
+  );
+};
+
+const LifelineHoverTooltip = ({ active, payload, label, formatCurrency, zoomMode }) => {
+  if (!active || !payload || payload.length === 0) {
+    return null;
+  }
+
+  const rows = [
+    { key: "vva", color: "#d2bb5d", label: "Vrij Vermogen Animo", netto: true },
+    { key: "cfk", color: "#0d2a28", label: "CFK", bruto: true },
+    { key: "pensioen", color: "#6672a8", label: "Pensioen Animo", bruto: true }
+  ]
+    .map((row) => {
+      const entry = payload.find((item) => item.dataKey === row.key);
+      const value = entry?.value;
+      return { ...row, value: typeof value === "number" ? value : 0 };
+    })
+    .filter((row) => row.value > 0);
+
+  const weekLabels = {
+    1: "Maandag",
+    2: "Dinsdag",
+    3: "Woensdag",
+    4: "Donderdag",
+    5: "Vrijdag",
+    6: "Zaterdag",
+    7: "Zondag"
+  };
+  const title = zoomMode === "week" ? weekLabels[label] ?? `${label}` : `Leeftijd ${label}`;
+
+  return (
+    <div
+      style={{
+        backgroundColor: "rgba(45, 45, 45, 0.95)",
+        color: "#fff",
+        borderRadius: "6px",
+        padding: "8px 10px",
+        fontSize: "12px",
+        lineHeight: "1.35",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+        zIndex: 5,
+        whiteSpace: "nowrap"
+      }}
+    >
+      <div style={{ fontWeight: 700, marginBottom: "4px" }}>{title}</div>
+      {rows.length === 0 ? (
+        <div style={{ color: "rgba(255,255,255,0.8)" }}>Geen vermogen</div>
+      ) : (
+        rows.map((row) => (
+          <div key={row.key} style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "2px" }}>
+            <span style={{ width: "8px", height: "8px", background: row.color }} />
+            <span>
+              {row.label}
+              {row.bruto ? <span style={{ fontSize: "10px", opacity: 0.85 }}> bruto</span> : ""}
+              {row.netto ? <span style={{ fontSize: "10px", opacity: 0.85 }}> netto</span> : ""}:{" "}
+              {formatCurrency(row.value)}
             </span>
           </div>
         ))
@@ -2772,6 +2835,15 @@ const InvestmentCalculator = () => {
                   axisLine={false}
                   tickLine={false}
                   width={68}
+                />
+                <Tooltip
+                  cursor={{ stroke: "#9ca3af", strokeDasharray: "3 4" }}
+                  content={
+                    <LifelineHoverTooltip
+                      formatCurrency={formatCurrency}
+                      zoomMode={lifelineZoomMode}
+                    />
+                  }
                 />
                 {hasCfk && <Line type="monotone" dataKey="cfk" stroke="#0d2a28" strokeWidth={3} dot={false} />}
                 {hasFreeWealth && <Line type="monotone" dataKey="vva" stroke="#d2bb5d" strokeWidth={3} dot={false} />}
