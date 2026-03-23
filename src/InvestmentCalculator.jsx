@@ -150,7 +150,7 @@ const AnchoredPotTooltip = ({ point, label, left, top, formatCurrency }) => {
   );
 };
 
-const LifelineHoverTooltip = ({ active, payload, label, formatCurrency, zoomMode, activeSeriesKey }) => {
+const LifelineHoverTooltip = ({ active, payload, label, formatCurrency, zoomMode, activeSeriesKey, focusedSeriesKey }) => {
   if (!active || !payload || payload.length === 0) {
     return null;
   }
@@ -171,6 +171,11 @@ const LifelineHoverTooltip = ({ active, payload, label, formatCurrency, zoomMode
   const expectedValue = rawPoint[selectedSeriesKey] || 0;
   const betterValue = series.highKey ? rawPoint[series.highKey] || expectedValue : expectedValue;
   const lowerValue = series.lowKey ? rawPoint[series.lowKey] || expectedValue : expectedValue;
+  const showScenarioDetails =
+    zoomMode === "full" &&
+    focusedSeriesKey === selectedSeriesKey &&
+    Boolean(series.lowKey) &&
+    Boolean(series.highKey);
 
   const weekLabels = {
     1: "Maandag",
@@ -202,18 +207,27 @@ const LifelineHoverTooltip = ({ active, payload, label, formatCurrency, zoomMode
         {series.bruto ? <span style={{ fontSize: "10px", opacity: 0.85 }}> bruto</span> : ""}
         {series.netto ? <span style={{ fontSize: "10px", opacity: 0.85 }}> netto</span> : ""}
       </div>
-      <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "3px" }}>
-        <span style={{ width: "8px", height: "8px", background: series.color }} />
-        <span style={{ fontSize: "12px" }}>{formatCurrency(betterValue)}</span>
-      </div>
-      <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "3px" }}>
-        <span style={{ width: "11px", height: "11px", background: series.color }} />
-        <span style={{ fontSize: "14px", fontWeight: 700 }}>{formatCurrency(expectedValue)}</span>
-      </div>
-      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-        <span style={{ width: "8px", height: "8px", background: series.color }} />
-        <span style={{ fontSize: "12px" }}>{formatCurrency(lowerValue)}</span>
-      </div>
+      {showScenarioDetails ? (
+        <>
+          <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "3px" }}>
+            <span style={{ width: "8px", height: "8px", background: series.color }} />
+            <span style={{ fontSize: "12px" }}>{formatCurrency(betterValue)}</span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "3px" }}>
+            <span style={{ width: "11px", height: "11px", background: series.color }} />
+            <span style={{ fontSize: "14px", fontWeight: 700 }}>{formatCurrency(expectedValue)}</span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+            <span style={{ width: "8px", height: "8px", background: series.color }} />
+            <span style={{ fontSize: "12px" }}>{formatCurrency(lowerValue)}</span>
+          </div>
+        </>
+      ) : (
+        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          <span style={{ width: "11px", height: "11px", background: series.color }} />
+          <span style={{ fontSize: "14px", fontWeight: 700 }}>{formatCurrency(expectedValue)}</span>
+        </div>
+      )}
     </div>
   );
 };
@@ -1612,6 +1626,10 @@ const InvestmentCalculator = () => {
     0;
   const hasFreeWealth = lifeline.potData.some((row) => (row.vrij || 0) > 0);
   const pensionExpectedEndResult = lifeline.pensionCapitalAtAow ?? 0;
+  const isLifelineFocusMode = Boolean(activeScenarioBandKey);
+  const showLifelineCfkLine = hasCfk && (!isLifelineFocusMode || activeScenarioBandKey === "cfk");
+  const showLifelineVvaLine = hasFreeWealth && (!isLifelineFocusMode || activeScenarioBandKey === "vva");
+  const showLifelinePensioenLine = hasPension && (!isLifelineFocusMode || activeScenarioBandKey === "pensioen");
   const getLifelinePhaseLabelLeft = (phase, domainStart, domainEnd) => {
     if (!lifelineChartSize.width) {
       return "50%";
@@ -2954,10 +2972,11 @@ const InvestmentCalculator = () => {
                       formatCurrency={formatCurrency}
                       zoomMode={lifelineZoomMode}
                       activeSeriesKey={hoveredLifelineSeriesKey}
+                      focusedSeriesKey={activeScenarioBandKey}
                     />
                   }
                 />
-                {lifelineZoomMode === "full" && hasFreeWealth && activeScenarioBandKey === "vva" && (
+                {lifelineZoomMode === "full" && showLifelineVvaLine && activeScenarioBandKey === "vva" && (
                   <>
                     <Area type="monotone" dataKey="vvaLow" stackId="vvaBand" stroke="none" fillOpacity={0} />
                     <Area
@@ -2970,7 +2989,7 @@ const InvestmentCalculator = () => {
                     />
                   </>
                 )}
-                {lifelineZoomMode === "full" && hasPension && activeScenarioBandKey === "pensioen" && (
+                {lifelineZoomMode === "full" && showLifelinePensioenLine && activeScenarioBandKey === "pensioen" && (
                   <>
                     <Area type="monotone" dataKey="pensioenLow" stackId="pensioenBand" stroke="none" fillOpacity={0} />
                     <Area
@@ -2983,7 +3002,7 @@ const InvestmentCalculator = () => {
                     />
                   </>
                 )}
-                {hasCfk && (
+                {showLifelineCfkLine && (
                   <Line
                     type="monotone"
                     dataKey="cfk"
@@ -2993,7 +3012,7 @@ const InvestmentCalculator = () => {
                     onMouseMove={() => setHoveredLifelineSeriesKey("cfk")}
                   />
                 )}
-                {hasFreeWealth && (
+                {showLifelineVvaLine && (
                   <Line
                     type="monotone"
                     dataKey="vva"
@@ -3003,7 +3022,7 @@ const InvestmentCalculator = () => {
                     onMouseMove={() => setHoveredLifelineSeriesKey("vva")}
                   />
                 )}
-                {hasPension && (
+                {showLifelinePensioenLine && (
                   <Line
                     type="monotone"
                     dataKey="pensioen"
