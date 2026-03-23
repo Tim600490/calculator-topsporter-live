@@ -291,7 +291,9 @@ const InvestmentCalculator = () => {
   const [lifelineZoomMode, setLifelineZoomMode] = useState("week");
   const [activeScenarioBandKey, setActiveScenarioBandKey] = useState(null);
   const [hoveredLifelineSeriesKey, setHoveredLifelineSeriesKey] = useState(null);
+  const [careerPhaseStartAge, setCareerPhaseStartAge] = useState(18);
   const [careerEndAge, setCareerEndAge] = useState(35);
+  const [isDraggingCareerStartAge, setIsDraggingCareerStartAge] = useState(false);
   const [isDraggingCareerEndAge, setIsDraggingCareerEndAge] = useState(false);
   const [cfkPot, setCfkPot] = useState(0);
   const [cfkReturnRate, setCfkReturnRate] = useState(2.5);
@@ -342,13 +344,14 @@ const InvestmentCalculator = () => {
 
   const annualReturn = riskProfiles[profile];
   const annualReturn2 = riskProfiles[profile2];
-  const careerStartAge = startAge;
+  const careerStartAge = careerPhaseStartAge;
   const cfkStartAge = careerEndAge + 3;
+  const timelineStartAge = Math.min(careerStartAge, startAge);
   const cfkExpectedValueAtPayoutStart = useMemo(() => {
     const cfkGrowthRate = cfkReturnRate / 100;
-    const yearsToPayoutStart = Math.max(0, cfkStartAge - startAge);
+    const yearsToPayoutStart = Math.max(0, cfkStartAge - careerStartAge);
     return cfkPot * Math.pow(1 + cfkGrowthRate, yearsToPayoutStart);
-  }, [cfkPot, cfkReturnRate, cfkStartAge, startAge]);
+  }, [cfkPot, cfkReturnRate, cfkStartAge, careerStartAge]);
 
   const cfkDurationRange = useMemo(() => {
     const amount = cfkExpectedValueAtPayoutStart;
@@ -791,10 +794,16 @@ const InvestmentCalculator = () => {
   }, []);
 
   useEffect(() => {
-    const minCareerEnd = Math.max(careerStartAge + 1, 21);
+    const minCareerEnd = careerStartAge + 1;
     const maxCareerEnd = 50;
     setCareerEndAge((prev) => Math.min(maxCareerEnd, Math.max(minCareerEnd, prev)));
   }, [careerStartAge]);
+
+  useEffect(() => {
+    const minCareerStart = 18;
+    const maxCareerStart = Math.max(minCareerStart, careerEndAge - 1);
+    setCareerPhaseStartAge((prev) => Math.min(maxCareerStart, Math.max(minCareerStart, prev)));
+  }, [careerEndAge]);
 
   // Calculate worst case scenario
   const calculateWorstCase = () => {
@@ -1076,8 +1085,8 @@ const InvestmentCalculator = () => {
     const cfkDurationYears = cfkDurationMonths / 12;
     const cfkGrowthRate = cfkReturnRate / 100;
     const cfkMonthlyReturn = cfkGrowthRate / 12;
-    const cfkYearsToCareerEnd = Math.max(0, careerEndAge - startAge);
-    const cfkYearsToPayoutStart = Math.max(0, cfkStartAge - startAge);
+    const cfkYearsToCareerEnd = Math.max(0, careerEndAge - careerStartAge);
+    const cfkYearsToPayoutStart = Math.max(0, cfkStartAge - careerStartAge);
     const cfkMonthsToCareerEnd = Math.max(0, cfkYearsToCareerEnd * 12);
     const cfkMonthsToPayoutStart = Math.max(0, cfkYearsToPayoutStart * 12);
     const cfkBalanceAtCareerEnd = cfkPot * Math.pow(1 + cfkMonthlyReturn, cfkMonthsToCareerEnd);
@@ -1134,7 +1143,13 @@ const InvestmentCalculator = () => {
     const cfkYearIncomeByAge = new Map();
     let cfkSimBalance = cfkPot;
 
-    for (let age = startAge; age <= maxAge; age++) {
+    for (let age = timelineStartAge; age <= maxAge; age++) {
+      if (age < careerStartAge) {
+        cfkYearStartBalanceByAge.set(age, 0);
+        cfkYearIncomeByAge.set(age, 0);
+        continue;
+      }
+
       cfkYearStartBalanceByAge.set(age, cfkSimBalance);
 
       // Growth-only period before CFK payout starts.
@@ -1147,8 +1162,8 @@ const InvestmentCalculator = () => {
       }
 
       // CFK payout period with slotuitkering in the final month.
-      const payoutEndMonthAbsolute = (cfkStartAge - startAge) * 12 + cfkDurationMonths;
-      const yearStartMonthAbsolute = (age - startAge) * 12;
+      const payoutEndMonthAbsolute = (cfkStartAge - careerStartAge) * 12 + cfkDurationMonths;
+      const yearStartMonthAbsolute = (age - careerStartAge) * 12;
       const yearEndMonthAbsolute = yearStartMonthAbsolute + 12;
       const payoutMonthsInThisYear = Math.max(
         0,
@@ -1179,29 +1194,32 @@ const InvestmentCalculator = () => {
       cfkYearIncomeByAge.set(age, yearIncome);
     }
 
-    for (let age = startAge; age <= maxAge; age++) {
+    for (let age = timelineStartAge; age <= maxAge; age++) {
       let cfkIncome = 0;
       let freeIncome = 0;
       let pensionIncome = 0;
       const cfkBalance = cfkYearStartBalanceByAge.get(age) ?? 0;
       cfkIncome = cfkYearIncomeByAge.get(age) ?? 0;
 
-      const plannedFreeIncome = freeWealthPayouts.reduce((sum, row) => {
-        if (row.amount <= 0) {
-          return sum;
-        }
-        return age >= row.fromAge && age <= row.toAge ? sum + row.amount : sum;
-      }, 0);
+      const freeWealthIsActive = age >= startAge;
+      if (freeWealthIsActive) {
+        const plannedFreeIncome = freeWealthPayouts.reduce((sum, row) => {
+          if (row.amount <= 0) {
+            return sum;
+          }
+          return age >= row.fromAge && age <= row.toAge ? sum + row.amount : sum;
+        }, 0);
 
-      if (plannedFreeIncome > 0 && freeWealthBalance > 0) {
-        freeIncome = Math.min(plannedFreeIncome, freeWealthBalance);
-        freeWealthBalance = Math.max(0, freeWealthBalance - freeIncome);
-        if (freeWealthBalance === 0) {
-          freeWealthEndAge = age;
+        if (plannedFreeIncome > 0 && freeWealthBalance > 0) {
+          freeIncome = Math.min(plannedFreeIncome, freeWealthBalance);
+          freeWealthBalance = Math.max(0, freeWealthBalance - freeIncome);
+          if (freeWealthBalance === 0) {
+            freeWealthEndAge = age;
+          }
         }
       }
 
-      const freeWealthBalanceForAge = freeWealthBalance;
+      const freeWealthBalanceForAge = freeWealthIsActive ? freeWealthBalance : null;
 
       if (age < aowAge) {
         pensionBalance = getPensionBalanceAtAge(age);
@@ -1227,14 +1245,16 @@ const InvestmentCalculator = () => {
         pensioen: pensionBalance
       });
 
-      const yearOffset = age - startAge;
-      for (let month = 1; month <= 12; month++) {
-        const absoluteMonth = yearOffset * 12 + month;
-        const withinCalculatorHorizon = absoluteMonth <= investmentHorizon * 12;
-        const activeDeposit = withinCalculatorHorizon ? getMonthlyDepositForMonth(absoluteMonth) : 0;
-        const oneTimeExtra = withinCalculatorHorizon ? getOneTimeExtraForMonth(absoluteMonth) : 0;
-        freeWealthBalance = freeWealthBalance * (1 + annualReturn / 12);
-        freeWealthBalance += activeDeposit + oneTimeExtra;
+      if (freeWealthIsActive) {
+        const yearOffset = age - startAge;
+        for (let month = 1; month <= 12; month++) {
+          const absoluteMonth = yearOffset * 12 + month;
+          const withinCalculatorHorizon = absoluteMonth <= investmentHorizon * 12;
+          const activeDeposit = withinCalculatorHorizon ? getMonthlyDepositForMonth(absoluteMonth) : 0;
+          const oneTimeExtra = withinCalculatorHorizon ? getOneTimeExtraForMonth(absoluteMonth) : 0;
+          freeWealthBalance = freeWealthBalance * (1 + annualReturn / 12);
+          freeWealthBalance += activeDeposit + oneTimeExtra;
+        }
       }
     }
 
@@ -1261,6 +1281,7 @@ const InvestmentCalculator = () => {
     annualReturn,
     annualReturn2,
     calculationData,
+    careerStartAge,
     careerEndAge,
     cfkDurationMonths,
     cfkPot,
@@ -1276,11 +1297,12 @@ const InvestmentCalculator = () => {
     startAge,
     startAge2,
     startAmount,
-    startAmount2
+    startAmount2,
+    timelineStartAge
   ]);
 
   const lifelineTicks = useMemo(() => {
-    const span = Math.max(1, lifeline.maxAge - startAge);
+    const span = Math.max(1, lifeline.maxAge - timelineStartAge);
     let step = 1;
     if (span > 40) {
       step = 5;
@@ -1290,14 +1312,14 @@ const InvestmentCalculator = () => {
       step = 2;
     }
     const ticks = [];
-    for (let age = startAge; age <= lifeline.maxAge; age += step) {
+    for (let age = timelineStartAge; age <= lifeline.maxAge; age += step) {
       ticks.push(age);
     }
     if (ticks[ticks.length - 1] !== lifeline.maxAge) {
       ticks.push(lifeline.maxAge);
     }
     return ticks;
-  }, [lifeline.maxAge, startAge]);
+  }, [lifeline.maxAge, timelineStartAge]);
 
   const lifelinePhases = useMemo(() => {
     const maxPayoutToAge = freeWealthPayouts.reduce(
@@ -1335,13 +1357,13 @@ const InvestmentCalculator = () => {
       return lifeline.potData.map((row) => ({
         age: row.age,
         cfk: null,
-        vva: row.age <= freeWealthHorizonAge ? row.vrij : null,
+        vva: row.age >= startAge && row.age <= freeWealthHorizonAge ? row.vrij : null,
         vvaLow:
-          row.age <= freeWealthHorizonAge ? (row.vrij || 0) * freeWealthScenarioLowFactor : null,
+          row.age >= startAge && row.age <= freeWealthHorizonAge ? (row.vrij || 0) * freeWealthScenarioLowFactor : null,
         vvaHigh:
-          row.age <= freeWealthHorizonAge ? (row.vrij || 0) * freeWealthScenarioHighFactor : null,
+          row.age >= startAge && row.age <= freeWealthHorizonAge ? (row.vrij || 0) * freeWealthScenarioHighFactor : null,
         vvaBand:
-          row.age <= freeWealthHorizonAge
+          row.age >= startAge && row.age <= freeWealthHorizonAge
             ? Math.max(0, (row.vrij || 0) * (freeWealthScenarioHighFactor - freeWealthScenarioLowFactor))
             : null,
         pensioenLow: (row.pensioen || 0) * pensionScenarioLowFactor,
@@ -1356,13 +1378,13 @@ const InvestmentCalculator = () => {
         return {
           age: row.age,
           cfk: null,
-          vva: row.age <= freeWealthHorizonAge ? row.vrij : null,
+          vva: row.age >= startAge && row.age <= freeWealthHorizonAge ? row.vrij : null,
           vvaLow:
-            row.age <= freeWealthHorizonAge ? (row.vrij || 0) * freeWealthScenarioLowFactor : null,
+            row.age >= startAge && row.age <= freeWealthHorizonAge ? (row.vrij || 0) * freeWealthScenarioLowFactor : null,
           vvaHigh:
-            row.age <= freeWealthHorizonAge ? (row.vrij || 0) * freeWealthScenarioHighFactor : null,
+            row.age >= startAge && row.age <= freeWealthHorizonAge ? (row.vrij || 0) * freeWealthScenarioHighFactor : null,
           vvaBand:
-            row.age <= freeWealthHorizonAge
+            row.age >= startAge && row.age <= freeWealthHorizonAge
               ? Math.max(0, (row.vrij || 0) * (freeWealthScenarioHighFactor - freeWealthScenarioLowFactor))
               : null,
           pensioenLow: (row.pensioen || 0) * pensionScenarioLowFactor,
@@ -1371,20 +1393,20 @@ const InvestmentCalculator = () => {
           pensioen: row.pensioen
         };
       }
-      const isZero = row.cfk <= 0;
+      const isZero = row.age >= cfkStartAge && row.cfk <= 0;
       if (isZero) {
         hitZero = true;
       }
       return {
         age: row.age,
-        cfk: row.cfk,
-        vva: row.age <= freeWealthHorizonAge ? row.vrij : null,
+        cfk: row.age >= careerStartAge ? row.cfk : null,
+        vva: row.age >= startAge && row.age <= freeWealthHorizonAge ? row.vrij : null,
         vvaLow:
-          row.age <= freeWealthHorizonAge ? (row.vrij || 0) * freeWealthScenarioLowFactor : null,
+          row.age >= startAge && row.age <= freeWealthHorizonAge ? (row.vrij || 0) * freeWealthScenarioLowFactor : null,
         vvaHigh:
-          row.age <= freeWealthHorizonAge ? (row.vrij || 0) * freeWealthScenarioHighFactor : null,
+          row.age >= startAge && row.age <= freeWealthHorizonAge ? (row.vrij || 0) * freeWealthScenarioHighFactor : null,
         vvaBand:
-          row.age <= freeWealthHorizonAge
+          row.age >= startAge && row.age <= freeWealthHorizonAge
             ? Math.max(0, (row.vrij || 0) * (freeWealthScenarioHighFactor - freeWealthScenarioLowFactor))
             : null,
         pensioenLow: (row.pensioen || 0) * pensionScenarioLowFactor,
@@ -1400,13 +1422,17 @@ const InvestmentCalculator = () => {
     freeWealthScenarioLowFactor,
     freeWealthScenarioHighFactor,
     pensionScenarioLowFactor,
-    pensionScenarioHighFactor
+    pensionScenarioHighFactor,
+    startAge,
+    careerStartAge
   ]);
   const hasPension = (lifeline.pensionCapitalAtAow ?? 0) > 0;
   const lifelineWeekGraphData = useMemo(() => {
     const firstRow = lifelineCfkGraphData[0] ?? { cfk: null, vva: 0, pensioen: 0 };
-    const weekStartCfk = hasCfk ? firstRow.cfk ?? 0 : null;
-    const weekStartVva = firstRow.vva ?? 0;
+    const cfkStartRow = lifelineCfkGraphData.find((row) => row.age >= careerStartAge && row.cfk != null) ?? firstRow;
+    const vvaStartRow = lifelineCfkGraphData.find((row) => row.age >= startAge && row.vva != null) ?? firstRow;
+    const weekStartCfk = hasCfk ? cfkStartRow.cfk ?? 0 : null;
+    const weekStartVva = vvaStartRow.vva ?? 0;
     const weekStartPensioen = hasPension ? firstRow.pensioen ?? 0 : null;
     return Array.from({ length: 7 }, (_, index) => ({
       day: index + 1,
@@ -1414,7 +1440,7 @@ const InvestmentCalculator = () => {
       vva: weekStartVva,
       pensioen: weekStartPensioen
     }));
-  }, [lifelineCfkGraphData, hasCfk, hasPension]);
+  }, [careerStartAge, lifelineCfkGraphData, hasCfk, hasPension, startAge]);
   const lifelineVisiblePhases = useMemo(() => {
     if (lifelineZoomMode === "week") {
       return [];
@@ -1502,7 +1528,7 @@ const InvestmentCalculator = () => {
     return {
       data: lifelineCfkGraphData,
       xDataKey: "age",
-      xDomain: [startAge, lifeline.maxAge],
+      xDomain: [timelineStartAge, lifeline.maxAge],
       xTicks: lifelineTicks,
       xTickFormatter: undefined,
       showWeekNote: false,
@@ -1516,9 +1542,26 @@ const InvestmentCalculator = () => {
     lifelineTicks,
     lifelineWeekGraphData,
     lifelineZoomMode,
-    startAge
+    timelineStartAge
   ]);
-  const lifelineCareerMarkerLeft = useMemo(() => {
+  const lifelineCareerStartMarkerLeft = useMemo(() => {
+    if (lifelineZoomMode !== "full" || !lifelineChartSize.width) {
+      return null;
+    }
+    const marginLeft = 18;
+    const marginRight = 18;
+    const yAxisWidth = 68;
+    const [domainStart, domainEnd] = lifelineChartView.xDomain;
+    const span = Math.max(1, domainEnd - domainStart);
+    const plotWidth = lifelineChartSize.width - marginLeft - marginRight - yAxisWidth;
+    if (plotWidth <= 0) {
+      return null;
+    }
+    const ratio = (careerStartAge - domainStart) / span;
+    return marginLeft + yAxisWidth + Math.max(0, Math.min(1, ratio)) * plotWidth;
+  }, [careerStartAge, lifelineChartSize.width, lifelineChartView.xDomain, lifelineZoomMode]);
+
+  const lifelineCareerEndMarkerLeft = useMemo(() => {
     if (lifelineZoomMode !== "full" || !lifelineChartSize.width) {
       return null;
     }
@@ -1536,7 +1579,7 @@ const InvestmentCalculator = () => {
   }, [careerEndAge, lifelineChartSize.width, lifelineChartView.xDomain, lifelineZoomMode]);
 
   useEffect(() => {
-    if (!isDraggingCareerEndAge) {
+    if (!isDraggingCareerEndAge && !isDraggingCareerStartAge) {
       return undefined;
     }
 
@@ -1558,13 +1601,21 @@ const InvestmentCalculator = () => {
       const ratio = (rawX - plotLeft) / plotWidth;
       const [domainStart, domainEnd] = lifelineChartView.xDomain;
       const rawAge = Math.round(domainStart + ratio * (domainEnd - domainStart));
-      const minCareerEnd = Math.max(careerStartAge + 1, 21);
-      const maxCareerEnd = 50;
-      const nextCareerEnd = Math.min(maxCareerEnd, Math.max(minCareerEnd, rawAge));
-      setCareerEndAge(nextCareerEnd);
+      if (isDraggingCareerStartAge) {
+        const minCareerStart = 18;
+        const maxCareerStart = Math.max(minCareerStart, careerEndAge - 1);
+        const nextCareerStart = Math.min(maxCareerStart, Math.max(minCareerStart, rawAge));
+        setCareerPhaseStartAge(nextCareerStart);
+      } else {
+        const minCareerEnd = careerStartAge + 1;
+        const maxCareerEnd = 50;
+        const nextCareerEnd = Math.min(maxCareerEnd, Math.max(minCareerEnd, rawAge));
+        setCareerEndAge(nextCareerEnd);
+      }
     };
 
     const handleMouseUp = () => {
+      setIsDraggingCareerStartAge(false);
       setIsDraggingCareerEndAge(false);
     };
 
@@ -1574,7 +1625,14 @@ const InvestmentCalculator = () => {
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [careerStartAge, isDraggingCareerEndAge, lifelineChartView.xDomain, lifelineZoomMode]);
+  }, [
+    careerEndAge,
+    careerStartAge,
+    isDraggingCareerEndAge,
+    isDraggingCareerStartAge,
+    lifelineChartView.xDomain,
+    lifelineZoomMode
+  ]);
   const hoveredIncomePoint = hoveredIncomeIndex != null ? lifeline.incomeData[hoveredIncomeIndex] : null;
   const incomeTooltipAnchor = useMemo(() => {
     if (!hoveredIncomePoint || !incomeChartSize.width || !incomeChartSize.height || lifeline.incomeData.length === 0) {
@@ -1651,10 +1709,10 @@ const InvestmentCalculator = () => {
     const marginLeft = 0;
     const marginRight = 16;
     const yAxisWidth = 60;
-    const span = Math.max(1, lifeline.maxAge - startAge);
+    const span = Math.max(1, lifeline.maxAge - timelineStartAge);
     const plotWidth = incomeChartSize.width - marginLeft - marginRight - yAxisWidth;
     const centerAge = (careerStartAge + careerEndAge) / 2;
-    const ratio = (centerAge - startAge) / span;
+    const ratio = (centerAge - timelineStartAge) / span;
     const x = marginLeft + yAxisWidth + Math.max(0, Math.min(1, ratio)) * Math.max(0, plotWidth);
     return `${x}px`;
   };
@@ -2869,11 +2927,44 @@ const InvestmentCalculator = () => {
             ))}
           </div>
           <div ref={lifelineChartContainerRef} style={{ height: "300px", position: "relative" }}>
-            {lifelineZoomMode === "full" && lifelineCareerMarkerLeft != null && (
+            {lifelineZoomMode === "full" && lifelineCareerStartMarkerLeft != null && (
+              <div
+                role="slider"
+                aria-label="Start carrièreleeftijd"
+                aria-valuemin={18}
+                aria-valuemax={Math.max(18, careerEndAge - 1)}
+                aria-valuenow={careerStartAge}
+                onMouseDown={(event) => {
+                  event.preventDefault();
+                  setIsDraggingCareerStartAge(true);
+                }}
+                style={{
+                  position: "absolute",
+                  left: `${lifelineCareerStartMarkerLeft - 8}px`,
+                  top: "18px",
+                  bottom: "18px",
+                  width: "16px",
+                  cursor: "ew-resize",
+                  zIndex: 4
+                }}
+              >
+                <div
+                  style={{
+                    position: "absolute",
+                    left: "50%",
+                    top: "0",
+                    bottom: "0",
+                    transform: "translateX(-50%)",
+                    borderLeft: "2px dashed rgba(17,24,39,0.35)"
+                  }}
+                />
+              </div>
+            )}
+            {lifelineZoomMode === "full" && lifelineCareerEndMarkerLeft != null && (
               <div
                 role="slider"
                 aria-label="Einde carrièreleeftijd"
-                aria-valuemin={Math.max(careerStartAge + 1, 21)}
+                aria-valuemin={careerStartAge + 1}
                 aria-valuemax={50}
                 aria-valuenow={careerEndAge}
                 onMouseDown={(event) => {
@@ -2882,7 +2973,7 @@ const InvestmentCalculator = () => {
                 }}
                 style={{
                   position: "absolute",
-                  left: `${lifelineCareerMarkerLeft - 8}px`,
+                  left: `${lifelineCareerEndMarkerLeft - 8}px`,
                   top: "18px",
                   bottom: "18px",
                   width: "16px",
