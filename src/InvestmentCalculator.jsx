@@ -1,8 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
+  Area,
   Bar,
   BarChart,
   CartesianGrid,
+  ComposedChart,
   Line,
   LineChart,
   ReferenceArea,
@@ -153,16 +155,22 @@ const LifelineHoverTooltip = ({ active, payload, label, formatCurrency, zoomMode
     return null;
   }
 
+  const readValue = (key) => {
+    const entry = payload.find((item) => item.dataKey === key);
+    return typeof entry?.value === "number" ? entry.value : 0;
+  };
+
   const rows = [
-    { key: "vva", color: "#d2bb5d", label: "Vrij Vermogen Animo", netto: true },
+    { key: "vva", lowKey: "vvaLow", highKey: "vvaHigh", color: "#d2bb5d", label: "Vrij Vermogen Animo", netto: true },
     { key: "cfk", color: "#0d2a28", label: "CFK", bruto: true },
-    { key: "pensioen", color: "#6672a8", label: "Pensioen Animo", bruto: true }
+    { key: "pensioen", lowKey: "pensioenLow", highKey: "pensioenHigh", color: "#6672a8", label: "Pensioen Animo", bruto: true }
   ]
-    .map((row) => {
-      const entry = payload.find((item) => item.dataKey === row.key);
-      const value = entry?.value;
-      return { ...row, value: typeof value === "number" ? value : 0 };
-    })
+    .map((row) => ({
+      ...row,
+      value: readValue(row.key),
+      low: row.lowKey ? readValue(row.lowKey) : 0,
+      high: row.highKey ? readValue(row.highKey) : 0
+    }))
     .filter((row) => row.value > 0);
 
   const weekLabels = {
@@ -197,11 +205,18 @@ const LifelineHoverTooltip = ({ active, payload, label, formatCurrency, zoomMode
         rows.map((row) => (
           <div key={row.key} style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "2px" }}>
             <span style={{ width: "8px", height: "8px", background: row.color }} />
-            <span>
-              {row.label}
-              {row.bruto ? <span style={{ fontSize: "10px", opacity: 0.85 }}> bruto</span> : ""}
-              {row.netto ? <span style={{ fontSize: "10px", opacity: 0.85 }}> netto</span> : ""}:{" "}
-              {formatCurrency(row.value)}
+            <span style={{ display: "inline-flex", flexDirection: "column" }}>
+              <span>
+                {row.label}
+                {row.bruto ? <span style={{ fontSize: "10px", opacity: 0.85 }}> bruto</span> : ""}
+                {row.netto ? <span style={{ fontSize: "10px", opacity: 0.85 }}> netto</span> : ""}:{" "}
+                {formatCurrency(row.value)}
+              </span>
+              {zoomMode === "full" && row.low > 0 && row.high > 0 ? (
+                <span style={{ fontSize: "10px", opacity: 0.85 }}>
+                  Minder: {formatCurrency(row.low)} · Beter: {formatCurrency(row.high)}
+                </span>
+              ) : null}
             </span>
           </div>
         ))
@@ -1301,27 +1316,83 @@ const InvestmentCalculator = () => {
     lifeline.pensionPayoutYears
   ]);
 
+  const freeWealthScenarioLowFactor = finalBalance > 0 ? worstCaseBalance / finalBalance : 1;
+  const freeWealthScenarioHighFactor = finalBalance > 0 ? bestCaseBalance / finalBalance : 1;
+  const pensionScenarioLowFactor = finalBalance2 > 0 ? worstCaseBalance2 / finalBalance2 : 1;
+  const pensionScenarioHighFactor = finalBalance2 > 0 ? bestCaseBalance2 / finalBalance2 : 1;
+
   const lifelineCfkGraphData = useMemo(() => {
     if (!hasCfk) {
       return lifeline.potData.map((row) => ({
         age: row.age,
         cfk: null,
         vva: row.age <= freeWealthHorizonAge ? row.vrij : null,
+        vvaLow:
+          row.age <= freeWealthHorizonAge ? (row.vrij || 0) * freeWealthScenarioLowFactor : null,
+        vvaHigh:
+          row.age <= freeWealthHorizonAge ? (row.vrij || 0) * freeWealthScenarioHighFactor : null,
+        vvaBand:
+          row.age <= freeWealthHorizonAge
+            ? Math.max(0, (row.vrij || 0) * (freeWealthScenarioHighFactor - freeWealthScenarioLowFactor))
+            : null,
+        pensioenLow: (row.pensioen || 0) * pensionScenarioLowFactor,
+        pensioenHigh: (row.pensioen || 0) * pensionScenarioHighFactor,
+        pensioenBand: Math.max(0, (row.pensioen || 0) * (pensionScenarioHighFactor - pensionScenarioLowFactor)),
         pensioen: row.pensioen
       }));
     }
     let hitZero = false;
     return lifeline.potData.map((row) => {
       if (hitZero) {
-        return { age: row.age, cfk: null, vva: row.age <= freeWealthHorizonAge ? row.vrij : null, pensioen: row.pensioen };
+        return {
+          age: row.age,
+          cfk: null,
+          vva: row.age <= freeWealthHorizonAge ? row.vrij : null,
+          vvaLow:
+            row.age <= freeWealthHorizonAge ? (row.vrij || 0) * freeWealthScenarioLowFactor : null,
+          vvaHigh:
+            row.age <= freeWealthHorizonAge ? (row.vrij || 0) * freeWealthScenarioHighFactor : null,
+          vvaBand:
+            row.age <= freeWealthHorizonAge
+              ? Math.max(0, (row.vrij || 0) * (freeWealthScenarioHighFactor - freeWealthScenarioLowFactor))
+              : null,
+          pensioenLow: (row.pensioen || 0) * pensionScenarioLowFactor,
+          pensioenHigh: (row.pensioen || 0) * pensionScenarioHighFactor,
+          pensioenBand: Math.max(0, (row.pensioen || 0) * (pensionScenarioHighFactor - pensionScenarioLowFactor)),
+          pensioen: row.pensioen
+        };
       }
       const isZero = row.cfk <= 0;
       if (isZero) {
         hitZero = true;
       }
-      return { age: row.age, cfk: row.cfk, vva: row.age <= freeWealthHorizonAge ? row.vrij : null, pensioen: row.pensioen };
+      return {
+        age: row.age,
+        cfk: row.cfk,
+        vva: row.age <= freeWealthHorizonAge ? row.vrij : null,
+        vvaLow:
+          row.age <= freeWealthHorizonAge ? (row.vrij || 0) * freeWealthScenarioLowFactor : null,
+        vvaHigh:
+          row.age <= freeWealthHorizonAge ? (row.vrij || 0) * freeWealthScenarioHighFactor : null,
+        vvaBand:
+          row.age <= freeWealthHorizonAge
+            ? Math.max(0, (row.vrij || 0) * (freeWealthScenarioHighFactor - freeWealthScenarioLowFactor))
+            : null,
+        pensioenLow: (row.pensioen || 0) * pensionScenarioLowFactor,
+        pensioenHigh: (row.pensioen || 0) * pensionScenarioHighFactor,
+        pensioenBand: Math.max(0, (row.pensioen || 0) * (pensionScenarioHighFactor - pensionScenarioLowFactor)),
+        pensioen: row.pensioen
+      };
     });
-  }, [hasCfk, freeWealthHorizonAge, lifeline.potData]);
+  }, [
+    hasCfk,
+    freeWealthHorizonAge,
+    lifeline.potData,
+    freeWealthScenarioLowFactor,
+    freeWealthScenarioHighFactor,
+    pensionScenarioLowFactor,
+    pensionScenarioHighFactor
+  ]);
   const hasPension = (lifeline.pensionCapitalAtAow ?? 0) > 0;
   const lifelineWeekGraphData = useMemo(() => {
     const firstRow = lifelineCfkGraphData[0] ?? { cfk: null, vva: 0, pensioen: 0 };
@@ -2819,7 +2890,7 @@ const InvestmentCalculator = () => {
               </div>
             )}
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={lifelineChartView.data} margin={{ top: 18, right: 18, left: 18, bottom: 18 }}>
+              <ComposedChart data={lifelineChartView.data} margin={{ top: 18, right: 18, left: 18, bottom: 18 }}>
                 <CartesianGrid stroke="#e5e2d8" vertical={false} />
                 {lifelineVisiblePhases.map((phase) =>
                   phase.end > phase.start ? (
@@ -2886,10 +2957,36 @@ const InvestmentCalculator = () => {
                     />
                   }
                 />
+                {lifelineZoomMode === "full" && hasFreeWealth && (
+                  <>
+                    <Area type="monotone" dataKey="vvaLow" stackId="vvaBand" stroke="none" fillOpacity={0} />
+                    <Area
+                      type="monotone"
+                      dataKey="vvaBand"
+                      stackId="vvaBand"
+                      stroke="none"
+                      fill="#d2bb5d"
+                      fillOpacity={0.16}
+                    />
+                  </>
+                )}
+                {lifelineZoomMode === "full" && hasPension && (
+                  <>
+                    <Area type="monotone" dataKey="pensioenLow" stackId="pensioenBand" stroke="none" fillOpacity={0} />
+                    <Area
+                      type="monotone"
+                      dataKey="pensioenBand"
+                      stackId="pensioenBand"
+                      stroke="none"
+                      fill="#6672a8"
+                      fillOpacity={0.14}
+                    />
+                  </>
+                )}
                 {hasCfk && <Line type="monotone" dataKey="cfk" stroke="#0d2a28" strokeWidth={3} dot={false} />}
                 {hasFreeWealth && <Line type="monotone" dataKey="vva" stroke="#d2bb5d" strokeWidth={3} dot={false} />}
                 {hasPension && <Line type="monotone" dataKey="pensioen" stroke="#6672a8" strokeWidth={3} dot={false} />}
-              </LineChart>
+              </ComposedChart>
             </ResponsiveContainer>
           </div>
           {lifelineVisiblePhases.length > 0 && (
