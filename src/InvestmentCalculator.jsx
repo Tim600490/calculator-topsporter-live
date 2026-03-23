@@ -257,9 +257,14 @@ const InvestmentCalculator = () => {
   const annualReturn2 = riskProfiles[profile2];
   const careerStartAge = startAge;
   const cfkStartAge = careerEndAge + 3;
+  const cfkExpectedValueAtPayoutStart = useMemo(() => {
+    const cfkGrowthRate = cfkReturnRate / 100;
+    const yearsToPayoutStart = Math.max(0, cfkStartAge - startAge);
+    return cfkPot * Math.pow(1 + cfkGrowthRate, yearsToPayoutStart);
+  }, [cfkPot, cfkReturnRate, cfkStartAge, startAge]);
 
   const cfkDurationRange = useMemo(() => {
-    const amount = cfkPot;
+    const amount = cfkExpectedValueAtPayoutStart;
     const ranges = [
       [0, 32249, 1, 12],
       [32249, 43000, 9, 18],
@@ -284,7 +289,7 @@ const InvestmentCalculator = () => {
     ];
     const match = ranges.find(([min, max]) => amount >= min && amount < max) || ranges[0];
     return { min: match[2], max: match[3] };
-  }, [cfkPot]);
+  }, [cfkExpectedValueAtPayoutStart]);
 
   useEffect(() => {
     setCfkDurationMonths((value) => Math.min(cfkDurationRange.max, Math.max(cfkDurationRange.min, value)));
