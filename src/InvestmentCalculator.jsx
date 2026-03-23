@@ -1078,7 +1078,6 @@ const InvestmentCalculator = () => {
       pensionCapitalAtAow > 0 ? Math.max(5, Math.min(20, Math.ceil(pensionCapitalAtAow / 27192))) : 0;
     const pensionAnnualPayout = pensionPayoutYears > 0 ? pensionCapitalAtAow / pensionPayoutYears : 0;
 
-    let cfkBalanceDuringPayout = cfkBalanceAtPayoutStart;
     let freeWealthBalance = startAmount;
     let pensionBalance = 0;
     let pensionBalanceDuringPayout = pensionCapitalAtAow;
@@ -1102,24 +1101,63 @@ const InvestmentCalculator = () => {
     const incomeData = [];
     const potData = [];
 
+    const cfkYearStartBalanceByAge = new Map();
+    const cfkYearIncomeByAge = new Map();
+    const cfkMonthlyReturn = cfkGrowthRate / 12;
+    let cfkSimBalance = cfkPot;
+
+    for (let age = startAge; age <= maxAge; age++) {
+      cfkYearStartBalanceByAge.set(age, cfkSimBalance);
+
+      // Growth-only period before CFK payout starts.
+      if (age < cfkStartAge) {
+        for (let month = 1; month <= 12; month++) {
+          cfkSimBalance = cfkSimBalance * (1 + cfkMonthlyReturn);
+        }
+        cfkYearIncomeByAge.set(age, 0);
+        continue;
+      }
+
+      // CFK payout period with slotuitkering in the final month.
+      const payoutEndMonthAbsolute = (cfkStartAge - startAge) * 12 + cfkDurationMonths;
+      const yearStartMonthAbsolute = (age - startAge) * 12;
+      const yearEndMonthAbsolute = yearStartMonthAbsolute + 12;
+      const payoutMonthsInThisYear = Math.max(
+        0,
+        Math.min(yearEndMonthAbsolute, payoutEndMonthAbsolute) - yearStartMonthAbsolute
+      );
+
+      if (payoutMonthsInThisYear <= 0 || cfkSimBalance <= 0) {
+        cfkYearIncomeByAge.set(age, 0);
+        continue;
+      }
+
+      const remainingPayoutMonthsAtYearStart = Math.max(1, payoutEndMonthAbsolute - yearStartMonthAbsolute);
+      const regularMonthlyPayout = cfkSimBalance / remainingPayoutMonthsAtYearStart;
+      let yearIncome = 0;
+
+      for (let month = 1; month <= payoutMonthsInThisYear; month++) {
+        cfkSimBalance = cfkSimBalance * (1 + cfkMonthlyReturn);
+        cfkSimBalance = Math.max(0, cfkSimBalance - regularMonthlyPayout);
+        yearIncome += regularMonthlyPayout;
+
+        const currentAbsoluteMonth = yearStartMonthAbsolute + month;
+        if (currentAbsoluteMonth === payoutEndMonthAbsolute) {
+          // Article 10 Slotuitkering: pay out all residual value at the end with accrued return.
+          yearIncome += cfkSimBalance;
+          cfkSimBalance = 0;
+        }
+      }
+
+      cfkYearIncomeByAge.set(age, yearIncome);
+    }
+
     for (let age = startAge; age <= maxAge; age++) {
       let cfkIncome = 0;
       let freeIncome = 0;
       let pensionIncome = 0;
-      let cfkBalance = 0;
-
-      if (age < cfkStartAge) {
-        // CFK grows yearly from start age up to payout start age.
-        const yearsSinceStart = Math.max(0, age - startAge);
-        cfkBalance = cfkPot * Math.pow(1 + cfkGrowthRate, yearsSinceStart);
-      } else if (age >= cfkStartAge && age < cfkPayoutEndAge) {
-        // During payout years balance decreases by yearly payout, but keeps returning.
-        cfkBalance = cfkBalanceDuringPayout;
-        cfkIncome = cfkAnnualPayout;
-        cfkBalanceDuringPayout = Math.max(0, cfkBalanceDuringPayout * (1 + cfkGrowthRate) - cfkAnnualPayout);
-      } else {
-        cfkBalance = 0;
-      }
+      const cfkBalance = cfkYearStartBalanceByAge.get(age) ?? 0;
+      cfkIncome = cfkYearIncomeByAge.get(age) ?? 0;
 
       const plannedFreeIncome = freeWealthPayouts.reduce((sum, row) => {
         if (row.amount <= 0) {
