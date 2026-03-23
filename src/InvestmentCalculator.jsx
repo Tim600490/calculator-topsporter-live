@@ -354,23 +354,9 @@ const InvestmentCalculator = () => {
     return { min: match[2], max: match[3] };
   }, [cfkExpectedValueAtPayoutStart]);
 
-  const cfkDurationYearRange = useMemo(() => {
-    const minYearMonths = Math.ceil(cfkDurationRange.min / 12) * 12;
-    const maxYearMonths = Math.floor(cfkDurationRange.max / 12) * 12;
-    if (maxYearMonths >= minYearMonths) {
-      return { min: minYearMonths, max: maxYearMonths };
-    }
-    const fallback = Math.max(12, Math.round(cfkDurationRange.max / 12) * 12);
-    return { min: fallback, max: fallback };
-  }, [cfkDurationRange.max, cfkDurationRange.min]);
-
   useEffect(() => {
-    setCfkDurationMonths((value) => {
-      const clamped = Math.min(cfkDurationYearRange.max, Math.max(cfkDurationYearRange.min, value));
-      const snapped = Math.round(clamped / 12) * 12;
-      return Math.min(cfkDurationYearRange.max, Math.max(cfkDurationYearRange.min, snapped));
-    });
-  }, [cfkDurationYearRange.max, cfkDurationYearRange.min]);
+    setCfkDurationMonths((value) => Math.min(cfkDurationRange.max, Math.max(cfkDurationRange.min, value)));
+  }, [cfkDurationRange.max, cfkDurationRange.min]);
 
   useEffect(() => {
     if (phase1Years > investmentHorizon) {
@@ -3014,9 +3000,9 @@ const InvestmentCalculator = () => {
             <input
               className="cfk-duration-slider"
               type="range"
-              min={cfkDurationYearRange.min}
-              max={cfkDurationYearRange.max}
-              step="12"
+              min={cfkDurationRange.min}
+              max={cfkDurationRange.max}
+              step="1"
               value={cfkDurationMonths}
               onChange={(e) => setCfkDurationMonths(Number(e.target.value))}
               style={{
@@ -3025,17 +3011,13 @@ const InvestmentCalculator = () => {
                 height: "6px",
                 borderRadius: "4px",
                 background: `linear-gradient(to right, #0d2a28 0%, #0d2a28 ${
-                  cfkDurationYearRange.max === cfkDurationYearRange.min
+                  cfkDurationRange.max === cfkDurationRange.min
                     ? 100
-                    : ((cfkDurationMonths - cfkDurationYearRange.min) /
-                        (cfkDurationYearRange.max - cfkDurationYearRange.min)) *
-                      100
+                    : ((cfkDurationMonths - cfkDurationRange.min) / (cfkDurationRange.max - cfkDurationRange.min)) * 100
                 }%, #E5E7EB ${
-                  cfkDurationYearRange.max === cfkDurationYearRange.min
+                  cfkDurationRange.max === cfkDurationRange.min
                     ? 100
-                    : ((cfkDurationMonths - cfkDurationYearRange.min) /
-                        (cfkDurationYearRange.max - cfkDurationYearRange.min)) *
-                      100
+                    : ((cfkDurationMonths - cfkDurationRange.min) / (cfkDurationRange.max - cfkDurationRange.min)) * 100
                 }%, #E5E7EB 100%)`,
                 outline: "none",
                 appearance: "none",
