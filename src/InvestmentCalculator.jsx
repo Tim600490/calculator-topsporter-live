@@ -150,28 +150,27 @@ const AnchoredPotTooltip = ({ point, label, left, top, formatCurrency }) => {
   );
 };
 
-const LifelineHoverTooltip = ({ active, payload, label, formatCurrency, zoomMode }) => {
+const LifelineHoverTooltip = ({ active, payload, label, formatCurrency, zoomMode, activeSeriesKey }) => {
   if (!active || !payload || payload.length === 0) {
     return null;
   }
 
-  const readValue = (key) => {
-    const entry = payload.find((item) => item.dataKey === key);
-    return typeof entry?.value === "number" ? entry.value : 0;
+  const rawPoint = payload[0]?.payload || {};
+  const seriesConfig = {
+    vva: { color: "#d2bb5d", label: "Vrij Vermogen Animo", lowKey: "vvaLow", highKey: "vvaHigh", netto: true },
+    cfk: { color: "#0d2a28", label: "CFK", bruto: true },
+    pensioen: { color: "#6672a8", label: "Pensioen Animo", lowKey: "pensioenLow", highKey: "pensioenHigh", bruto: true }
   };
+  const availableSeriesKeys = ["vva", "cfk", "pensioen"].filter((key) => (rawPoint[key] || 0) > 0);
+  const selectedSeriesKey = availableSeriesKeys.includes(activeSeriesKey) ? activeSeriesKey : null;
+  if (!selectedSeriesKey) {
+    return null;
+  }
 
-  const rows = [
-    { key: "vva", lowKey: "vvaLow", highKey: "vvaHigh", color: "#d2bb5d", label: "Vrij Vermogen Animo", netto: true },
-    { key: "cfk", color: "#0d2a28", label: "CFK", bruto: true },
-    { key: "pensioen", lowKey: "pensioenLow", highKey: "pensioenHigh", color: "#6672a8", label: "Pensioen Animo", bruto: true }
-  ]
-    .map((row) => ({
-      ...row,
-      value: readValue(row.key),
-      low: row.lowKey ? readValue(row.lowKey) : 0,
-      high: row.highKey ? readValue(row.highKey) : 0
-    }))
-    .filter((row) => row.value > 0);
+  const series = seriesConfig[selectedSeriesKey];
+  const expectedValue = rawPoint[selectedSeriesKey] || 0;
+  const betterValue = series.highKey ? rawPoint[series.highKey] || expectedValue : expectedValue;
+  const lowerValue = series.lowKey ? rawPoint[series.lowKey] || expectedValue : expectedValue;
 
   const weekLabels = {
     1: "Maandag",
@@ -198,29 +197,23 @@ const LifelineHoverTooltip = ({ active, payload, label, formatCurrency, zoomMode
         whiteSpace: "nowrap"
       }}
     >
-      <div style={{ fontWeight: 700, marginBottom: "4px" }}>{title}</div>
-      {rows.length === 0 ? (
-        <div style={{ color: "rgba(255,255,255,0.8)" }}>Geen vermogen</div>
-      ) : (
-        rows.map((row) => (
-          <div key={row.key} style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "2px" }}>
-            <span style={{ width: "8px", height: "8px", background: row.color }} />
-            <span style={{ display: "inline-flex", flexDirection: "column" }}>
-              <span>
-                {row.label}
-                {row.bruto ? <span style={{ fontSize: "10px", opacity: 0.85 }}> bruto</span> : ""}
-                {row.netto ? <span style={{ fontSize: "10px", opacity: 0.85 }}> netto</span> : ""}:{" "}
-                {formatCurrency(row.value)}
-              </span>
-              {zoomMode === "full" && row.low > 0 && row.high > 0 ? (
-                <span style={{ fontSize: "10px", opacity: 0.85 }}>
-                  Minder: {formatCurrency(row.low)} · Beter: {formatCurrency(row.high)}
-                </span>
-              ) : null}
-            </span>
-          </div>
-        ))
-      )}
+      <div style={{ fontWeight: 700, marginBottom: "4px" }}>
+        {title} · {series.label}
+        {series.bruto ? <span style={{ fontSize: "10px", opacity: 0.85 }}> bruto</span> : ""}
+        {series.netto ? <span style={{ fontSize: "10px", opacity: 0.85 }}> netto</span> : ""}
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "3px" }}>
+        <span style={{ width: "8px", height: "8px", background: series.color }} />
+        <span style={{ fontSize: "12px" }}>{formatCurrency(betterValue)}</span>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "3px" }}>
+        <span style={{ width: "11px", height: "11px", background: series.color }} />
+        <span style={{ fontSize: "14px", fontWeight: 700 }}>{formatCurrency(expectedValue)}</span>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+        <span style={{ width: "8px", height: "8px", background: series.color }} />
+        <span style={{ fontSize: "12px" }}>{formatCurrency(lowerValue)}</span>
+      </div>
     </div>
   );
 };
@@ -282,6 +275,8 @@ const InvestmentCalculator = () => {
   const [isCalculatorExpanded, setIsCalculatorExpanded] = useState(false);
   const [isCalculatorExpanded2, setIsCalculatorExpanded2] = useState(false);
   const [lifelineZoomMode, setLifelineZoomMode] = useState("week");
+  const [activeScenarioBandKey, setActiveScenarioBandKey] = useState(null);
+  const [hoveredLifelineSeriesKey, setHoveredLifelineSeriesKey] = useState(null);
   const [careerEndAge, setCareerEndAge] = useState(35);
   const [isDraggingCareerEndAge, setIsDraggingCareerEndAge] = useState(false);
   const [cfkPot, setCfkPot] = useState(0);
@@ -2890,7 +2885,11 @@ const InvestmentCalculator = () => {
               </div>
             )}
             <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={lifelineChartView.data} margin={{ top: 18, right: 18, left: 18, bottom: 18 }}>
+              <ComposedChart
+                data={lifelineChartView.data}
+                margin={{ top: 18, right: 18, left: 18, bottom: 18 }}
+                onMouseLeave={() => setHoveredLifelineSeriesKey(null)}
+              >
                 <CartesianGrid stroke="#e5e2d8" vertical={false} />
                 {lifelineVisiblePhases.map((phase) =>
                   phase.end > phase.start ? (
@@ -2954,10 +2953,11 @@ const InvestmentCalculator = () => {
                     <LifelineHoverTooltip
                       formatCurrency={formatCurrency}
                       zoomMode={lifelineZoomMode}
+                      activeSeriesKey={hoveredLifelineSeriesKey}
                     />
                   }
                 />
-                {lifelineZoomMode === "full" && hasFreeWealth && (
+                {lifelineZoomMode === "full" && hasFreeWealth && activeScenarioBandKey === "vva" && (
                   <>
                     <Area type="monotone" dataKey="vvaLow" stackId="vvaBand" stroke="none" fillOpacity={0} />
                     <Area
@@ -2970,7 +2970,7 @@ const InvestmentCalculator = () => {
                     />
                   </>
                 )}
-                {lifelineZoomMode === "full" && hasPension && (
+                {lifelineZoomMode === "full" && hasPension && activeScenarioBandKey === "pensioen" && (
                   <>
                     <Area type="monotone" dataKey="pensioenLow" stackId="pensioenBand" stroke="none" fillOpacity={0} />
                     <Area
@@ -2983,9 +2983,36 @@ const InvestmentCalculator = () => {
                     />
                   </>
                 )}
-                {hasCfk && <Line type="monotone" dataKey="cfk" stroke="#0d2a28" strokeWidth={3} dot={false} />}
-                {hasFreeWealth && <Line type="monotone" dataKey="vva" stroke="#d2bb5d" strokeWidth={3} dot={false} />}
-                {hasPension && <Line type="monotone" dataKey="pensioen" stroke="#6672a8" strokeWidth={3} dot={false} />}
+                {hasCfk && (
+                  <Line
+                    type="monotone"
+                    dataKey="cfk"
+                    stroke="#0d2a28"
+                    strokeWidth={3}
+                    dot={false}
+                    onMouseMove={() => setHoveredLifelineSeriesKey("cfk")}
+                  />
+                )}
+                {hasFreeWealth && (
+                  <Line
+                    type="monotone"
+                    dataKey="vva"
+                    stroke="#d2bb5d"
+                    strokeWidth={3}
+                    dot={false}
+                    onMouseMove={() => setHoveredLifelineSeriesKey("vva")}
+                  />
+                )}
+                {hasPension && (
+                  <Line
+                    type="monotone"
+                    dataKey="pensioen"
+                    stroke="#6672a8"
+                    strokeWidth={3}
+                    dot={false}
+                    onMouseMove={() => setHoveredLifelineSeriesKey("pensioen")}
+                  />
+                )}
               </ComposedChart>
             </ResponsiveContainer>
           </div>
@@ -3013,26 +3040,74 @@ const InvestmentCalculator = () => {
               })}
             </div>
           )}
-          {hasCfk && (
-            <div
-              style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "#4b5563" }}
-            >
-              <span style={{ width: "14px", height: "3px", backgroundColor: "#0d2a28", borderRadius: "2px" }} />
-              CFK vermogen
-            </div>
-          )}
-          {hasFreeWealth && (
-            <div style={{ marginTop: "6px", display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "#4b5563" }}>
-              <span style={{ width: "14px", height: "3px", backgroundColor: "#d2bb5d", borderRadius: "2px" }} />
-              Vrij Vermogen Animo
-            </div>
-          )}
-          {hasPension && (
-            <div style={{ marginTop: "6px", display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "#4b5563" }}>
-              <span style={{ width: "14px", height: "3px", backgroundColor: "#6672a8", borderRadius: "2px" }} />
-              Pensioen Animo
-            </div>
-          )}
+          <div style={{ marginTop: "10px", display: "flex", flexWrap: "wrap", gap: "6px" }}>
+            {hasCfk && (
+              <button
+                type="button"
+                onClick={() => setActiveScenarioBandKey((prev) => (prev === "cfk" ? null : "cfk"))}
+                style={{
+                  border: `1px solid ${subtleOverlayTextColor}`,
+                  color: subtleOverlayTextColor,
+                  backgroundColor: activeScenarioBandKey === "cfk" ? "rgba(0,0,0,0.08)" : "transparent",
+                  borderRadius: "4px",
+                  padding: "3px 8px",
+                  fontSize: "11px",
+                  lineHeight: 1.2,
+                  cursor: "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px"
+                }}
+              >
+                <span style={{ width: "10px", height: "3px", backgroundColor: "#0d2a28", borderRadius: "2px" }} />
+                CFK vermogen
+              </button>
+            )}
+            {hasFreeWealth && (
+              <button
+                type="button"
+                onClick={() => setActiveScenarioBandKey((prev) => (prev === "vva" ? null : "vva"))}
+                style={{
+                  border: `1px solid ${subtleOverlayTextColor}`,
+                  color: subtleOverlayTextColor,
+                  backgroundColor: activeScenarioBandKey === "vva" ? "rgba(0,0,0,0.08)" : "transparent",
+                  borderRadius: "4px",
+                  padding: "3px 8px",
+                  fontSize: "11px",
+                  lineHeight: 1.2,
+                  cursor: "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px"
+                }}
+              >
+                <span style={{ width: "10px", height: "3px", backgroundColor: "#d2bb5d", borderRadius: "2px" }} />
+                Vrij Vermogen Animo
+              </button>
+            )}
+            {hasPension && (
+              <button
+                type="button"
+                onClick={() => setActiveScenarioBandKey((prev) => (prev === "pensioen" ? null : "pensioen"))}
+                style={{
+                  border: `1px solid ${subtleOverlayTextColor}`,
+                  color: subtleOverlayTextColor,
+                  backgroundColor: activeScenarioBandKey === "pensioen" ? "rgba(0,0,0,0.08)" : "transparent",
+                  borderRadius: "4px",
+                  padding: "3px 8px",
+                  fontSize: "11px",
+                  lineHeight: 1.2,
+                  cursor: "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px"
+                }}
+              >
+                <span style={{ width: "10px", height: "3px", backgroundColor: "#6672a8", borderRadius: "2px" }} />
+                Pensioen Animo
+              </button>
+            )}
+          </div>
         </div>
 
         <div
