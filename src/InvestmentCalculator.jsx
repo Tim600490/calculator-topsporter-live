@@ -1051,11 +1051,16 @@ const InvestmentCalculator = () => {
       startAmount;
     const cfkDurationYears = cfkDurationMonths / 12;
     const cfkGrowthRate = cfkReturnRate / 100;
+    const cfkMonthlyReturn = cfkGrowthRate / 12;
     const cfkYearsToCareerEnd = Math.max(0, careerEndAge - startAge);
     const cfkYearsToPayoutStart = Math.max(0, cfkStartAge - startAge);
-    const cfkBalanceAtCareerEnd = cfkPot * Math.pow(1 + cfkGrowthRate, cfkYearsToCareerEnd);
-    const cfkBalanceAtPayoutStart = cfkPot * Math.pow(1 + cfkGrowthRate, cfkYearsToPayoutStart);
-    const cfkAnnualPayout = cfkDurationYears > 0 ? cfkBalanceAtPayoutStart / cfkDurationYears : 0;
+    const cfkMonthsToCareerEnd = Math.max(0, cfkYearsToCareerEnd * 12);
+    const cfkMonthsToPayoutStart = Math.max(0, cfkYearsToPayoutStart * 12);
+    const cfkBalanceAtCareerEnd = cfkPot * Math.pow(1 + cfkMonthlyReturn, cfkMonthsToCareerEnd);
+    const cfkBalanceAtPayoutStart = cfkPot * Math.pow(1 + cfkMonthlyReturn, cfkMonthsToPayoutStart);
+    const cfkMonthlyPayoutFixed =
+      cfkDurationMonths > 0 ? Math.floor(cfkBalanceAtPayoutStart / cfkDurationMonths) : 0;
+    const cfkAnnualPayout = cfkMonthlyPayoutFixed * 12;
     const cfkPayoutEndAge = cfkStartAge + cfkDurationYears;
 
     const getPensionBalanceAtAge = (age) => {
@@ -1103,7 +1108,6 @@ const InvestmentCalculator = () => {
 
     const cfkYearStartBalanceByAge = new Map();
     const cfkYearIncomeByAge = new Map();
-    const cfkMonthlyReturn = cfkGrowthRate / 12;
     let cfkSimBalance = cfkPot;
 
     for (let age = startAge; age <= maxAge; age++) {
@@ -1132,14 +1136,13 @@ const InvestmentCalculator = () => {
         continue;
       }
 
-      const remainingPayoutMonthsAtYearStart = Math.max(1, payoutEndMonthAbsolute - yearStartMonthAbsolute);
-      const regularMonthlyPayout = cfkSimBalance / remainingPayoutMonthsAtYearStart;
       let yearIncome = 0;
 
       for (let month = 1; month <= payoutMonthsInThisYear; month++) {
         cfkSimBalance = cfkSimBalance * (1 + cfkMonthlyReturn);
-        cfkSimBalance = Math.max(0, cfkSimBalance - regularMonthlyPayout);
-        yearIncome += regularMonthlyPayout;
+        const regularPayout = Math.min(cfkMonthlyPayoutFixed, cfkSimBalance);
+        cfkSimBalance = Math.max(0, cfkSimBalance - regularPayout);
+        yearIncome += regularPayout;
 
         const currentAbsoluteMonth = yearStartMonthAbsolute + month;
         if (currentAbsoluteMonth === payoutEndMonthAbsolute) {
