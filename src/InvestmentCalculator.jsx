@@ -346,7 +346,7 @@ const InvestmentCalculator = () => {
   const annualReturn2 = riskProfiles[profile2];
   const careerStartAge = careerPhaseStartAge;
   const cfkStartAge = careerEndAge + 3;
-  const timelineStartAge = Math.min(careerStartAge, startAge);
+  const timelineStartAge = Math.min(startAge, startAge2);
   const cfkExpectedValueAtPayoutStart = useMemo(() => {
     const cfkGrowthRate = cfkReturnRate / 100;
     const yearsToPayoutStart = Math.max(0, cfkStartAge - careerStartAge);
@@ -1143,12 +1143,7 @@ const InvestmentCalculator = () => {
     const cfkYearIncomeByAge = new Map();
     let cfkSimBalance = cfkPot;
 
-    for (let age = timelineStartAge; age <= maxAge; age++) {
-      if (age < careerStartAge) {
-        cfkYearStartBalanceByAge.set(age, 0);
-        cfkYearIncomeByAge.set(age, 0);
-        continue;
-      }
+    for (let age = careerStartAge; age <= maxAge; age++) {
 
       cfkYearStartBalanceByAge.set(age, cfkSimBalance);
 
@@ -1369,7 +1364,7 @@ const InvestmentCalculator = () => {
         pensioenLow: (row.pensioen || 0) * pensionScenarioLowFactor,
         pensioenHigh: (row.pensioen || 0) * pensionScenarioHighFactor,
         pensioenBand: Math.max(0, (row.pensioen || 0) * (pensionScenarioHighFactor - pensionScenarioLowFactor)),
-        pensioen: row.pensioen
+        pensioen: row.age >= startAge2 ? row.pensioen : null
       }));
     }
     let hitZero = false;
@@ -1390,7 +1385,7 @@ const InvestmentCalculator = () => {
           pensioenLow: (row.pensioen || 0) * pensionScenarioLowFactor,
           pensioenHigh: (row.pensioen || 0) * pensionScenarioHighFactor,
           pensioenBand: Math.max(0, (row.pensioen || 0) * (pensionScenarioHighFactor - pensionScenarioLowFactor)),
-          pensioen: row.pensioen
+          pensioen: row.age >= startAge2 ? row.pensioen : null
         };
       }
       const isZero = row.age >= cfkStartAge && row.cfk <= 0;
@@ -1412,7 +1407,7 @@ const InvestmentCalculator = () => {
         pensioenLow: (row.pensioen || 0) * pensionScenarioLowFactor,
         pensioenHigh: (row.pensioen || 0) * pensionScenarioHighFactor,
         pensioenBand: Math.max(0, (row.pensioen || 0) * (pensionScenarioHighFactor - pensionScenarioLowFactor)),
-        pensioen: row.pensioen
+        pensioen: row.age >= startAge2 ? row.pensioen : null
       };
     });
   }, [
@@ -1424,6 +1419,7 @@ const InvestmentCalculator = () => {
     pensionScenarioLowFactor,
     pensionScenarioHighFactor,
     startAge,
+    startAge2,
     careerStartAge
   ]);
   const hasPension = (lifeline.pensionCapitalAtAow ?? 0) > 0;
