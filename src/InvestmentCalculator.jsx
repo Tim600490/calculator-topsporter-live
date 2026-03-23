@@ -204,6 +204,8 @@ const InvestmentCalculator = () => {
   const [isCalculatorExpanded, setIsCalculatorExpanded] = useState(false);
   const [isCalculatorExpanded2, setIsCalculatorExpanded2] = useState(false);
   const [lifelineZoomMode, setLifelineZoomMode] = useState("week");
+  const [careerEndAge, setCareerEndAge] = useState(35);
+  const [isDraggingCareerEndAge, setIsDraggingCareerEndAge] = useState(false);
   const [cfkPot, setCfkPot] = useState(0);
   const [cfkReturnRate, setCfkReturnRate] = useState(2.5);
   const [cfkDurationMonths, setCfkDurationMonths] = useState(120);
@@ -254,7 +256,6 @@ const InvestmentCalculator = () => {
   const annualReturn = riskProfiles[profile];
   const annualReturn2 = riskProfiles[profile2];
   const careerStartAge = startAge;
-  const careerEndAge = 35;
   const cfkStartAge = careerEndAge + 3;
 
   const cfkDurationRange = useMemo(() => {
@@ -696,6 +697,12 @@ const InvestmentCalculator = () => {
     window.addEventListener("resize", updateSize);
     return () => window.removeEventListener("resize", updateSize);
   }, []);
+
+  useEffect(() => {
+    const minCareerEnd = Math.max(careerStartAge + 1, 21);
+    const maxCareerEnd = 50;
+    setCareerEndAge((prev) => Math.min(maxCareerEnd, Math.max(minCareerEnd, prev)));
+  }, [careerStartAge]);
 
   // Calculate worst case scenario
   const calculateWorstCase = () => {
@@ -1322,6 +1329,63 @@ const InvestmentCalculator = () => {
     lifelineZoomMode,
     startAge
   ]);
+  const lifelineCareerMarkerLeft = useMemo(() => {
+    if (lifelineZoomMode !== "full" || !lifelineChartSize.width) {
+      return null;
+    }
+    const marginLeft = 18;
+    const marginRight = 18;
+    const yAxisWidth = 68;
+    const [domainStart, domainEnd] = lifelineChartView.xDomain;
+    const span = Math.max(1, domainEnd - domainStart);
+    const plotWidth = lifelineChartSize.width - marginLeft - marginRight - yAxisWidth;
+    if (plotWidth <= 0) {
+      return null;
+    }
+    const ratio = (careerEndAge - domainStart) / span;
+    return marginLeft + yAxisWidth + Math.max(0, Math.min(1, ratio)) * plotWidth;
+  }, [careerEndAge, lifelineChartSize.width, lifelineChartView.xDomain, lifelineZoomMode]);
+
+  useEffect(() => {
+    if (!isDraggingCareerEndAge) {
+      return undefined;
+    }
+
+    const handleMouseMove = (event) => {
+      if (!lifelineChartContainerRef.current || lifelineZoomMode !== "full") {
+        return;
+      }
+      const rect = lifelineChartContainerRef.current.getBoundingClientRect();
+      const marginLeft = 18;
+      const marginRight = 18;
+      const yAxisWidth = 68;
+      const plotLeft = rect.left + marginLeft + yAxisWidth;
+      const plotWidth = rect.width - marginLeft - marginRight - yAxisWidth;
+      if (plotWidth <= 0) {
+        return;
+      }
+
+      const rawX = Math.min(plotLeft + plotWidth, Math.max(plotLeft, event.clientX));
+      const ratio = (rawX - plotLeft) / plotWidth;
+      const [domainStart, domainEnd] = lifelineChartView.xDomain;
+      const rawAge = Math.round(domainStart + ratio * (domainEnd - domainStart));
+      const minCareerEnd = Math.max(careerStartAge + 1, 21);
+      const maxCareerEnd = 50;
+      const nextCareerEnd = Math.min(maxCareerEnd, Math.max(minCareerEnd, rawAge));
+      setCareerEndAge(nextCareerEnd);
+    };
+
+    const handleMouseUp = () => {
+      setIsDraggingCareerEndAge(false);
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [careerStartAge, isDraggingCareerEndAge, lifelineChartView.xDomain, lifelineZoomMode]);
   const hoveredIncomePoint = hoveredIncomeIndex != null ? lifeline.incomeData[hoveredIncomeIndex] : null;
   const incomeTooltipAnchor = useMemo(() => {
     if (!hoveredIncomePoint || !incomeChartSize.width || !incomeChartSize.height || lifeline.incomeData.length === 0) {
@@ -2611,7 +2675,40 @@ const InvestmentCalculator = () => {
               </button>
             ))}
           </div>
-          <div ref={lifelineChartContainerRef} style={{ height: "300px" }}>
+          <div ref={lifelineChartContainerRef} style={{ height: "300px", position: "relative" }}>
+            {lifelineZoomMode === "full" && lifelineCareerMarkerLeft != null && (
+              <div
+                role="slider"
+                aria-label="Einde carrièreleeftijd"
+                aria-valuemin={Math.max(careerStartAge + 1, 21)}
+                aria-valuemax={50}
+                aria-valuenow={careerEndAge}
+                onMouseDown={(event) => {
+                  event.preventDefault();
+                  setIsDraggingCareerEndAge(true);
+                }}
+                style={{
+                  position: "absolute",
+                  left: `${lifelineCareerMarkerLeft - 8}px`,
+                  top: "18px",
+                  bottom: "18px",
+                  width: "16px",
+                  cursor: "ew-resize",
+                  zIndex: 4
+                }}
+              >
+                <div
+                  style={{
+                    position: "absolute",
+                    left: "50%",
+                    top: "0",
+                    bottom: "0",
+                    transform: "translateX(-50%)",
+                    borderLeft: "2px dashed rgba(17,24,39,0.35)"
+                  }}
+                />
+              </div>
+            )}
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={lifelineChartView.data} margin={{ top: 18, right: 18, left: 18, bottom: 18 }}>
                 <CartesianGrid stroke="#e5e2d8" vertical={false} />
