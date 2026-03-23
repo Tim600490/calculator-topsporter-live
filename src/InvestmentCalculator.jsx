@@ -261,7 +261,7 @@ const InvestmentCalculator = () => {
   const [phase3MonthlyDeposit, setPhase3MonthlyDeposit] = useState(0);
   const [phase3EndYear, setPhase3EndYear] = useState(0);
   const [investmentHorizon, setInvestmentHorizon] = useState(20);
-  const [startAge, setStartAge] = useState(20);
+  const [startAge, setStartAge] = useState(18);
   const [startAmount2, setStartAmount2] = useState(0);
   const [phase1MonthlyDeposit2, setPhase1MonthlyDeposit2] = useState(0);
   const [phase1Years2, setPhase1Years2] = useState(0);
@@ -270,7 +270,7 @@ const InvestmentCalculator = () => {
   const [phase3MonthlyDeposit2, setPhase3MonthlyDeposit2] = useState(0);
   const [phase3EndYear2, setPhase3EndYear2] = useState(0);
   const [investmentHorizon2, setInvestmentHorizon2] = useState(20);
-  const [startAge2, setStartAge2] = useState(20);
+  const [startAge2, setStartAge2] = useState(18);
   const aowAge = 68;
   const [oneTimeExtras, setOneTimeExtras] = useState([
     { amount: 0, year: 5, month: 6 },
