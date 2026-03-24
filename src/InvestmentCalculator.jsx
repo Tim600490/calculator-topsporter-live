@@ -298,6 +298,7 @@ const InvestmentCalculator = () => {
   const [cfkPot, setCfkPot] = useState(0);
   const [cfkReturnRate, setCfkReturnRate] = useState(2.5);
   const [cfkDurationMonths, setCfkDurationMonths] = useState(120);
+  const [minorAnimoPot, setMinorAnimoPot] = useState(0);
   const [freeWealthPayouts, setFreeWealthPayouts] = useState([
     { amount: 0, fromAge: 35, toAge: 36 },
     { amount: 0, fromAge: 35, toAge: 36 },
@@ -3221,7 +3222,7 @@ const InvestmentCalculator = () => {
             marginTop: "20px",
             display: "grid",
             gap: "16px",
-            gridTemplateColumns: isDesktop ? "repeat(3, minmax(0, 1fr))" : "1fr"
+            gridTemplateColumns: isDesktop ? "repeat(4, minmax(0, 1fr))" : "1fr"
           }}
         >
           <div style={{ background: "#fff", borderRadius: "8px", padding: "12px", border: "1px solid #e1dccb" }}>
@@ -3422,6 +3423,32 @@ const InvestmentCalculator = () => {
             </div>
             <div style={{ fontSize: "12px", color: "#6B7280", marginTop: "6px" }}>
               Jaarlijkse uitkering: {formatCurrency(lifeline.pensionAnnualPayout)}
+            </div>
+          </div>
+
+          <div style={{ background: "#fff", borderRadius: "8px", padding: "12px", border: "1px solid #e1dccb" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "14px", fontWeight: 700, marginBottom: "10px" }}>
+              <span>Minderjarige Animo</span>
+              <span style={{ width: "14px", height: "3px", backgroundColor: "#8f96a3", borderRadius: "2px" }} />
+            </div>
+            <label style={{ fontSize: "12px", color: "#6B7280" }}>Waarde</label>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "6px" }}>
+              <span style={{ fontSize: "14px", color: "#111827" }}>€</span>
+              <input
+                type="text"
+                inputMode="numeric"
+                value={formatEuroInput(minorAnimoPot)}
+                onChange={(e) => setMinorAnimoPot(clampEuro(parseEuroInput(e.target.value), 0, 5000000))}
+                style={{
+                  width: "100%",
+                  padding: "6px 8px",
+                  border: "1px solid #D2BB5D",
+                  borderRadius: "6px",
+                  fontSize: "14px",
+                  outline: "none",
+                  backgroundColor: "#fff"
+                }}
+              />
             </div>
           </div>
 
