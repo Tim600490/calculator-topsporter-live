@@ -298,7 +298,6 @@ const InvestmentCalculator = () => {
   const [cfkPot, setCfkPot] = useState(0);
   const [cfkReturnRate, setCfkReturnRate] = useState(2.5);
   const [cfkDurationMonths, setCfkDurationMonths] = useState(120);
-  const [minorWealthAmount, setMinorWealthAmount] = useState(0);
   const [freeWealthPayouts, setFreeWealthPayouts] = useState([
     { amount: 0, fromAge: 35, toAge: 36 },
     { amount: 0, fromAge: 35, toAge: 36 },
@@ -1804,7 +1803,7 @@ const InvestmentCalculator = () => {
     >
       <div
         style={{
-          maxWidth: "1560px",
+          maxWidth: "1200px",
           margin: "0 auto",
           padding: "24px",
           backgroundColor: "#F7F5E9",
@@ -2897,24 +2896,7 @@ const InvestmentCalculator = () => {
           </div>
         </div>
 
-        <div
-          style={{
-            marginTop: "16px",
-            display: "grid",
-            gap: "20px",
-            gridTemplateColumns: isDesktop ? "minmax(0, 1.85fr) minmax(0, 1fr)" : "1fr",
-            alignItems: "start"
-          }}
-        >
-        <div
-          style={{
-            border: "1px solid #ded8c7",
-            borderRadius: "8px",
-            background: "#fbf9f1",
-            padding: "12px",
-            gridColumn: "1"
-          }}
-        >
+        <div style={{ marginTop: "16px", border: "1px solid #ded8c7", borderRadius: "8px", background: "#fbf9f1", padding: "12px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "8px" }}>
             {[
               { key: "week", label: "Week" },
@@ -3236,11 +3218,10 @@ const InvestmentCalculator = () => {
 
         <div
           style={{
+            marginTop: "20px",
             display: "grid",
             gap: "16px",
-            gridTemplateColumns: "1fr",
-            gridColumn: isDesktop ? "2" : "1",
-            gridRow: isDesktop ? "1 / span 2" : "auto"
+            gridTemplateColumns: isDesktop ? "repeat(3, minmax(0, 1fr))" : "1fr"
           }}
         >
           <div style={{ background: "#fff", borderRadius: "8px", padding: "12px", border: "1px solid #e1dccb" }}>
@@ -3444,38 +3425,9 @@ const InvestmentCalculator = () => {
             </div>
           </div>
 
-          <div style={{ background: "#fff", borderRadius: "8px", padding: "12px", border: "1px solid #e1dccb" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "14px", fontWeight: 700, marginBottom: "10px" }}>
-              <span>Minderjarige vermogen</span>
-              <span style={{ width: "14px", height: "3px", backgroundColor: "#8f96a3", borderRadius: "2px" }} />
-            </div>
-            <label style={{ fontSize: "12px", color: "#6B7280" }}>Waarde</label>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "6px" }}>
-              <span style={{ fontSize: "14px", color: "#111827" }}>€</span>
-              <input
-                type="text"
-                inputMode="numeric"
-                value={formatEuroInput(minorWealthAmount)}
-                onChange={(e) => setMinorWealthAmount(clampEuro(parseEuroInput(e.target.value), 0, 5000000))}
-                style={{
-                  width: "100%",
-                  padding: "6px 8px",
-                  border: "1px solid #D2BB5D",
-                  borderRadius: "6px",
-                  fontSize: "14px",
-                  outline: "none",
-                  backgroundColor: "#fff"
-                }}
-              />
-            </div>
-            <div style={{ fontSize: "12px", color: "#6B7280", marginTop: "8px" }}>
-              Deze card is toegevoegd als apart vermogenspotje.
-            </div>
-          </div>
-
         </div>
 
-        <div style={{ display: "grid", gap: "20px", gridColumn: "1" }}>
+        <div style={{ marginTop: "24px", display: "grid", gap: "20px" }}>
           <div>
             <div style={{ fontSize: "15px", fontWeight: 700, marginBottom: "8px" }}>Inkomensoverzicht per jaar</div>
             <div ref={incomeChartContainerRef} style={{ height: "220px", position: "relative" }}>
@@ -3589,7 +3541,6 @@ const InvestmentCalculator = () => {
               </ResponsiveContainer>
             </div>
           </div>
-        </div>
         </div>
       </section>
 
