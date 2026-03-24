@@ -1804,7 +1804,7 @@ const InvestmentCalculator = () => {
     >
       <div
         style={{
-          maxWidth: "1200px",
+          maxWidth: "1280px",
           margin: "0 auto",
           padding: "24px",
           backgroundColor: "#F7F5E9",
