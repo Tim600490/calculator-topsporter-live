@@ -1116,43 +1116,43 @@ const InvestmentCalculator = () => {
     const pensionCapitalAtAow = getPensionBalanceAtAge(aowAge);
     const pensionPayoutGrowthRate = pensionReturnRate / 100;
     const pensionMaxAnnualGross = 27192; // 2026 grensbedrag
-    const getMaxRecalculatedPensionPayout = (capital, years, annualGrowthRate) => {
-      if (capital <= 0 || years <= 0) {
-        return 0;
-      }
-      let balance = capital;
-      let maxPayout = 0;
-      for (let year = 0; year < years; year++) {
-        const remainingYears = years - year;
-        const payout = remainingYears > 0 ? balance / remainingYears : balance;
-        maxPayout = Math.max(maxPayout, payout);
-        const balanceAfterPayout = Math.max(0, balance - payout);
-        balance = balanceAfterPayout * (1 + annualGrowthRate);
-      }
-      return maxPayout;
-    };
-
-    const getPensionPayoutYears = (capital, annualGrowthRate, maxAnnualGross) => {
+    const getPensionPayoutYears = (capital, maxAnnualGross) => {
       if (capital <= 0) {
         return 0;
       }
-      const minYears = 5;
-      const maxYears = 20;
-      for (let years = minYears; years <= maxYears; years++) {
-        const maxYearlyPayout = getMaxRecalculatedPensionPayout(capital, years, annualGrowthRate);
-        if (maxYearlyPayout <= maxAnnualGross) {
-          return years;
-        }
+      if (capital / 5 <= maxAnnualGross) {
+        return 5;
       }
-      return maxYears;
+      return Math.min(20, Math.ceil(capital / maxAnnualGross));
     };
 
-    const pensionPayoutYears = getPensionPayoutYears(
-      pensionCapitalAtAow,
-      pensionPayoutGrowthRate,
-      pensionMaxAnnualGross
-    );
-    const pensionAnnualPayout = pensionPayoutYears > 0 ? pensionCapitalAtAow / pensionPayoutYears : 0;
+    const getMaxSustainableAnnualPayout = (capital, years, annualGrowthRate) => {
+      if (capital <= 0 || years <= 0) {
+        return 0;
+      }
+      if (annualGrowthRate === 0) {
+        return capital / years;
+      }
+      const growthFactor = Math.pow(1 + annualGrowthRate, years);
+      const denominator = growthFactor - 1;
+      if (denominator === 0) {
+        return capital / years;
+      }
+      return (capital * growthFactor * annualGrowthRate) / denominator;
+    };
+
+    const pensionPayoutYears = getPensionPayoutYears(pensionCapitalAtAow, pensionMaxAnnualGross);
+    const pensionAnnualPayout =
+      pensionPayoutYears > 0
+        ? Math.min(
+            pensionMaxAnnualGross,
+            getMaxSustainableAnnualPayout(
+              pensionCapitalAtAow,
+              pensionPayoutYears,
+              pensionPayoutGrowthRate
+            )
+          )
+        : 0;
 
     let freeWealthBalance = startAmount;
     let pensionBalance = 0;
@@ -1259,14 +1259,18 @@ const InvestmentCalculator = () => {
         pensionBalance = getPensionBalanceAtAge(age);
       } else if (age < aowAge + pensionPayoutYears && pensionPayoutYears > 0) {
         pensionBalance = pensionBalanceDuringPayout;
-        const yearsElapsed = age - aowAge;
-        const yearsRemaining = pensionPayoutYears - yearsElapsed;
-        const recalculatedPayout =
-          yearsRemaining > 0 ? pensionBalanceDuringPayout / yearsRemaining : pensionBalanceDuringPayout;
+        const grownPensionBalance = pensionBalanceDuringPayout * (1 + pensionPayoutGrowthRate);
+        const regularPayout = Math.min(pensionAnnualPayout, grownPensionBalance);
+        const isLastPayoutYear = age === aowAge + pensionPayoutYears - 1;
 
-        pensionIncome = Math.min(recalculatedPayout, pensionBalanceDuringPayout);
-        const balanceAfterPayout = Math.max(0, pensionBalanceDuringPayout - pensionIncome);
-        pensionBalanceDuringPayout = balanceAfterPayout * (1 + pensionPayoutGrowthRate);
+        if (isLastPayoutYear) {
+          const slotPayout = Math.max(0, grownPensionBalance - regularPayout);
+          pensionIncome = regularPayout + slotPayout;
+          pensionBalanceDuringPayout = 0;
+        } else {
+          pensionIncome = regularPayout;
+          pensionBalanceDuringPayout = Math.max(0, grownPensionBalance - regularPayout);
+        }
       } else if (age >= aowAge + pensionPayoutYears) {
         pensionBalance = 0;
       }
