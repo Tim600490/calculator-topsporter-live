@@ -1116,12 +1116,42 @@ const InvestmentCalculator = () => {
     const pensionCapitalAtAow = getPensionBalanceAtAge(aowAge);
     const pensionPayoutGrowthRate = pensionReturnRate / 100;
     const pensionMaxAnnualGross = 27192; // 2026 grensbedrag
-    const pensionPayoutYears =
-      pensionCapitalAtAow > 0
-        ? pensionCapitalAtAow / 5 <= pensionMaxAnnualGross
-          ? 5
-          : Math.min(20, Math.ceil(pensionCapitalAtAow / pensionMaxAnnualGross))
-        : 0;
+    const getMaxRecalculatedPensionPayout = (capital, years, annualGrowthRate) => {
+      if (capital <= 0 || years <= 0) {
+        return 0;
+      }
+      let balance = capital;
+      let maxPayout = 0;
+      for (let year = 0; year < years; year++) {
+        const remainingYears = years - year;
+        const payout = remainingYears > 0 ? balance / remainingYears : balance;
+        maxPayout = Math.max(maxPayout, payout);
+        const balanceAfterPayout = Math.max(0, balance - payout);
+        balance = balanceAfterPayout * (1 + annualGrowthRate);
+      }
+      return maxPayout;
+    };
+
+    const getPensionPayoutYears = (capital, annualGrowthRate, maxAnnualGross) => {
+      if (capital <= 0) {
+        return 0;
+      }
+      const minYears = 5;
+      const maxYears = 20;
+      for (let years = minYears; years <= maxYears; years++) {
+        const maxYearlyPayout = getMaxRecalculatedPensionPayout(capital, years, annualGrowthRate);
+        if (maxYearlyPayout <= maxAnnualGross) {
+          return years;
+        }
+      }
+      return maxYears;
+    };
+
+    const pensionPayoutYears = getPensionPayoutYears(
+      pensionCapitalAtAow,
+      pensionPayoutGrowthRate,
+      pensionMaxAnnualGross
+    );
     const pensionAnnualPayout = pensionPayoutYears > 0 ? pensionCapitalAtAow / pensionPayoutYears : 0;
 
     let freeWealthBalance = startAmount;
