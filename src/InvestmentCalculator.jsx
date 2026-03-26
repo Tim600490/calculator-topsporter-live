@@ -1708,6 +1708,9 @@ const InvestmentCalculator = () => {
   const showLifelineCfkLine = hasCfk && (!isLifelineFocusMode || activeScenarioBandKey === "cfk");
   const showLifelineVvaLine = hasFreeWealth && (!isLifelineFocusMode || activeScenarioBandKey === "vva");
   const showLifelinePensioenLine = hasPension && (!isLifelineFocusMode || activeScenarioBandKey === "pensioen");
+  const incomeCareerPhaseStart = Math.max(careerStartAge, timelineStartAge);
+  const incomeCareerPhaseEnd = Math.min(careerEndAge, lifeline.maxAge);
+  const hasIncomeCareerPhase = incomeCareerPhaseEnd > incomeCareerPhaseStart;
   const getLifelinePhaseLabelLeft = (phase, domainStart, domainEnd) => {
     if (!lifelineChartSize.width) {
       return "50%";
@@ -1731,7 +1734,7 @@ const InvestmentCalculator = () => {
     const yAxisWidth = 60;
     const span = Math.max(1, lifeline.maxAge - timelineStartAge);
     const plotWidth = incomeChartSize.width - marginLeft - marginRight - yAxisWidth;
-    const centerAge = (careerStartAge + careerEndAge) / 2;
+    const centerAge = (incomeCareerPhaseStart + incomeCareerPhaseEnd) / 2;
     const ratio = (centerAge - timelineStartAge) / span;
     const x = marginLeft + yAxisWidth + Math.max(0, Math.min(1, ratio)) * Math.max(0, plotWidth);
     return `${x}px`;
@@ -3493,7 +3496,7 @@ const InvestmentCalculator = () => {
                   formatCurrency={formatCurrency}
                 />
               ) : null}
-              {careerEndAge > careerStartAge && (
+              {hasIncomeCareerPhase && (
                 <div
                   style={{
                     position: "absolute",
@@ -3518,16 +3521,20 @@ const InvestmentCalculator = () => {
                   margin={{ top: 10, right: 16, left: 0, bottom: 4 }}
                   onMouseLeave={() => setHoveredIncomeIndex(null)}
                 >
-                  {careerEndAge > careerStartAge && (
+                  {hasIncomeCareerPhase && (
                     <ReferenceArea
-                      x1={careerStartAge}
-                      x2={careerEndAge}
+                      x1={incomeCareerPhaseStart}
+                      x2={incomeCareerPhaseEnd}
                       fill="rgba(101,195,104,0.18)"
                       strokeOpacity={0}
                     />
                   )}
-                  <ReferenceLine x={careerStartAge} stroke="#8a8a8a" strokeDasharray="3 4" />
-                  <ReferenceLine x={careerEndAge} stroke="#8a8a8a" strokeDasharray="3 4" />
+                  {hasIncomeCareerPhase && (
+                    <>
+                      <ReferenceLine x={incomeCareerPhaseStart} stroke="#8a8a8a" strokeDasharray="3 4" />
+                      <ReferenceLine x={incomeCareerPhaseEnd} stroke="#8a8a8a" strokeDasharray="3 4" />
+                    </>
+                  )}
                   <XAxis
                     dataKey="age"
                     ticks={lifelineTicks}
