@@ -1113,10 +1113,15 @@ const InvestmentCalculator = () => {
       }
       return Math.max(0, balance);
     };
-    const pensionPayoutGrowthRate = pensionReturnRate / 100;
     const pensionCapitalAtAow = getPensionBalanceAtAge(aowAge);
+    const pensionPayoutGrowthRate = pensionReturnRate / 100;
+    const pensionMaxAnnualGross = 27192; // 2026 grensbedrag
     const pensionPayoutYears =
-      pensionCapitalAtAow > 0 ? Math.max(5, Math.min(20, Math.ceil(pensionCapitalAtAow / 27192))) : 0;
+      pensionCapitalAtAow > 0
+        ? pensionCapitalAtAow / 5 <= pensionMaxAnnualGross
+          ? 5
+          : Math.min(20, Math.ceil(pensionCapitalAtAow / pensionMaxAnnualGross))
+        : 0;
     const pensionAnnualPayout = pensionPayoutYears > 0 ? pensionCapitalAtAow / pensionPayoutYears : 0;
 
     let freeWealthBalance = startAmount;
