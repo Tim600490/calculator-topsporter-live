@@ -1133,7 +1133,8 @@ const InvestmentCalculator = () => {
         startAge + investmentHorizon + 1,
         aowAge + pensionPayoutYears,
         aowAge + 1,
-        careerEndAge + 1
+        careerEndAge + 1,
+        88
       )
     );
 
