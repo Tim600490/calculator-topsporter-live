@@ -1174,8 +1174,8 @@ const InvestmentCalculator = () => {
       let annualPayout = getCappedPensionAnnualPayout(capital, years, annualGrowthRate, maxAnnualGross);
       let slotPayout = getProjectedSlotPayout(capital, years, annualGrowthRate, annualPayout);
 
-      // If the slot payout is still too high, stretch the duration up to 20 years.
-      while (slotPayout > maxAnnualGross && years < 20) {
+      // Only allow a slot payout in year 20. Before year 20, extend duration and carry residual forward.
+      while (slotPayout > 0.01 && years < 20) {
         years += 1;
         annualPayout = getCappedPensionAnnualPayout(capital, years, annualGrowthRate, maxAnnualGross);
         slotPayout = getProjectedSlotPayout(capital, years, annualGrowthRate, annualPayout);
@@ -1300,8 +1300,9 @@ const InvestmentCalculator = () => {
         const grownPensionBalance = pensionBalanceDuringPayout * (1 + pensionPayoutGrowthRate);
         const regularPayout = Math.min(pensionAnnualPayout, grownPensionBalance);
         const isLastPayoutYear = age === aowAge + pensionPayoutYears - 1;
+        const isYear20Payout = isLastPayoutYear && pensionPayoutYears === 20;
 
-        if (isLastPayoutYear) {
+        if (isYear20Payout) {
           const slotPayout = Math.max(0, grownPensionBalance - regularPayout);
           pensionIncome = regularPayout + slotPayout;
           pensionBalanceDuringPayout = 0;
