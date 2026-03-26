@@ -1229,16 +1229,14 @@ const InvestmentCalculator = () => {
         pensionBalance = getPensionBalanceAtAge(age);
       } else if (age < aowAge + pensionPayoutYears && pensionPayoutYears > 0) {
         pensionBalance = pensionBalanceDuringPayout;
-        const grownPensionBalance = pensionBalanceDuringPayout * (1 + pensionPayoutGrowthRate);
-        const isLastPayoutYear = age === aowAge + pensionPayoutYears - 1;
-        if (isLastPayoutYear) {
-          // Pay out any remaining balance in the final payout year.
-          pensionIncome = grownPensionBalance;
-          pensionBalanceDuringPayout = 0;
-        } else {
-          pensionIncome = Math.min(pensionAnnualPayout, grownPensionBalance);
-          pensionBalanceDuringPayout = Math.max(0, grownPensionBalance - pensionIncome);
-        }
+        const yearsElapsed = age - aowAge;
+        const yearsRemaining = pensionPayoutYears - yearsElapsed;
+        const recalculatedPayout =
+          yearsRemaining > 0 ? pensionBalanceDuringPayout / yearsRemaining : pensionBalanceDuringPayout;
+
+        pensionIncome = Math.min(recalculatedPayout, pensionBalanceDuringPayout);
+        const balanceAfterPayout = Math.max(0, pensionBalanceDuringPayout - pensionIncome);
+        pensionBalanceDuringPayout = balanceAfterPayout * (1 + pensionPayoutGrowthRate);
       } else if (age >= aowAge + pensionPayoutYears) {
         pensionBalance = 0;
       }
