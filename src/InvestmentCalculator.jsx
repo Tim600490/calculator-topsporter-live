@@ -2997,17 +2997,19 @@ const InvestmentCalculator = () => {
                 onMouseLeave={() => setHoveredLifelineSeriesKey(null)}
               >
                 <CartesianGrid stroke="#e5e2d8" vertical={false} />
-                {lifelineVisiblePhases.map((phase) =>
-                  phase.end > phase.start ? (
+                {lifelineVisiblePhases.map((phase) => {
+                  const visibleStart = Math.max(phase.start, lifelineChartView.xDomain[0]);
+                  const visibleEnd = Math.min(phase.end, lifelineChartView.xDomain[1]);
+                  return visibleEnd > visibleStart ? (
                     <ReferenceArea
                       key={`phase-${phase.key}`}
-                      x1={phase.start}
-                      x2={phase.end}
+                      x1={visibleStart}
+                      x2={visibleEnd}
                       fill={phase.color}
                       strokeOpacity={0}
                     />
-                  ) : null
-                )}
+                  ) : null;
+                })}
                 {lifelinePhaseBoundaries.map((marker) => (
                   <ReferenceLine key={`marker-${marker}`} x={marker} stroke="#8a8a8a" strokeDasharray="3 4" />
                 ))}
