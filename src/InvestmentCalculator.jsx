@@ -1316,6 +1316,26 @@ const InvestmentCalculator = () => {
     }
     return ticks;
   }, [lifeline.maxAge, timelineStartAge]);
+  const lifelineFullMaxAge = Math.max(88, lifeline.maxAge);
+  const lifelineFullTicks = useMemo(() => {
+    const span = Math.max(1, lifelineFullMaxAge - timelineStartAge);
+    let step = 1;
+    if (span > 40) {
+      step = 5;
+    } else if (span > 25) {
+      step = 4;
+    } else if (span > 15) {
+      step = 2;
+    }
+    const ticks = [];
+    for (let age = timelineStartAge; age <= lifelineFullMaxAge; age += step) {
+      ticks.push(age);
+    }
+    if (ticks[ticks.length - 1] !== lifelineFullMaxAge) {
+      ticks.push(lifelineFullMaxAge);
+    }
+    return ticks;
+  }, [lifelineFullMaxAge, timelineStartAge]);
 
   const lifelinePhases = useMemo(() => {
     const maxPayoutToAge = freeWealthPayouts.reduce(
@@ -1525,8 +1545,8 @@ const InvestmentCalculator = () => {
     return {
       data: lifelineCfkGraphData,
       xDataKey: "age",
-      xDomain: [timelineStartAge, lifeline.maxAge],
-      xTicks: lifelineTicks,
+      xDomain: [timelineStartAge, lifelineFullMaxAge],
+      xTicks: lifelineFullTicks,
       xTickFormatter: undefined,
       showWeekNote: false,
       weekMarkerTopValue: 0
@@ -1536,6 +1556,8 @@ const InvestmentCalculator = () => {
     careerStartAge,
     lifeline.maxAge,
     lifelineCfkGraphData,
+    lifelineFullMaxAge,
+    lifelineFullTicks,
     lifelineTicks,
     lifelineWeekGraphData,
     lifelineZoomMode,
