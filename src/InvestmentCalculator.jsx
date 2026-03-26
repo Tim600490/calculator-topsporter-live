@@ -3065,6 +3065,7 @@ const InvestmentCalculator = () => {
                   dataKey={lifelineChartView.xDataKey}
                   domain={lifelineChartView.xDomain}
                   ticks={lifelineChartView.xTicks}
+                  padding={lifelineZoomMode === "week" ? { left: 0, right: 14 } : undefined}
                   tick={{ fontSize: 11, fill: "#4b5563" }}
                   axisLine={{ stroke: "#d8d2bf" }}
                   tickLine={false}
