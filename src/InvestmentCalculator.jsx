@@ -1545,9 +1545,9 @@ const InvestmentCalculator = () => {
     if (lifelineZoomMode !== "full" || !lifelineChartSize.width) {
       return null;
     }
-    const marginLeft = 18;
-    const marginRight = 18;
-    const yAxisWidth = 68;
+    const marginLeft = 0;
+    const marginRight = 16;
+    const yAxisWidth = 60;
     const [domainStart, domainEnd] = lifelineChartView.xDomain;
     const span = Math.max(1, domainEnd - domainStart);
     const plotWidth = lifelineChartSize.width - marginLeft - marginRight - yAxisWidth;
@@ -1562,9 +1562,9 @@ const InvestmentCalculator = () => {
     if (lifelineZoomMode !== "full" || !lifelineChartSize.width) {
       return null;
     }
-    const marginLeft = 18;
-    const marginRight = 18;
-    const yAxisWidth = 68;
+    const marginLeft = 0;
+    const marginRight = 16;
+    const yAxisWidth = 60;
     const [domainStart, domainEnd] = lifelineChartView.xDomain;
     const span = Math.max(1, domainEnd - domainStart);
     const plotWidth = lifelineChartSize.width - marginLeft - marginRight - yAxisWidth;
@@ -1585,9 +1585,9 @@ const InvestmentCalculator = () => {
         return;
       }
       const rect = lifelineChartContainerRef.current.getBoundingClientRect();
-      const marginLeft = 18;
-      const marginRight = 18;
-      const yAxisWidth = 68;
+      const marginLeft = 0;
+      const marginRight = 16;
+      const yAxisWidth = 60;
       const plotLeft = rect.left + marginLeft + yAxisWidth;
       const plotWidth = rect.width - marginLeft - marginRight - yAxisWidth;
       if (plotWidth <= 0) {
@@ -1689,9 +1689,9 @@ const InvestmentCalculator = () => {
     if (!lifelineChartSize.width) {
       return "50%";
     }
-    const marginLeft = 18;
-    const marginRight = 18;
-    const yAxisWidth = 68;
+    const marginLeft = 0;
+    const marginRight = 16;
+    const yAxisWidth = 60;
     const span = Math.max(1, domainEnd - domainStart);
     const plotWidth = lifelineChartSize.width - marginLeft - marginRight - yAxisWidth;
     const centerAge = (phase.start + phase.end) / 2;
@@ -2993,7 +2993,7 @@ const InvestmentCalculator = () => {
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart
                 data={lifelineChartView.data}
-                margin={{ top: 18, right: 18, left: 18, bottom: 18 }}
+                margin={{ top: 18, right: 16, left: 0, bottom: 18 }}
                 onMouseLeave={() => setHoveredLifelineSeriesKey(null)}
               >
                 <CartesianGrid stroke="#e5e2d8" vertical={false} />
@@ -3053,7 +3053,7 @@ const InvestmentCalculator = () => {
                   tickFormatter={formatCurrencyShort}
                   axisLine={false}
                   tickLine={false}
-                  width={68}
+                  width={60}
                 />
                 <Tooltip
                   cursor={{ stroke: "#9ca3af", strokeDasharray: "3 4" }}
