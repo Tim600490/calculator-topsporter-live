@@ -1141,18 +1141,56 @@ const InvestmentCalculator = () => {
       return (capital * growthFactor * annualGrowthRate) / denominator;
     };
 
-    const pensionPayoutYears = getPensionPayoutYears(pensionCapitalAtAow, pensionMaxAnnualGross);
-    const pensionAnnualPayout =
-      pensionPayoutYears > 0
-        ? Math.min(
-            pensionMaxAnnualGross,
-            getMaxSustainableAnnualPayout(
-              pensionCapitalAtAow,
-              pensionPayoutYears,
-              pensionPayoutGrowthRate
-            )
-          )
-        : 0;
+    const getProjectedSlotPayout = (capital, years, annualGrowthRate, annualPayout) => {
+      if (capital <= 0 || years <= 0 || annualPayout <= 0) {
+        return Math.max(0, capital);
+      }
+      let balance = capital;
+      for (let year = 1; year <= years; year++) {
+        const grownBalance = balance * (1 + annualGrowthRate);
+        const payout = Math.min(annualPayout, grownBalance);
+        balance = Math.max(0, grownBalance - payout);
+      }
+      return balance;
+    };
+
+    const getCappedPensionAnnualPayout = (capital, years, annualGrowthRate, maxAnnualGross) => {
+      if (capital <= 0 || years <= 0) {
+        return 0;
+      }
+      return Math.min(
+        maxAnnualGross,
+        getMaxSustainableAnnualPayout(capital, years, annualGrowthRate)
+      );
+    };
+
+    const getOptimizedPensionPayoutPlan = (capital, annualGrowthRate, maxAnnualGross) => {
+      const minYears = getPensionPayoutYears(capital, maxAnnualGross);
+      if (minYears <= 0) {
+        return { years: 0, annualPayout: 0 };
+      }
+
+      let years = minYears;
+      let annualPayout = getCappedPensionAnnualPayout(capital, years, annualGrowthRate, maxAnnualGross);
+      let slotPayout = getProjectedSlotPayout(capital, years, annualGrowthRate, annualPayout);
+
+      // If the slot payout is still too high, stretch the duration up to 20 years.
+      while (slotPayout > maxAnnualGross && years < 20) {
+        years += 1;
+        annualPayout = getCappedPensionAnnualPayout(capital, years, annualGrowthRate, maxAnnualGross);
+        slotPayout = getProjectedSlotPayout(capital, years, annualGrowthRate, annualPayout);
+      }
+
+      return { years, annualPayout };
+    };
+
+    const pensionPlan = getOptimizedPensionPayoutPlan(
+      pensionCapitalAtAow,
+      pensionPayoutGrowthRate,
+      pensionMaxAnnualGross
+    );
+    const pensionPayoutYears = pensionPlan.years;
+    const pensionAnnualPayout = pensionPlan.annualPayout;
 
     let freeWealthBalance = startAmount;
     let pensionBalance = 0;
