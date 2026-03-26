@@ -298,6 +298,7 @@ const InvestmentCalculator = () => {
   const [cfkPot, setCfkPot] = useState(0);
   const [cfkReturnRate, setCfkReturnRate] = useState(2.5);
   const [cfkDurationMonths, setCfkDurationMonths] = useState(120);
+  const [pensionReturnRate, setPensionReturnRate] = useState(2.5);
   const [minorAnimoPot, setMinorAnimoPot] = useState(0);
   const [freeWealthPayouts, setFreeWealthPayouts] = useState([
     { amount: 0, fromAge: 35, toAge: 36 },
@@ -1112,6 +1113,7 @@ const InvestmentCalculator = () => {
       }
       return Math.max(0, balance);
     };
+    const pensionPayoutGrowthRate = pensionReturnRate / 100;
     const pensionCapitalAtAow = getPensionBalanceAtAge(aowAge);
     const pensionPayoutYears =
       pensionCapitalAtAow > 0 ? Math.max(5, Math.min(20, Math.ceil(pensionCapitalAtAow / 27192))) : 0;
@@ -1222,8 +1224,16 @@ const InvestmentCalculator = () => {
         pensionBalance = getPensionBalanceAtAge(age);
       } else if (age < aowAge + pensionPayoutYears && pensionPayoutYears > 0) {
         pensionBalance = pensionBalanceDuringPayout;
-        pensionIncome = pensionAnnualPayout;
-        pensionBalanceDuringPayout = Math.max(0, pensionBalanceDuringPayout - pensionAnnualPayout);
+        const grownPensionBalance = pensionBalanceDuringPayout * (1 + pensionPayoutGrowthRate);
+        const isLastPayoutYear = age === aowAge + pensionPayoutYears - 1;
+        if (isLastPayoutYear) {
+          // Pay out any remaining balance in the final payout year.
+          pensionIncome = grownPensionBalance;
+          pensionBalanceDuringPayout = 0;
+        } else {
+          pensionIncome = Math.min(pensionAnnualPayout, grownPensionBalance);
+          pensionBalanceDuringPayout = Math.max(0, grownPensionBalance - pensionIncome);
+        }
       } else if (age >= aowAge + pensionPayoutYears) {
         pensionBalance = 0;
       }
@@ -1291,6 +1301,7 @@ const InvestmentCalculator = () => {
     investmentHorizon2,
     getMonthlyDepositForMonth2,
     getOneTimeExtraForMonth2,
+    pensionReturnRate,
     startAge,
     startAge2,
     startAmount,
@@ -3444,6 +3455,27 @@ const InvestmentCalculator = () => {
             </div>
             <div style={{ fontSize: "12px", color: "#6B7280" }}>Verwacht eindresultaat (bruto - box1)</div>
             <div style={{ fontSize: "16px", fontWeight: 700, marginTop: "6px" }}>{formatCurrency(pensionExpectedEndResult)}</div>
+            <label style={{ fontSize: "12px", color: "#6B7280", marginTop: "10px", display: "block" }}>
+              Rendement (% p/j)
+            </label>
+            <input
+              type="number"
+              min="0"
+              max="10"
+              step="0.1"
+              value={pensionReturnRate}
+              onChange={(e) => setPensionReturnRate(Number(e.target.value))}
+              style={{
+                width: "50%",
+                marginTop: "6px",
+                padding: "6px 8px",
+                border: "1px solid #D2BB5D",
+                borderRadius: "6px",
+                fontSize: "14px",
+                outline: "none",
+                backgroundColor: "#fff"
+              }}
+            />
             <div style={{ fontSize: "12px", color: "#6B7280", marginTop: "10px" }}>
               Start uitkering: {aowAge} jaar
             </div>
