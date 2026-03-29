@@ -319,6 +319,8 @@ const InvestmentCalculator = () => {
   const [cfkReturnRate, setCfkReturnRate] = useState(2.5);
   const [cfkDurationMonths, setCfkDurationMonths] = useState(120);
   const [pensionReturnRate, setPensionReturnRate] = useState(2.5);
+  const [pensionAowEnabled, setPensionAowEnabled] = useState(false);
+  const [pensionYearsAbroad, setPensionYearsAbroad] = useState("");
   const [freeWealthPayouts, setFreeWealthPayouts] = useState([
     { amount: 0, fromAge: 35, toAge: 36 },
     { amount: 0, fromAge: 35, toAge: 36 },
@@ -3973,6 +3975,71 @@ const InvestmentCalculator = () => {
             </div>
             <div style={{ fontSize: "12px", color: "#6B7280", marginTop: "6px" }}>
               Jaarlijkse uitkering: {formatCurrency(lifeline.pensionAnnualPayout)}
+            </div>
+            <div
+              style={{
+                marginTop: "12px",
+                display: "flex",
+                alignItems: "center",
+                gap: "12px",
+                flexWrap: "wrap"
+              }}
+            >
+              <label
+                style={{
+                  fontSize: "12px",
+                  color: "#6B7280",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  cursor: "pointer"
+                }}
+              >
+                <span>AOW</span>
+                <input
+                  type="checkbox"
+                  checked={pensionAowEnabled}
+                  onChange={(e) => setPensionAowEnabled(e.target.checked)}
+                  style={{ width: "14px", height: "14px", accentColor: "#D2BB5D", cursor: "pointer" }}
+                />
+              </label>
+              <label
+                style={{
+                  fontSize: "12px",
+                  color: "#6B7280",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "8px"
+                }}
+              >
+                <span>jaren in buitenland</span>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={pensionYearsAbroad}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === "") {
+                      setPensionYearsAbroad("");
+                      return;
+                    }
+                    const parsed = Number(value);
+                    if (Number.isFinite(parsed) && parsed >= 0) {
+                      setPensionYearsAbroad(String(Math.floor(parsed)));
+                    }
+                  }}
+                  style={{
+                    width: "74px",
+                    padding: "5px 6px",
+                    border: "1px solid #D2BB5D",
+                    borderRadius: "6px",
+                    fontSize: "12px",
+                    outline: "none",
+                    backgroundColor: "#fff"
+                  }}
+                />
+              </label>
             </div>
           </div>
 
