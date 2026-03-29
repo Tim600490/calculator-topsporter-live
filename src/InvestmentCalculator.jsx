@@ -1415,66 +1415,55 @@ const InvestmentCalculator = () => {
   const pensionScenarioHighFactor = finalBalance2 > 0 ? bestCaseBalance2 / finalBalance2 : 1;
 
   const lifelineCfkGraphData = useMemo(() => {
-    if (!hasCfk) {
-      return lifeline.potData.map((row) => ({
-        age: row.age,
-        cfk: null,
-        vva: row.age >= startAge && row.age <= freeWealthHorizonAge ? row.vrij : null,
-        vvaLow:
-          row.age >= startAge && row.age <= freeWealthHorizonAge ? (row.vrij || 0) * freeWealthScenarioLowFactor : null,
-        vvaHigh:
-          row.age >= startAge && row.age <= freeWealthHorizonAge ? (row.vrij || 0) * freeWealthScenarioHighFactor : null,
-        vvaBand:
-          row.age >= startAge && row.age <= freeWealthHorizonAge
-            ? Math.max(0, (row.vrij || 0) * (freeWealthScenarioHighFactor - freeWealthScenarioLowFactor))
-            : null,
-        pensioenLow: (row.pensioen || 0) * pensionScenarioLowFactor,
-        pensioenHigh: (row.pensioen || 0) * pensionScenarioHighFactor,
-        pensioenBand: Math.max(0, (row.pensioen || 0) * (pensionScenarioHighFactor - pensionScenarioLowFactor)),
-        pensioen: row.age >= startAge2 ? row.pensioen : null
-      }));
-    }
-    let hitZero = false;
+    const cfkState = { seenPositive: false, hitZero: false };
+    const vvaState = { seenPositive: false, hitZero: false };
+    const pensioenState = { seenPositive: false, hitZero: false };
+
+    const normalizeSeriesValue = (rawValue, state) => {
+      if (rawValue == null) {
+        return null;
+      }
+      if (state.hitZero) {
+        return null;
+      }
+      const numericValue = Number(rawValue) || 0;
+      if (numericValue > 0) {
+        state.seenPositive = true;
+        return numericValue;
+      }
+      if (state.seenPositive && numericValue <= 0) {
+        state.hitZero = true;
+        return 0;
+      }
+      return numericValue;
+    };
+
     return lifeline.potData.map((row) => {
-      if (hitZero) {
-        return {
-          age: row.age,
-          cfk: null,
-          vva: row.age >= startAge && row.age <= freeWealthHorizonAge ? row.vrij : null,
-          vvaLow:
-            row.age >= startAge && row.age <= freeWealthHorizonAge ? (row.vrij || 0) * freeWealthScenarioLowFactor : null,
-          vvaHigh:
-            row.age >= startAge && row.age <= freeWealthHorizonAge ? (row.vrij || 0) * freeWealthScenarioHighFactor : null,
-          vvaBand:
-            row.age >= startAge && row.age <= freeWealthHorizonAge
-              ? Math.max(0, (row.vrij || 0) * (freeWealthScenarioHighFactor - freeWealthScenarioLowFactor))
-              : null,
-          pensioenLow: (row.pensioen || 0) * pensionScenarioLowFactor,
-          pensioenHigh: (row.pensioen || 0) * pensionScenarioHighFactor,
-          pensioenBand: Math.max(0, (row.pensioen || 0) * (pensionScenarioHighFactor - pensionScenarioLowFactor)),
-          pensioen: row.age >= startAge2 ? row.pensioen : null
-        };
-      }
-      const isZero = row.age >= cfkStartAge && row.cfk <= 0;
-      if (isZero) {
-        hitZero = true;
-      }
+      const rawCfk = hasCfk && row.age >= careerStartAge ? row.cfk : null;
+      const rawVva = row.age >= startAge && row.age <= freeWealthHorizonAge ? row.vrij : null;
+      const rawPensioen = row.age >= startAge2 ? row.pensioen : null;
+
+      const cfkValue = normalizeSeriesValue(rawCfk, cfkState);
+      const vvaValue = normalizeSeriesValue(rawVva, vvaState);
+      const pensioenValue = normalizeSeriesValue(rawPensioen, pensioenState);
+
       return {
         age: row.age,
-        cfk: row.age >= careerStartAge ? row.cfk : null,
-        vva: row.age >= startAge && row.age <= freeWealthHorizonAge ? row.vrij : null,
-        vvaLow:
-          row.age >= startAge && row.age <= freeWealthHorizonAge ? (row.vrij || 0) * freeWealthScenarioLowFactor : null,
-        vvaHigh:
-          row.age >= startAge && row.age <= freeWealthHorizonAge ? (row.vrij || 0) * freeWealthScenarioHighFactor : null,
+        cfk: cfkValue,
+        vva: vvaValue,
+        vvaLow: vvaValue != null ? vvaValue * freeWealthScenarioLowFactor : null,
+        vvaHigh: vvaValue != null ? vvaValue * freeWealthScenarioHighFactor : null,
         vvaBand:
-          row.age >= startAge && row.age <= freeWealthHorizonAge
-            ? Math.max(0, (row.vrij || 0) * (freeWealthScenarioHighFactor - freeWealthScenarioLowFactor))
+          vvaValue != null
+            ? Math.max(0, vvaValue * (freeWealthScenarioHighFactor - freeWealthScenarioLowFactor))
             : null,
-        pensioenLow: (row.pensioen || 0) * pensionScenarioLowFactor,
-        pensioenHigh: (row.pensioen || 0) * pensionScenarioHighFactor,
-        pensioenBand: Math.max(0, (row.pensioen || 0) * (pensionScenarioHighFactor - pensionScenarioLowFactor)),
-        pensioen: row.age >= startAge2 ? row.pensioen : null
+        pensioenLow: pensioenValue != null ? pensioenValue * pensionScenarioLowFactor : null,
+        pensioenHigh: pensioenValue != null ? pensioenValue * pensionScenarioHighFactor : null,
+        pensioenBand:
+          pensioenValue != null
+            ? Math.max(0, pensioenValue * (pensionScenarioHighFactor - pensionScenarioLowFactor))
+            : null,
+        pensioen: pensioenValue
       };
     });
   }, [
@@ -3612,14 +3601,14 @@ const InvestmentCalculator = () => {
                     tickFormatter={(value) => Math.round(value).toLocaleString("nl-NL")}
                     width={60}
                   />
-                  <Bar dataKey="cfk" stackId="income" fill="#0d2a28" onMouseOver={(_, index) => setHoveredIncomeIndex(index)} />
-                  <Bar dataKey="vrij" stackId="income" fill="#d2bb5d" onMouseOver={(_, index) => setHoveredIncomeIndex(index)} />
                   <Bar
                     dataKey="pensioen"
                     stackId="income"
                     fill="#6672a8"
                     onMouseOver={(_, index) => setHoveredIncomeIndex(index)}
                   />
+                  <Bar dataKey="cfk" stackId="income" fill="#0d2a28" onMouseOver={(_, index) => setHoveredIncomeIndex(index)} />
+                  <Bar dataKey="vrij" stackId="income" fill="#d2bb5d" onMouseOver={(_, index) => setHoveredIncomeIndex(index)} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -3655,14 +3644,14 @@ const InvestmentCalculator = () => {
                     tickFormatter={(value) => Math.round(value).toLocaleString("nl-NL")}
                     width={60}
                   />
-                  <Bar dataKey="cfk" stackId="pots" fill="#0d2a28" onMouseOver={(_, index) => setHoveredPotIndex(index)} />
-                  <Bar dataKey="vrij" stackId="pots" fill="#d2bb5d" onMouseOver={(_, index) => setHoveredPotIndex(index)} />
                   <Bar
                     dataKey="pensioen"
                     stackId="pots"
                     fill="#6672a8"
                     onMouseOver={(_, index) => setHoveredPotIndex(index)}
                   />
+                  <Bar dataKey="cfk" stackId="pots" fill="#0d2a28" onMouseOver={(_, index) => setHoveredPotIndex(index)} />
+                  <Bar dataKey="vrij" stackId="pots" fill="#d2bb5d" onMouseOver={(_, index) => setHoveredPotIndex(index)} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
