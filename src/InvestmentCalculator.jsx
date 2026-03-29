@@ -3981,8 +3981,8 @@ const InvestmentCalculator = () => {
                 marginTop: "12px",
                 display: "flex",
                 alignItems: "center",
-                gap: "12px",
-                flexWrap: "wrap"
+                gap: "8px",
+                flexWrap: "nowrap"
               }}
             >
               <label
@@ -4005,6 +4005,7 @@ const InvestmentCalculator = () => {
               </label>
               <label
                 style={{
+                  marginLeft: "14px",
                   fontSize: "12px",
                   color: "#6B7280",
                   display: "inline-flex",
@@ -4030,7 +4031,7 @@ const InvestmentCalculator = () => {
                     }
                   }}
                   style={{
-                    width: "74px",
+                    width: "36px",
                     padding: "5px 6px",
                     border: "1px solid #D2BB5D",
                     borderRadius: "6px",
