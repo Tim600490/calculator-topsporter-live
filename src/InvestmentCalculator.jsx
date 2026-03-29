@@ -271,6 +271,15 @@ const InvestmentCalculator = () => {
   const [phase3EndYear2, setPhase3EndYear2] = useState(0);
   const [investmentHorizon2, setInvestmentHorizon2] = useState(20);
   const [startAge2, setStartAge2] = useState(18);
+  const [startAmount3, setStartAmount3] = useState(0);
+  const [phase1MonthlyDeposit3, setPhase1MonthlyDeposit3] = useState(0);
+  const [phase1Years3, setPhase1Years3] = useState(0);
+  const [phase2MonthlyDeposit3, setPhase2MonthlyDeposit3] = useState(0);
+  const [phase2EndYear3, setPhase2EndYear3] = useState(0);
+  const [phase3MonthlyDeposit3, setPhase3MonthlyDeposit3] = useState(0);
+  const [phase3EndYear3, setPhase3EndYear3] = useState(0);
+  const [investmentHorizon3, setInvestmentHorizon3] = useState(20);
+  const [startAge3, setStartAge3] = useState(18);
   const aowAge = 68;
   const [oneTimeExtras, setOneTimeExtras] = useState([
     { amount: 0, year: 5, month: 6 },
@@ -282,12 +291,20 @@ const InvestmentCalculator = () => {
     { amount: 0, year: 2, month: 12 },
     { amount: 0, year: 3, month: 12 }
   ]);
+  const [oneTimeExtras3, setOneTimeExtras3] = useState([
+    { amount: 0, year: 5, month: 6 },
+    { amount: 0, year: 5, month: 6 },
+    { amount: 0, year: 5, month: 6 }
+  ]);
   const [startDepositsInYear2, setStartDepositsInYear2] = useState(false);
   const [startDepositsInYear22, setStartDepositsInYear22] = useState(false);
+  const [startDepositsInYear23, setStartDepositsInYear23] = useState(false);
   const [profile, setProfile] = useState("Gedreven");
   const [profile2, setProfile2] = useState("Gedreven");
+  const [profile3, setProfile3] = useState("Gedreven");
   const [isCalculatorExpanded, setIsCalculatorExpanded] = useState(false);
   const [isCalculatorExpanded2, setIsCalculatorExpanded2] = useState(false);
+  const [isCalculatorExpanded3, setIsCalculatorExpanded3] = useState(false);
   const [lifelineZoomMode, setLifelineZoomMode] = useState("week");
   const [activeScenarioBandKey, setActiveScenarioBandKey] = useState(null);
   const [hoveredLifelineSeriesKey, setHoveredLifelineSeriesKey] = useState(null);
@@ -308,15 +325,18 @@ const InvestmentCalculator = () => {
   ]);
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const [hoveredIndex2, setHoveredIndex2] = useState(null);
+  const [hoveredIndex3, setHoveredIndex3] = useState(null);
   const [hoveredIncomeIndex, setHoveredIncomeIndex] = useState(null);
   const [hoveredPotIndex, setHoveredPotIndex] = useState(null);
   const chartContainerRef = useRef(null);
   const chartContainerRef2 = useRef(null);
+  const chartContainerRef3 = useRef(null);
   const lifelineChartContainerRef = useRef(null);
   const incomeChartContainerRef = useRef(null);
   const potChartContainerRef = useRef(null);
   const [chartSize, setChartSize] = useState({ width: 0, height: 0 });
   const [chartSize2, setChartSize2] = useState({ width: 0, height: 0 });
+  const [chartSize3, setChartSize3] = useState({ width: 0, height: 0 });
   const [lifelineChartSize, setLifelineChartSize] = useState({ width: 0, height: 0 });
   const [incomeChartSize, setIncomeChartSize] = useState({ width: 0, height: 0 });
   const [potChartSize, setPotChartSize] = useState({ width: 0, height: 0 });
@@ -346,6 +366,7 @@ const InvestmentCalculator = () => {
 
   const annualReturn = riskProfiles[profile];
   const annualReturn2 = riskProfiles[profile2];
+  const annualReturn3 = riskProfiles[profile3];
   const careerStartAge = careerPhaseStartAge;
   const cfkStartAge = careerEndAge + 3;
   const timelineStartAge = Math.min(startAge, startAge2);
@@ -436,6 +457,30 @@ const InvestmentCalculator = () => {
   }, [phase1Years2, phase2EndYear2, phase3EndYear2, phase2MonthlyDeposit2, phase3MonthlyDeposit2, investmentHorizon2]);
 
   useEffect(() => {
+    if (phase1Years3 > investmentHorizon3) {
+      setPhase1Years3(investmentHorizon3);
+      return;
+    }
+    if (phase2EndYear3 > investmentHorizon3) {
+      setPhase2EndYear3(investmentHorizon3);
+      return;
+    }
+    if (phase3EndYear3 > investmentHorizon3) {
+      setPhase3EndYear3(investmentHorizon3);
+      return;
+    }
+    const minPhase2End = phase2MonthlyDeposit3 > 0 || phase3MonthlyDeposit3 > 0 ? phase1Years3 : 0;
+    if (phase2EndYear3 < minPhase2End) {
+      setPhase2EndYear3(minPhase2End);
+      return;
+    }
+    const minPhase3End = phase3MonthlyDeposit3 > 0 ? phase2EndYear3 : 0;
+    if (phase3EndYear3 < minPhase3End) {
+      setPhase3EndYear3(minPhase3End);
+    }
+  }, [phase1Years3, phase2EndYear3, phase3EndYear3, phase2MonthlyDeposit3, phase3MonthlyDeposit3, investmentHorizon3]);
+
+  useEffect(() => {
     if (startAge < 18) {
       setStartAge(18);
     }
@@ -446,6 +491,12 @@ const InvestmentCalculator = () => {
       setStartAge2(18);
     }
   }, [startAge2]);
+
+  useEffect(() => {
+    if (startAge3 < 18) {
+      setStartAge3(18);
+    }
+  }, [startAge3]);
 
   useEffect(() => {
     setFreeWealthPayouts((prev) => {
@@ -492,6 +543,21 @@ const InvestmentCalculator = () => {
       return changed ? next : prev;
     });
   }, [investmentHorizon2]);
+
+  useEffect(() => {
+    setOneTimeExtras3((prev) => {
+      const next = prev.map((entry) => ({
+        amount: clampEuro(entry.amount, 0, 5000000),
+        year: normalizeYear(entry.year, investmentHorizon3),
+        month: normalizeMonth(entry.month)
+      }));
+      const changed = next.some(
+        (entry, idx) =>
+          entry.amount !== prev[idx].amount || entry.year !== prev[idx].year || entry.month !== prev[idx].month
+      );
+      return changed ? next : prev;
+    });
+  }, [investmentHorizon3]);
 
   const getMonthlyDepositForMonth = (absoluteMonth) => {
     const monthInDepositTimeline = startDepositsInYear2 ? absoluteMonth - 12 : absoluteMonth;
@@ -555,6 +621,37 @@ const InvestmentCalculator = () => {
       return sum + (absoluteMonth === targetMonth ? entry.amount : 0);
     }, 0);
 
+  const getMonthlyDepositForMonth3 = (absoluteMonth) => {
+    const monthInDepositTimeline = startDepositsInYear23 ? absoluteMonth - 12 : absoluteMonth;
+    if (monthInDepositTimeline <= 0) {
+      return 0;
+    }
+
+    const phase1Months = phase1Years3 * 12;
+    const phase2Months = phase2EndYear3 * 12;
+    const phase3Months = phase3EndYear3 * 12;
+
+    if (monthInDepositTimeline <= phase1Months) {
+      return phase1MonthlyDeposit3;
+    }
+    if (monthInDepositTimeline <= phase2Months) {
+      return phase2MonthlyDeposit3;
+    }
+    if (monthInDepositTimeline <= phase3Months) {
+      return phase3MonthlyDeposit3;
+    }
+    return 0;
+  };
+
+  const getOneTimeExtraForMonth3 = (absoluteMonth) =>
+    oneTimeExtras3.reduce((sum, entry) => {
+      if (entry.amount <= 0) {
+        return sum;
+      }
+      const targetMonth = (entry.year - 1) * 12 + entry.month;
+      return sum + (absoluteMonth === targetMonth ? entry.amount : 0);
+    }, 0);
+
   const updateOneTimeExtra = (index, key, rawValue) => {
     setOneTimeExtras((prev) =>
       prev.map((entry, idx) => {
@@ -583,6 +680,23 @@ const InvestmentCalculator = () => {
         }
         if (key === "year") {
           return { ...entry, year: normalizeYear(rawValue, investmentHorizon2) };
+        }
+        return { ...entry, month: normalizeMonth(rawValue) };
+      })
+    );
+  };
+
+  const updateOneTimeExtra3 = (index, key, rawValue) => {
+    setOneTimeExtras3((prev) =>
+      prev.map((entry, idx) => {
+        if (idx !== index) {
+          return entry;
+        }
+        if (key === "amount") {
+          return { ...entry, amount: clampEuro(rawValue, 0, 5000000) };
+        }
+        if (key === "year") {
+          return { ...entry, year: normalizeYear(rawValue, investmentHorizon3) };
         }
         return { ...entry, month: normalizeMonth(rawValue) };
       })
@@ -715,6 +829,57 @@ const InvestmentCalculator = () => {
 
   const finalBalance2 = calculationData2[calculationData2.length - 1]?.balance || 0;
 
+  const calculationData3 = useMemo(() => {
+    const data = [];
+    let currentBalance = startAmount3;
+    let totalExtraDeposits = 0;
+
+    const monthlyReturn = annualReturn3 / 12;
+
+    for (let year = 1; year <= investmentHorizon3; year++) {
+      const yearStartBalance = currentBalance;
+
+      for (let month = 1; month <= 12; month++) {
+        const currentMonth = (year - 1) * 12 + month;
+        const activeDeposit = getMonthlyDepositForMonth3(currentMonth);
+        const oneTimeExtra = getOneTimeExtraForMonth3(currentMonth);
+
+        currentBalance = currentBalance * (1 + monthlyReturn);
+        currentBalance += activeDeposit;
+        currentBalance += oneTimeExtra;
+        totalExtraDeposits += activeDeposit + oneTimeExtra;
+      }
+
+      const totalDeposits = startAmount3 + totalExtraDeposits;
+      const accruedInterest = currentBalance - totalDeposits;
+
+      data.push({
+        year,
+        balance: currentBalance,
+        deposits: totalExtraDeposits,
+        interest: accruedInterest,
+        initialBalance: startAmount3,
+        yearStartBalance
+      });
+    }
+
+    return data;
+  }, [
+    startAmount3,
+    phase1MonthlyDeposit3,
+    phase1Years3,
+    phase2MonthlyDeposit3,
+    phase2EndYear3,
+    phase3MonthlyDeposit3,
+    phase3EndYear3,
+    oneTimeExtras3,
+    startDepositsInYear23,
+    investmentHorizon3,
+    annualReturn3
+  ]);
+
+  const finalBalance3 = calculationData3[calculationData3.length - 1]?.balance || 0;
+
   useEffect(() => {
     const updateSize = () => {
       if (!chartContainerRef.current) {
@@ -755,6 +920,22 @@ const InvestmentCalculator = () => {
       setChartSize2({
         width: chartContainerRef2.current.clientWidth,
         height: chartContainerRef2.current.clientHeight
+      });
+    };
+
+    updateSize();
+    window.addEventListener("resize", updateSize);
+    return () => window.removeEventListener("resize", updateSize);
+  }, []);
+
+  useEffect(() => {
+    const updateSize = () => {
+      if (!chartContainerRef3.current) {
+        return;
+      }
+      setChartSize3({
+        width: chartContainerRef3.current.clientWidth,
+        height: chartContainerRef3.current.clientHeight
       });
     };
 
@@ -887,6 +1068,45 @@ const InvestmentCalculator = () => {
   const worstCaseBalance2 = calculateWorstCase2();
   const bestCaseBalance2 = calculateBestCase2();
 
+  const calculateWorstCase3 = () => {
+    let currentBalance = startAmount3;
+    const monthlyReturn = worstCaseProfiles[profile3] / 12;
+
+    for (let year = 1; year <= investmentHorizon3; year++) {
+      for (let month = 1; month <= 12; month++) {
+        const currentMonth = (year - 1) * 12 + month;
+        const activeDeposit = getMonthlyDepositForMonth3(currentMonth);
+        const oneTimeExtra = getOneTimeExtraForMonth3(currentMonth);
+
+        currentBalance = currentBalance * (1 + monthlyReturn);
+        currentBalance += activeDeposit;
+        currentBalance += oneTimeExtra;
+      }
+    }
+    return currentBalance;
+  };
+
+  const calculateBestCase3 = () => {
+    let currentBalance = startAmount3;
+    const monthlyReturn = bestCaseProfiles[profile3] / 12;
+
+    for (let year = 1; year <= investmentHorizon3; year++) {
+      for (let month = 1; month <= 12; month++) {
+        const currentMonth = (year - 1) * 12 + month;
+        const activeDeposit = getMonthlyDepositForMonth3(currentMonth);
+        const oneTimeExtra = getOneTimeExtraForMonth3(currentMonth);
+
+        currentBalance = currentBalance * (1 + monthlyReturn);
+        currentBalance += activeDeposit;
+        currentBalance += oneTimeExtra;
+      }
+    }
+    return currentBalance;
+  };
+
+  const worstCaseBalance3 = calculateWorstCase3();
+  const bestCaseBalance3 = calculateBestCase3();
+
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("nl-NL", {
       style: "currency",
@@ -909,6 +1129,7 @@ const InvestmentCalculator = () => {
   const isDesktop = window.innerWidth >= 1024;
   const hoveredPoint = hoveredIndex != null ? calculationData[hoveredIndex] : null;
   const hoveredPoint2 = hoveredIndex2 != null ? calculationData2[hoveredIndex2] : null;
+  const hoveredPoint3 = hoveredIndex3 != null ? calculationData3[hoveredIndex3] : null;
 
   const tooltipAnchor = useMemo(() => {
     if (!hoveredPoint || !chartSize.width || !chartSize.height || calculationData.length === 0) {
@@ -959,6 +1180,31 @@ const InvestmentCalculator = () => {
 
     return { left, top };
   }, [calculationData2, chartSize2.height, chartSize2.width, hoveredIndex2, hoveredPoint2]);
+
+  const tooltipAnchor3 = useMemo(() => {
+    if (!hoveredPoint3 || !chartSize3.width || !chartSize3.height || calculationData3.length === 0) {
+      return null;
+    }
+
+    const margin = { top: 20, right: 30, left: 20, bottom: 40 };
+    const yAxisWidth = 70;
+    const plotWidth = chartSize3.width - margin.left - margin.right - yAxisWidth;
+    const plotHeight = chartSize3.height - margin.top - margin.bottom;
+    if (plotWidth <= 0 || plotHeight <= 0) {
+      return null;
+    }
+
+    const step = plotWidth / calculationData3.length;
+    const left = margin.left + yAxisWidth + step * hoveredIndex3 + step / 2;
+    const maxTotal = Math.max(
+      ...calculationData3.map((row) => row.initialBalance + row.deposits + Math.max(0, row.interest)),
+      1
+    );
+    const total = hoveredPoint3.initialBalance + hoveredPoint3.deposits + Math.max(0, hoveredPoint3.interest);
+    const top = margin.top + (1 - total / maxTotal) * plotHeight;
+
+    return { left, top };
+  }, [calculationData3, chartSize3.height, chartSize3.width, hoveredIndex3, hoveredPoint3]);
   const barYearTicks = useMemo(() => {
     const horizon = Math.max(1, investmentHorizon);
     let step = 1;
@@ -998,6 +1244,26 @@ const InvestmentCalculator = () => {
     }
     return ticks;
   }, [investmentHorizon2]);
+
+  const barYearTicks3 = useMemo(() => {
+    const horizon = Math.max(1, investmentHorizon3);
+    let step = 1;
+    if (horizon > 40) {
+      step = 5;
+    } else if (horizon > 30) {
+      step = 4;
+    } else if (horizon > 20) {
+      step = 2;
+    }
+    const ticks = [];
+    for (let year = 1; year <= horizon; year += step) {
+      ticks.push(year);
+    }
+    if (ticks[ticks.length - 1] !== horizon) {
+      ticks.push(horizon);
+    }
+    return ticks;
+  }, [investmentHorizon3]);
 
   const showcaseGraph = useMemo(() => {
     const halfYearMonths = Array.from({ length: 17 }, (_, i) => i * 6); // 2017.0 -> 2025.0
@@ -1774,82 +2040,125 @@ const InvestmentCalculator = () => {
     return `${x}px`;
   };
 
-  const getCalculatorModel = (isPrimary) =>
-    isPrimary
-      ? {
-          startAmount,
-          setStartAmount,
-          startAge,
-          setStartAge,
-          phase1MonthlyDeposit,
-          setPhase1MonthlyDeposit,
-          phase1Years,
-          setPhase1Years,
-          isCalculatorExpanded,
-          setIsCalculatorExpanded,
-          investmentHorizon,
-          setInvestmentHorizon,
-          phase2MonthlyDeposit,
-          setPhase2MonthlyDeposit,
-          phase2EndYear,
-          setPhase2EndYear,
-          phase3MonthlyDeposit,
-          setPhase3MonthlyDeposit,
-          phase3EndYear,
-          setPhase3EndYear,
-          startDepositsInYear2,
-          setStartDepositsInYear2,
-          oneTimeExtras,
-          updateOneTimeExtra,
-          profile,
-          setProfile,
-          finalBalanceCurrent: finalBalance,
-          calculationDataCurrent: calculationData,
-          chartContainerRefCurrent: chartContainerRef,
-          hoveredPointCurrent: hoveredPoint,
-          tooltipAnchorCurrent: tooltipAnchor,
-          setHoveredIndexCurrent: setHoveredIndex,
-          barYearTicksCurrent: barYearTicks,
-          worstCaseBalanceCurrent: worstCaseBalance,
-          bestCaseBalanceCurrent: bestCaseBalance
-        }
-      : {
-          startAmount: startAmount2,
-          setStartAmount: setStartAmount2,
-          startAge: startAge2,
-          setStartAge: setStartAge2,
-          phase1MonthlyDeposit: phase1MonthlyDeposit2,
-          setPhase1MonthlyDeposit: setPhase1MonthlyDeposit2,
-          phase1Years: phase1Years2,
-          setPhase1Years: setPhase1Years2,
-          isCalculatorExpanded: isCalculatorExpanded2,
-          setIsCalculatorExpanded: setIsCalculatorExpanded2,
-          investmentHorizon: investmentHorizon2,
-          setInvestmentHorizon: setInvestmentHorizon2,
-          phase2MonthlyDeposit: phase2MonthlyDeposit2,
-          setPhase2MonthlyDeposit: setPhase2MonthlyDeposit2,
-          phase2EndYear: phase2EndYear2,
-          setPhase2EndYear: setPhase2EndYear2,
-          phase3MonthlyDeposit: phase3MonthlyDeposit2,
-          setPhase3MonthlyDeposit: setPhase3MonthlyDeposit2,
-          phase3EndYear: phase3EndYear2,
-          setPhase3EndYear: setPhase3EndYear2,
-          startDepositsInYear2: startDepositsInYear22,
-          setStartDepositsInYear2: setStartDepositsInYear22,
-          oneTimeExtras: oneTimeExtras2,
-          updateOneTimeExtra: updateOneTimeExtra2,
-          profile: profile2,
-          setProfile: setProfile2,
-          finalBalanceCurrent: finalBalance2,
-          calculationDataCurrent: calculationData2,
-          chartContainerRefCurrent: chartContainerRef2,
-          hoveredPointCurrent: hoveredPoint2,
-          tooltipAnchorCurrent: tooltipAnchor2,
-          setHoveredIndexCurrent: setHoveredIndex2,
-          barYearTicksCurrent: barYearTicks2,
-          worstCaseBalanceCurrent: worstCaseBalance2,
-          bestCaseBalanceCurrent: bestCaseBalance2
-        };
+  const getCalculatorModel = (calculatorIndex) => {
+    if (calculatorIndex === 0) {
+      return {
+        startAmount,
+        setStartAmount,
+        startAge,
+        setStartAge,
+        phase1MonthlyDeposit,
+        setPhase1MonthlyDeposit,
+        phase1Years,
+        setPhase1Years,
+        isCalculatorExpanded,
+        setIsCalculatorExpanded,
+        investmentHorizon,
+        setInvestmentHorizon,
+        phase2MonthlyDeposit,
+        setPhase2MonthlyDeposit,
+        phase2EndYear,
+        setPhase2EndYear,
+        phase3MonthlyDeposit,
+        setPhase3MonthlyDeposit,
+        phase3EndYear,
+        setPhase3EndYear,
+        startDepositsInYear2,
+        setStartDepositsInYear2,
+        oneTimeExtras,
+        updateOneTimeExtra,
+        profile,
+        setProfile,
+        finalBalanceCurrent: finalBalance,
+        calculationDataCurrent: calculationData,
+        chartContainerRefCurrent: chartContainerRef,
+        hoveredPointCurrent: hoveredPoint,
+        tooltipAnchorCurrent: tooltipAnchor,
+        setHoveredIndexCurrent: setHoveredIndex,
+        barYearTicksCurrent: barYearTicks,
+        worstCaseBalanceCurrent: worstCaseBalance,
+        bestCaseBalanceCurrent: bestCaseBalance
+      };
+    }
+
+    if (calculatorIndex === 1) {
+      return {
+        startAmount: startAmount2,
+        setStartAmount: setStartAmount2,
+        startAge: startAge2,
+        setStartAge: setStartAge2,
+        phase1MonthlyDeposit: phase1MonthlyDeposit2,
+        setPhase1MonthlyDeposit: setPhase1MonthlyDeposit2,
+        phase1Years: phase1Years2,
+        setPhase1Years: setPhase1Years2,
+        isCalculatorExpanded: isCalculatorExpanded2,
+        setIsCalculatorExpanded: setIsCalculatorExpanded2,
+        investmentHorizon: investmentHorizon2,
+        setInvestmentHorizon: setInvestmentHorizon2,
+        phase2MonthlyDeposit: phase2MonthlyDeposit2,
+        setPhase2MonthlyDeposit: setPhase2MonthlyDeposit2,
+        phase2EndYear: phase2EndYear2,
+        setPhase2EndYear: setPhase2EndYear2,
+        phase3MonthlyDeposit: phase3MonthlyDeposit2,
+        setPhase3MonthlyDeposit: setPhase3MonthlyDeposit2,
+        phase3EndYear: phase3EndYear2,
+        setPhase3EndYear: setPhase3EndYear2,
+        startDepositsInYear2: startDepositsInYear22,
+        setStartDepositsInYear2: setStartDepositsInYear22,
+        oneTimeExtras: oneTimeExtras2,
+        updateOneTimeExtra: updateOneTimeExtra2,
+        profile: profile2,
+        setProfile: setProfile2,
+        finalBalanceCurrent: finalBalance2,
+        calculationDataCurrent: calculationData2,
+        chartContainerRefCurrent: chartContainerRef2,
+        hoveredPointCurrent: hoveredPoint2,
+        tooltipAnchorCurrent: tooltipAnchor2,
+        setHoveredIndexCurrent: setHoveredIndex2,
+        barYearTicksCurrent: barYearTicks2,
+        worstCaseBalanceCurrent: worstCaseBalance2,
+        bestCaseBalanceCurrent: bestCaseBalance2
+      };
+    }
+
+    return {
+      startAmount: startAmount3,
+      setStartAmount: setStartAmount3,
+      startAge: startAge3,
+      setStartAge: setStartAge3,
+      phase1MonthlyDeposit: phase1MonthlyDeposit3,
+      setPhase1MonthlyDeposit: setPhase1MonthlyDeposit3,
+      phase1Years: phase1Years3,
+      setPhase1Years: setPhase1Years3,
+      isCalculatorExpanded: isCalculatorExpanded3,
+      setIsCalculatorExpanded: setIsCalculatorExpanded3,
+      investmentHorizon: investmentHorizon3,
+      setInvestmentHorizon: setInvestmentHorizon3,
+      phase2MonthlyDeposit: phase2MonthlyDeposit3,
+      setPhase2MonthlyDeposit: setPhase2MonthlyDeposit3,
+      phase2EndYear: phase2EndYear3,
+      setPhase2EndYear: setPhase2EndYear3,
+      phase3MonthlyDeposit: phase3MonthlyDeposit3,
+      setPhase3MonthlyDeposit: setPhase3MonthlyDeposit3,
+      phase3EndYear: phase3EndYear3,
+      setPhase3EndYear: setPhase3EndYear3,
+      startDepositsInYear2: startDepositsInYear23,
+      setStartDepositsInYear2: setStartDepositsInYear23,
+      oneTimeExtras: oneTimeExtras3,
+      updateOneTimeExtra: updateOneTimeExtra3,
+      profile: profile3,
+      setProfile: setProfile3,
+      finalBalanceCurrent: finalBalance3,
+      calculationDataCurrent: calculationData3,
+      chartContainerRefCurrent: chartContainerRef3,
+      hoveredPointCurrent: hoveredPoint3,
+      tooltipAnchorCurrent: tooltipAnchor3,
+      setHoveredIndexCurrent: setHoveredIndex3,
+      barYearTicksCurrent: barYearTicks3,
+      worstCaseBalanceCurrent: worstCaseBalance3,
+      bestCaseBalanceCurrent: bestCaseBalance3
+    };
+  };
 
   return (
     <div
@@ -1874,9 +2183,9 @@ const InvestmentCalculator = () => {
             'Satoshi, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
         }}
       >
-      {[0, 1].map((calculatorIndex) => {
+      {[0, 1, 2].map((calculatorIndex) => {
         const isPrimary = calculatorIndex === 0;
-        const model = getCalculatorModel(isPrimary);
+        const model = getCalculatorModel(calculatorIndex);
 
         const {
           startAmount,
@@ -1956,7 +2265,11 @@ const InvestmentCalculator = () => {
                 textAlign: "center"
               }}
             >
-              {calculatorIndex === 0 ? "Vrij Vermogen" : "Pensioen vermogen"}
+              {calculatorIndex === 0
+                ? "Vrij Vermogen"
+                : calculatorIndex === 1
+                  ? "Pensioen vermogen"
+                  : "Next Generation vermogen"}
             </div>
           </div>
           <div style={{ width: isDesktop ? "60%" : "100%", display: "flex", justifyContent: "center" }}>
