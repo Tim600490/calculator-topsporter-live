@@ -282,6 +282,7 @@ const InvestmentCalculator = () => {
   const [phase3EndYear3, setPhase3EndYear3] = useState(0);
   const [investmentHorizon3, setInvestmentHorizon3] = useState(20);
   const [startAge3, setStartAge3] = useState(18);
+  const [childAge3, setChildAge3] = useState(1);
   const aowAge = 68;
   const [oneTimeExtras, setOneTimeExtras] = useState([
     { amount: 0, year: 5, month: 6 },
@@ -498,6 +499,24 @@ const InvestmentCalculator = () => {
       setStartAge3(18);
     }
   }, [startAge3]);
+
+  useEffect(() => {
+    if (startAmount3 > 6500) {
+      setStartAmount3(6500);
+    }
+    if (startAmount3 < 0) {
+      setStartAmount3(0);
+    }
+  }, [startAmount3]);
+
+  useEffect(() => {
+    setChildAge3((prev) => Math.max(1, Math.min(15, prev)));
+  }, []);
+
+  useEffect(() => {
+    const derivedHorizon = Math.max(1, 18 - childAge3);
+    setInvestmentHorizon3(derivedHorizon);
+  }, [childAge3]);
 
   useEffect(() => {
     setFreeWealthPayouts((prev) => {
@@ -832,7 +851,7 @@ const InvestmentCalculator = () => {
 
   const calculationData3 = useMemo(() => {
     const data = [];
-    let currentBalance = startAmount3;
+    let currentBalance = 0;
     let totalExtraDeposits = 0;
 
     const monthlyReturn = annualReturn3 / 12;
@@ -841,17 +860,14 @@ const InvestmentCalculator = () => {
       const yearStartBalance = currentBalance;
 
       for (let month = 1; month <= 12; month++) {
-        const currentMonth = (year - 1) * 12 + month;
-        const activeDeposit = getMonthlyDepositForMonth3(currentMonth);
-        const oneTimeExtra = getOneTimeExtraForMonth3(currentMonth);
-
         currentBalance = currentBalance * (1 + monthlyReturn);
-        currentBalance += activeDeposit;
-        currentBalance += oneTimeExtra;
-        totalExtraDeposits += activeDeposit + oneTimeExtra;
       }
 
-      const totalDeposits = startAmount3 + totalExtraDeposits;
+      // Jaarlijkse eenmalige inleg gelijk aan startbedrag.
+      currentBalance += startAmount3;
+      totalExtraDeposits += startAmount3;
+
+      const totalDeposits = totalExtraDeposits;
       const accruedInterest = currentBalance - totalDeposits;
 
       data.push({
@@ -859,7 +875,7 @@ const InvestmentCalculator = () => {
         balance: currentBalance,
         deposits: totalExtraDeposits,
         interest: accruedInterest,
-        initialBalance: startAmount3,
+        initialBalance: 0,
         yearStartBalance
       });
     }
@@ -867,14 +883,6 @@ const InvestmentCalculator = () => {
     return data;
   }, [
     startAmount3,
-    phase1MonthlyDeposit3,
-    phase1Years3,
-    phase2MonthlyDeposit3,
-    phase2EndYear3,
-    phase3MonthlyDeposit3,
-    phase3EndYear3,
-    oneTimeExtras3,
-    startDepositsInYear23,
     investmentHorizon3,
     annualReturn3
   ]);
@@ -1070,37 +1078,27 @@ const InvestmentCalculator = () => {
   const bestCaseBalance2 = calculateBestCase2();
 
   const calculateWorstCase3 = () => {
-    let currentBalance = startAmount3;
+    let currentBalance = 0;
     const monthlyReturn = worstCaseProfiles[profile3] / 12;
 
     for (let year = 1; year <= investmentHorizon3; year++) {
       for (let month = 1; month <= 12; month++) {
-        const currentMonth = (year - 1) * 12 + month;
-        const activeDeposit = getMonthlyDepositForMonth3(currentMonth);
-        const oneTimeExtra = getOneTimeExtraForMonth3(currentMonth);
-
         currentBalance = currentBalance * (1 + monthlyReturn);
-        currentBalance += activeDeposit;
-        currentBalance += oneTimeExtra;
       }
+      currentBalance += startAmount3;
     }
     return currentBalance;
   };
 
   const calculateBestCase3 = () => {
-    let currentBalance = startAmount3;
+    let currentBalance = 0;
     const monthlyReturn = bestCaseProfiles[profile3] / 12;
 
     for (let year = 1; year <= investmentHorizon3; year++) {
       for (let month = 1; month <= 12; month++) {
-        const currentMonth = (year - 1) * 12 + month;
-        const activeDeposit = getMonthlyDepositForMonth3(currentMonth);
-        const oneTimeExtra = getOneTimeExtraForMonth3(currentMonth);
-
         currentBalance = currentBalance * (1 + monthlyReturn);
-        currentBalance += activeDeposit;
-        currentBalance += oneTimeExtra;
       }
+      currentBalance += startAmount3;
     }
     return currentBalance;
   };
@@ -1384,14 +1382,15 @@ const InvestmentCalculator = () => {
       if (age < startAge3) {
         return 0;
       }
-      let balance = startAmount3;
+      let balance = 0;
       const months = (age - startAge3) * 12;
       for (let month = 1; month <= months; month++) {
-        const withinCalculatorHorizon = month <= investmentHorizon3 * 12;
-        const activeDeposit = withinCalculatorHorizon ? getMonthlyDepositForMonth3(month) : 0;
-        const oneTimeExtra = withinCalculatorHorizon ? getOneTimeExtraForMonth3(month) : 0;
         balance = balance * (1 + annualReturn3 / 12);
-        balance += activeDeposit + oneTimeExtra;
+        const withinCalculatorHorizon = month <= investmentHorizon3 * 12;
+        const isYearlyDepositMonth = month % 12 === 0;
+        if (withinCalculatorHorizon && isYearlyDepositMonth) {
+          balance += startAmount3;
+        }
       }
       return Math.max(0, balance);
     };
@@ -2100,6 +2099,8 @@ const InvestmentCalculator = () => {
         setStartAmount,
         startAge,
         setStartAge,
+        childAge: 1,
+        setChildAge: () => {},
         phase1MonthlyDeposit,
         setPhase1MonthlyDeposit,
         phase1Years,
@@ -2140,6 +2141,8 @@ const InvestmentCalculator = () => {
         setStartAmount: setStartAmount2,
         startAge: startAge2,
         setStartAge: setStartAge2,
+        childAge: 1,
+        setChildAge: () => {},
         phase1MonthlyDeposit: phase1MonthlyDeposit2,
         setPhase1MonthlyDeposit: setPhase1MonthlyDeposit2,
         phase1Years: phase1Years2,
@@ -2179,6 +2182,8 @@ const InvestmentCalculator = () => {
       setStartAmount: setStartAmount3,
       startAge: startAge3,
       setStartAge: setStartAge3,
+      childAge: childAge3,
+      setChildAge: setChildAge3,
       phase1MonthlyDeposit: phase1MonthlyDeposit3,
       setPhase1MonthlyDeposit: setPhase1MonthlyDeposit3,
       phase1Years: phase1Years3,
@@ -2245,6 +2250,8 @@ const InvestmentCalculator = () => {
           setStartAmount,
           startAge,
           setStartAge,
+          childAge,
+          setChildAge,
           phase1MonthlyDeposit,
           setPhase1MonthlyDeposit,
           phase1Years,
@@ -2277,6 +2284,9 @@ const InvestmentCalculator = () => {
           worstCaseBalanceCurrent,
           bestCaseBalanceCurrent
         } = model;
+        const isNextGeneration = calculatorIndex === 2;
+        const startAmountMax = isNextGeneration ? 6500 : 1000000;
+        const startAmountFill = startAmountMax === 0 ? 0 : (startAmount / startAmountMax) * 100;
         const phase2MinYear = phase2MonthlyDeposit > 0 || phase3MonthlyDeposit > 0 ? phase1Years : 0;
         const phase2FillPercentage =
           investmentHorizon - phase2MinYear === 0
@@ -2401,15 +2411,15 @@ const InvestmentCalculator = () => {
               <input
                 type="range"
                 min="0"
-                max="1000000"
-                step="1000"
+                max={startAmountMax}
+                step={isNextGeneration ? 100 : 1000}
                 value={startAmount}
                 onChange={(e) => setStartAmount(Number(e.target.value))}
                 style={{
                   width: "100%",
                   height: "8px",
                   borderRadius: "4px",
-                  background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${(startAmount / 1000000) * 100}%, #E5E7EB ${(startAmount / 1000000) * 100}%, #E5E7EB 100%)`,
+                  background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${startAmountFill}%, #E5E7EB ${startAmountFill}%, #E5E7EB 100%)`,
                   outline: "none",
                   appearance: "none",
                   cursor: "pointer"
@@ -2425,7 +2435,7 @@ const InvestmentCalculator = () => {
                 }}
               >
                 <span>€0</span>
-                <span>€1.000.000</span>
+                <span>{isNextGeneration ? "€6.500" : "€1.000.000"}</span>
               </div>
             </div>
           </div>
@@ -2476,8 +2486,55 @@ const InvestmentCalculator = () => {
             </div>
           </div>
 
+          {isNextGeneration && (
+            <div style={{ marginBottom: "32px" }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: "16px"
+                }}
+              >
+                <label style={{ fontSize: "18px", fontWeight: "500", color: "#111827" }}>Leeftijd kind</label>
+                <span style={{ fontSize: "20px", fontWeight: "bold" }}>{childAge} jaar</span>
+              </div>
+              <div style={{ position: "relative" }}>
+                <input
+                  type="range"
+                  min="1"
+                  max="15"
+                  step="1"
+                  value={childAge}
+                  onChange={(e) => setChildAge(Number(e.target.value))}
+                  style={{
+                    width: "100%",
+                    height: "8px",
+                    borderRadius: "4px",
+                    background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${((childAge - 1) / 14) * 100}%, #E5E7EB ${((childAge - 1) / 14) * 100}%, #E5E7EB 100%)`,
+                    outline: "none",
+                    appearance: "none",
+                    cursor: "pointer"
+                  }}
+                />
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    fontSize: "14px",
+                    color: "#6B7280",
+                    marginTop: "8px"
+                  }}
+                >
+                  <span>1 jaar</span>
+                  <span>15 jaar</span>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Monthly Deposit - Phase 1 */}
-          <div style={{ marginBottom: "32px" }}>
+          {!isNextGeneration && <div style={{ marginBottom: "32px" }}>
             <div
               style={{
                 display: "flex",
@@ -2545,8 +2602,10 @@ const InvestmentCalculator = () => {
                 />
               </div>
             </div>
-          </div>
+          </div>}
 
+          {!isNextGeneration && (
+          <>
           <div
             role="button"
             tabIndex={0}
@@ -2880,6 +2939,11 @@ const InvestmentCalculator = () => {
               </div>
             </div>
           </div>
+          </div>
+
+          </div>
+          </>
+          )}
 
           {/* Investment Horizon */}
           <div style={{ marginBottom: "32px" }}>
@@ -2892,7 +2956,7 @@ const InvestmentCalculator = () => {
               }}
             >
               <label style={{ fontSize: "18px", fontWeight: "500", color: "#111827" }}>
-                Beleggingshorizon
+                {isNextGeneration ? "Looptijd tot 18 jaar" : "Beleggingshorizon"}
               </label>
               <span style={{ fontSize: "20px", fontWeight: "bold" }}>
                 {investmentHorizon} jaar
@@ -2905,7 +2969,12 @@ const InvestmentCalculator = () => {
                 max="50"
                 step="1"
                 value={investmentHorizon}
-                onChange={(e) => setInvestmentHorizon(Number(e.target.value))}
+                onChange={(e) => {
+                  if (!isNextGeneration) {
+                    setInvestmentHorizon(Number(e.target.value));
+                  }
+                }}
+                disabled={isNextGeneration}
                 style={{
                   width: "100%",
                   height: "8px",
@@ -2913,7 +2982,8 @@ const InvestmentCalculator = () => {
                   background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${((investmentHorizon - 1) / 49) * 100}%, #E5E7EB ${((investmentHorizon - 1) / 49) * 100}%, #E5E7EB 100%)`,
                   outline: "none",
                   appearance: "none",
-                  cursor: "pointer"
+                  cursor: isNextGeneration ? "not-allowed" : "pointer",
+                  opacity: isNextGeneration ? 0.75 : 1
                 }}
               />
               <div
@@ -2925,13 +2995,13 @@ const InvestmentCalculator = () => {
                   marginTop: "8px"
                 }}
               >
-                <span>1 jaar</span>
-                <span>50 jaar</span>
+                <span>{isNextGeneration ? `${childAge} jaar` : "1 jaar"}</span>
+                <span>{isNextGeneration ? "18 jaar" : "50 jaar"}</span>
               </div>
             </div>
           </div>
 
-          <div style={{ marginBottom: "24px" }}>
+          {!isNextGeneration && <div style={{ marginBottom: "24px" }}>
             <label
               style={{
                 display: "flex",
@@ -2951,10 +3021,10 @@ const InvestmentCalculator = () => {
               />
               Start maandinleg vanaf jaar 2 (jaar 1 zonder inleg)
             </label>
-          </div>
+          </div>}
 
           {/* One-time extra deposit */}
-          <div style={{ marginBottom: "28px", padding: "12px", border: "1px solid #D2BB5D", borderRadius: "8px" }}>
+          {!isNextGeneration && <div style={{ marginBottom: "28px", padding: "12px", border: "1px solid #D2BB5D", borderRadius: "8px" }}>
             <div style={{ fontSize: "16px", fontWeight: "600", color: "#111827", marginBottom: "12px" }}>
               Eenmalige extra inleg
             </div>
@@ -3032,7 +3102,7 @@ const InvestmentCalculator = () => {
                 </div>
               </div>
             ))}
-          </div>
+          </div>}
 
           {/* Profile */}
           <div style={{ marginBottom: "32px" }}>
@@ -3068,9 +3138,7 @@ const InvestmentCalculator = () => {
               <option value="Ambitieus">Ambitieus</option>
             </select>
           </div>
-            </div>
         </div>
-          </div>
 
         {/* Right Panel - Results (60% on desktop) */}
         <div
