@@ -63,6 +63,7 @@ const AnchoredIncomeTooltip = ({ point, label, left, top, formatCurrency }) => {
     { key: "vrij", color: "#d2bb5d", label: "Vrij Vermogen Animo", value: point.vrij || 0, bruto: false, netto: true },
     { key: "cfk", color: "#0d2a28", label: "CFK", value: point.cfk || 0, bruto: true },
     { key: "pensioen", color: "#6672a8", label: "Pensioen Animo", value: point.pensioen || 0, bruto: true },
+    { key: "aow", color: "#c0c0c0", label: "AOW", value: point.aow || 0, bruto: true },
     { key: "nextgen", color: "#ffa07a", label: "Next Generation Animo", value: point.nextgen || 0, netto: true }
   ].filter((row) => row.value > 0);
 
@@ -1441,6 +1442,10 @@ const InvestmentCalculator = () => {
     );
     const pensionPayoutYears = pensionPlan.years;
     const pensionAnnualPayout = pensionPlan.annualPayout;
+    const aowAnnualGross = 14380;
+    const yearsAbroad = Math.max(0, Math.floor(Number(pensionYearsAbroad) || 0));
+    const aowReductionFactor = Math.max(0, 1 - yearsAbroad * 0.02);
+    const aowAnnualIncome = pensionAowEnabled ? Math.round(aowAnnualGross * aowReductionFactor) : 0;
 
     let freeWealthBalance = startAmount;
     let pensionBalance = 0;
@@ -1523,6 +1528,7 @@ const InvestmentCalculator = () => {
       let cfkIncome = 0;
       let freeIncome = 0;
       let pensionIncome = 0;
+      let aowIncome = 0;
       const cfkBalance = cfkYearStartBalanceByAge.get(age) ?? 0;
       cfkIncome = cfkYearIncomeByAge.get(age) ?? 0;
 
@@ -1558,6 +1564,10 @@ const InvestmentCalculator = () => {
         pensionBalance = 0;
       }
 
+      if (age >= aowAge && aowAnnualIncome > 0) {
+        aowIncome = aowAnnualIncome;
+      }
+
       if (age >= startAge3 && age <= nextGenerationHorizonAge) {
         nextGenerationBalance = getNextGenerationBalanceAtAge(age);
       } else {
@@ -1566,6 +1576,7 @@ const InvestmentCalculator = () => {
 
       incomeData.push({
         age,
+        aow: aowIncome,
         cfk: cfkIncome,
         vrij: freeIncome,
         pensioen: pensionIncome
@@ -1607,6 +1618,7 @@ const InvestmentCalculator = () => {
       pensionCapitalAtAow,
       pensionAnnualPayout,
       pensionPayoutYears,
+      aowAnnualIncome,
       freeWealthEndAge,
       nextGenerationHorizonAge,
       maxAge
@@ -1633,7 +1645,9 @@ const InvestmentCalculator = () => {
     getMonthlyDepositForMonth3,
     getOneTimeExtraForMonth2,
     getOneTimeExtraForMonth3,
+    pensionAowEnabled,
     pensionReturnRate,
+    pensionYearsAbroad,
     startAge,
     startAge2,
     startAge3,
@@ -2013,8 +2027,15 @@ const InvestmentCalculator = () => {
 
     const step = plotWidth / lifeline.incomeData.length;
     const left = margin.left + yAxisWidth + step * hoveredIncomeIndex + step / 2;
-    const maxTotal = Math.max(...lifeline.incomeData.map((row) => (row.cfk || 0) + (row.vrij || 0) + (row.pensioen || 0)), 1);
-    const total = (hoveredIncomePoint.cfk || 0) + (hoveredIncomePoint.vrij || 0) + (hoveredIncomePoint.pensioen || 0);
+    const maxTotal = Math.max(
+      ...lifeline.incomeData.map((row) => (row.aow || 0) + (row.cfk || 0) + (row.vrij || 0) + (row.pensioen || 0)),
+      1
+    );
+    const total =
+      (hoveredIncomePoint.aow || 0) +
+      (hoveredIncomePoint.cfk || 0) +
+      (hoveredIncomePoint.vrij || 0) +
+      (hoveredIncomePoint.pensioen || 0);
     const top = margin.top + (1 - total / maxTotal) * plotHeight;
 
     return { left, top };
@@ -3978,7 +3999,13 @@ const InvestmentCalculator = () => {
             </div>
             <div
               style={{
-                marginTop: "12px",
+                marginTop: "10px",
+                borderTop: `1px solid ${subtleOverlayTextColor}`
+              }}
+            />
+            <div
+              style={{
+                marginTop: "10px",
                 display: "flex",
                 alignItems: "center",
                 gap: "8px",
@@ -3995,6 +4022,7 @@ const InvestmentCalculator = () => {
                   cursor: "pointer"
                 }}
               >
+                <span style={{ width: "14px", height: "3px", backgroundColor: "#c0c0c0", borderRadius: "2px" }} />
                 <span>AOW</span>
                 <input
                   type="checkbox"
@@ -4125,6 +4153,12 @@ const InvestmentCalculator = () => {
                     tick={{ fontSize: 11, fill: "#6B7280" }}
                     tickFormatter={(value) => Math.round(value).toLocaleString("nl-NL")}
                     width={60}
+                  />
+                  <Bar
+                    dataKey="aow"
+                    stackId="income"
+                    fill="#c0c0c0"
+                    onMouseOver={(_, index) => setHoveredIncomeIndex(index)}
                   />
                   <Bar
                     dataKey="pensioen"
