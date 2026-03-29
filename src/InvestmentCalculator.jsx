@@ -1116,75 +1116,42 @@ const InvestmentCalculator = () => {
     const pensionCapitalAtAow = getPensionBalanceAtAge(aowAge);
     const pensionPayoutGrowthRate = pensionReturnRate / 100;
     const pensionMaxAnnualGross = 27192; // 2026 grensbedrag
-    const getPensionPayoutYears = (capital, maxAnnualGross) => {
-      if (capital <= 0) {
-        return 0;
-      }
-      if (capital / 5 <= maxAnnualGross) {
-        return 5;
-      }
-      return Math.min(20, Math.ceil(capital / maxAnnualGross));
-    };
-
-    const getMaxSustainableAnnualPayout = (capital, years, annualGrowthRate) => {
+    const getAnnuityAnnualPayout = (capital, years, annualGrowthRate) => {
       if (capital <= 0 || years <= 0) {
         return 0;
       }
       if (annualGrowthRate === 0) {
         return capital / years;
       }
-      const growthFactor = Math.pow(1 + annualGrowthRate, years);
-      const denominator = growthFactor - 1;
-      if (denominator === 0) {
+      const discountFactor = 1 - Math.pow(1 + annualGrowthRate, -years);
+      if (discountFactor <= 0) {
         return capital / years;
       }
-      return (capital * growthFactor * annualGrowthRate) / denominator;
+      return (capital * annualGrowthRate) / discountFactor;
     };
 
-    const getProjectedSlotPayout = (capital, years, annualGrowthRate, annualPayout) => {
-      if (capital <= 0 || years <= 0 || annualPayout <= 0) {
-        return Math.max(0, capital);
+    const getPensionPayoutPlan = (capital, annualGrowthRate, maxAnnualGross) => {
+      if (capital <= 0) {
+        return { years: 0, annualPayout: 0, route: "none" };
       }
-      let balance = capital;
-      for (let year = 1; year <= years; year++) {
-        const grownBalance = balance * (1 + annualGrowthRate);
-        const payout = Math.min(annualPayout, grownBalance);
-        balance = Math.max(0, grownBalance - payout);
+
+      // Korte route: 5 t/m 19 jaar, alleen toegestaan als annuïtaire jaaruitkering <= fiscale grens.
+      for (let years = 5; years < 20; years++) {
+        const annuityPayout = getAnnuityAnnualPayout(capital, years, annualGrowthRate);
+        if (annuityPayout <= maxAnnualGross) {
+          return { years, annualPayout: annuityPayout, route: "short" };
+        }
       }
-      return balance;
+
+      // Lange route: 20 jaar, zonder jaarlijkse grens op 27.192.
+      return {
+        years: 20,
+        annualPayout: getAnnuityAnnualPayout(capital, 20, annualGrowthRate),
+        route: "long"
+      };
     };
 
-    const getCappedPensionAnnualPayout = (capital, years, annualGrowthRate, maxAnnualGross) => {
-      if (capital <= 0 || years <= 0) {
-        return 0;
-      }
-      return Math.min(
-        maxAnnualGross,
-        getMaxSustainableAnnualPayout(capital, years, annualGrowthRate)
-      );
-    };
-
-    const getOptimizedPensionPayoutPlan = (capital, annualGrowthRate, maxAnnualGross) => {
-      const minYears = getPensionPayoutYears(capital, maxAnnualGross);
-      if (minYears <= 0) {
-        return { years: 0, annualPayout: 0 };
-      }
-
-      let years = minYears;
-      let annualPayout = getCappedPensionAnnualPayout(capital, years, annualGrowthRate, maxAnnualGross);
-      let slotPayout = getProjectedSlotPayout(capital, years, annualGrowthRate, annualPayout);
-
-      // Only allow a slot payout in year 20. Before year 20, extend duration and carry residual forward.
-      while (slotPayout > 0.01 && years < 20) {
-        years += 1;
-        annualPayout = getCappedPensionAnnualPayout(capital, years, annualGrowthRate, maxAnnualGross);
-        slotPayout = getProjectedSlotPayout(capital, years, annualGrowthRate, annualPayout);
-      }
-
-      return { years, annualPayout };
-    };
-
-    const pensionPlan = getOptimizedPensionPayoutPlan(
+    const pensionPlan = getPensionPayoutPlan(
       pensionCapitalAtAow,
       pensionPayoutGrowthRate,
       pensionMaxAnnualGross
@@ -1298,18 +1265,9 @@ const InvestmentCalculator = () => {
       } else if (age < aowAge + pensionPayoutYears && pensionPayoutYears > 0) {
         pensionBalance = pensionBalanceDuringPayout;
         const grownPensionBalance = pensionBalanceDuringPayout * (1 + pensionPayoutGrowthRate);
-        const regularPayout = Math.min(pensionAnnualPayout, grownPensionBalance);
-        const isLastPayoutYear = age === aowAge + pensionPayoutYears - 1;
-        const isYear20Payout = isLastPayoutYear && pensionPayoutYears === 20;
-
-        if (isYear20Payout) {
-          const slotPayout = Math.max(0, grownPensionBalance - regularPayout);
-          pensionIncome = regularPayout + slotPayout;
-          pensionBalanceDuringPayout = 0;
-        } else {
-          pensionIncome = regularPayout;
-          pensionBalanceDuringPayout = Math.max(0, grownPensionBalance - regularPayout);
-        }
+        const annuityPayout = Math.min(pensionAnnualPayout, grownPensionBalance);
+        pensionIncome = annuityPayout;
+        pensionBalanceDuringPayout = Math.max(0, grownPensionBalance - annuityPayout);
       } else if (age >= aowAge + pensionPayoutYears) {
         pensionBalance = 0;
       }
