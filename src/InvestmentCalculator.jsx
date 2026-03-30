@@ -312,6 +312,7 @@ const InvestmentCalculator = () => {
   const [lifelineZoomMode, setLifelineZoomMode] = useState("week");
   const [activeScenarioBandKey, setActiveScenarioBandKey] = useState(null);
   const [hoveredLifelineSeriesKey, setHoveredLifelineSeriesKey] = useState(null);
+  const [isExamplePresetActive, setIsExamplePresetActive] = useState(false);
   const [careerPhaseStartAge, setCareerPhaseStartAge] = useState(18);
   const [careerEndAge, setCareerEndAge] = useState(35);
   const [isDraggingCareerStartAge, setIsDraggingCareerStartAge] = useState(false);
@@ -755,6 +756,158 @@ const InvestmentCalculator = () => {
         return { ...row, toAge };
       })
     );
+  };
+
+  const applyDefaultPreset = () => {
+    setCfkPot(0);
+    setCfkReturnRate(2.5);
+    setCfkDurationMonths(12);
+    setCareerPhaseStartAge(18);
+    setCareerEndAge(35);
+
+    setStartAmount(0);
+    setStartAge(18);
+    setPhase1MonthlyDeposit(0);
+    setPhase1Years(0);
+    setPhase2MonthlyDeposit(0);
+    setPhase2EndYear(0);
+    setPhase3MonthlyDeposit(0);
+    setPhase3EndYear(0);
+    setInvestmentHorizon(20);
+    setProfile("Gedreven");
+    setStartDepositsInYear2(false);
+    setOneTimeExtras([
+      { amount: 0, year: 5, month: 6 },
+      { amount: 0, year: 5, month: 6 },
+      { amount: 0, year: 5, month: 6 }
+    ]);
+    setFreeWealthPayouts([
+      { amount: 0, fromAge: 35, toAge: 36 },
+      { amount: 0, fromAge: 35, toAge: 36 },
+      { amount: 0, fromAge: 35, toAge: 36 },
+      { amount: 0, fromAge: 35, toAge: 36 }
+    ]);
+
+    setStartAmount2(0);
+    setStartAge2(18);
+    setPhase1MonthlyDeposit2(0);
+    setPhase1Years2(0);
+    setPhase2MonthlyDeposit2(0);
+    setPhase2EndYear2(0);
+    setPhase3MonthlyDeposit2(0);
+    setPhase3EndYear2(0);
+    setInvestmentHorizon2(20);
+    setProfile2("Gedreven");
+    setStartDepositsInYear22(false);
+    setOneTimeExtras2([
+      { amount: 0, year: 1, month: 12 },
+      { amount: 0, year: 2, month: 12 },
+      { amount: 0, year: 3, month: 12 }
+    ]);
+    setPensionReturnRate(2.5);
+    setPensionAowEnabled(false);
+    setPensionYearsAbroad("");
+
+    setStartAmount3(0);
+    setStartAge3(18);
+    setChildAge3(1);
+    setPhase1MonthlyDeposit3(0);
+    setPhase1Years3(0);
+    setPhase2MonthlyDeposit3(0);
+    setPhase2EndYear3(0);
+    setPhase3MonthlyDeposit3(0);
+    setPhase3EndYear3(0);
+    setInvestmentHorizon3(17);
+    setProfile3("Gedreven");
+    setStartDepositsInYear23(false);
+    setOneTimeExtras3([
+      { amount: 0, year: 5, month: 6 },
+      { amount: 0, year: 5, month: 6 },
+      { amount: 0, year: 5, month: 6 }
+    ]);
+  };
+
+  const applyExamplePreset = () => {
+    setCareerPhaseStartAge(18);
+    setCareerEndAge(35);
+
+    setCfkPot(400000);
+    setCfkReturnRate(2.5);
+    setCfkDurationMonths(132);
+
+    setStartAmount(150000);
+    setStartAge(28);
+    setPhase1MonthlyDeposit(2500);
+    setPhase1Years(7);
+    setPhase2MonthlyDeposit(0);
+    setPhase2EndYear(0);
+    setPhase3MonthlyDeposit(0);
+    setPhase3EndYear(0);
+    setInvestmentHorizon(45);
+    setProfile("Gedreven");
+    setStartDepositsInYear2(false);
+    setOneTimeExtras([
+      { amount: 0, year: 5, month: 6 },
+      { amount: 0, year: 5, month: 6 },
+      { amount: 0, year: 5, month: 6 }
+    ]);
+
+    setFreeWealthPayouts([
+      { amount: 50000, fromAge: 36, toAge: 37 },
+      { amount: 55000, fromAge: 50, toAge: 66 },
+      { amount: 29859, fromAge: 67, toAge: 67 },
+      { amount: 0, fromAge: 35, toAge: 36 }
+    ]);
+
+    setStartAmount2(25000);
+    setStartAge2(28);
+    setPhase1MonthlyDeposit2(0);
+    setPhase1Years2(0);
+    setPhase2MonthlyDeposit2(0);
+    setPhase2EndYear2(0);
+    setPhase3MonthlyDeposit2(0);
+    setPhase3EndYear2(0);
+    setInvestmentHorizon2(20);
+    setProfile2("Gedreven");
+    setStartDepositsInYear22(false);
+    setOneTimeExtras2([
+      { amount: 25000, year: 2, month: 12 },
+      { amount: 0, year: 2, month: 12 },
+      { amount: 0, year: 3, month: 12 }
+    ]);
+    setPensionReturnRate(2.5);
+    setPensionAowEnabled(true);
+    setPensionYearsAbroad("2");
+
+    setStartAmount3(6500);
+    setStartAge3(28);
+    setChildAge3(3);
+    setPhase1MonthlyDeposit3(0);
+    setPhase1Years3(0);
+    setPhase2MonthlyDeposit3(0);
+    setPhase2EndYear3(0);
+    setPhase3MonthlyDeposit3(0);
+    setPhase3EndYear3(0);
+    setInvestmentHorizon3(15);
+    setProfile3("Gedreven");
+    setStartDepositsInYear23(false);
+    setOneTimeExtras3([
+      { amount: 0, year: 5, month: 6 },
+      { amount: 0, year: 5, month: 6 },
+      { amount: 0, year: 5, month: 6 }
+    ]);
+  };
+
+  const toggleExamplePreset = () => {
+    if (isExamplePresetActive) {
+      applyDefaultPreset();
+      setActiveScenarioBandKey(null);
+      setIsExamplePresetActive(false);
+      return;
+    }
+    applyExamplePreset();
+    setActiveScenarioBandKey(null);
+    setIsExamplePresetActive(true);
   };
 
   const calculationData = useMemo(() => {
@@ -3790,6 +3943,25 @@ const InvestmentCalculator = () => {
                 Next Generation Animo
               </button>
             )}
+            <button
+              type="button"
+              onClick={toggleExamplePreset}
+              style={{
+                border: `1px solid ${subtleOverlayTextColor}`,
+                color: subtleOverlayTextColor,
+                backgroundColor: isExamplePresetActive ? "rgba(0,0,0,0.08)" : "transparent",
+                borderRadius: "4px",
+                padding: "3px 8px",
+                fontSize: "11px",
+                lineHeight: 1.2,
+                cursor: "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                marginLeft: "auto"
+              }}
+            >
+              voorbeeld
+            </button>
           </div>
         </div>
 
