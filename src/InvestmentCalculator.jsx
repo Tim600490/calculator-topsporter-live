@@ -1887,6 +1887,34 @@ const InvestmentCalculator = () => {
     lifeline.freeWealthEndAge,
     lifeline.pensionPayoutYears
   ]);
+  const lifelineFreeWealthPayoutAreas = useMemo(() => {
+    const payoutAges = lifeline.incomeData
+      .filter((row) => (row.vrij || 0) > 0)
+      .map((row) => row.age)
+      .sort((a, b) => a - b);
+
+    if (payoutAges.length === 0) {
+      return [];
+    }
+
+    const mergedRanges = [];
+    let currentStart = payoutAges[0];
+    let currentEnd = payoutAges[0];
+
+    for (let i = 1; i < payoutAges.length; i++) {
+      const age = payoutAges[i];
+      if (age <= currentEnd + 1) {
+        currentEnd = age;
+        continue;
+      }
+      mergedRanges.push({ start: currentStart - 0.5, end: currentEnd + 0.5 });
+      currentStart = age;
+      currentEnd = age;
+    }
+    mergedRanges.push({ start: currentStart - 0.5, end: currentEnd + 0.5 });
+
+    return mergedRanges;
+  }, [lifeline.incomeData]);
 
   const freeWealthScenarioLowFactor = finalBalance > 0 ? worstCaseBalance / finalBalance : 1;
   const freeWealthScenarioHighFactor = finalBalance > 0 ? bestCaseBalance / finalBalance : 1;
@@ -3691,6 +3719,20 @@ const InvestmentCalculator = () => {
                     />
                   ) : null;
                 })}
+                {lifelineZoomMode !== "week" &&
+                  lifelineFreeWealthPayoutAreas.map((range, idx) => {
+                    const visibleStart = Math.max(range.start, lifelineChartView.xDomain[0]);
+                    const visibleEnd = Math.min(range.end, lifelineChartView.xDomain[1]);
+                    return visibleEnd > visibleStart ? (
+                      <ReferenceArea
+                        key={`vrij-payout-area-${idx}`}
+                        x1={visibleStart}
+                        x2={visibleEnd}
+                        fill="rgba(210,187,93,0.14)"
+                        strokeOpacity={0}
+                      />
+                    ) : null;
+                  })}
                 {lifelinePhaseBoundaries.map((marker) => (
                   <ReferenceLine key={`marker-${marker}`} x={marker} stroke="#8a8a8a" strokeDasharray="3 4" />
                 ))}
