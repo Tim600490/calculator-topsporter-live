@@ -3665,8 +3665,9 @@ const InvestmentCalculator = () => {
             </ResponsiveContainer>
           </div>
           {lifelineVisiblePhases.length > 0 && (
-            <div style={{ position: "relative", marginTop: "4px", height: "28px" }}>
+            <div style={{ position: "relative", marginTop: "4px", height: "40px" }}>
               {lifelineVisiblePhases.map((phase) => {
+                const rangeLabel = `(${Math.round(phase.start)}-${Math.round(phase.end)})`;
                 return (
                   <div
                     key={`label-${phase.key}`}
@@ -3681,7 +3682,19 @@ const InvestmentCalculator = () => {
                       whiteSpace: "nowrap"
                     }}
                   >
-                    <div>{phase.label} ({Math.round(phase.start)}-{Math.round(phase.end)})</div>
+                    {phase.key === "cfk" ? (
+                      <>
+                        <div>CFK uitkering</div>
+                        <div style={{ fontSize: "12px", marginTop: "2px" }}>{rangeLabel}</div>
+                      </>
+                    ) : phase.key === "pension" ? (
+                      <>
+                        <div>Pensioen uitkering</div>
+                        <div style={{ fontSize: "12px", marginTop: "2px" }}>{rangeLabel}</div>
+                      </>
+                    ) : (
+                      <div>{phase.label} {rangeLabel}</div>
+                    )}
                     {phase.key === "career" && <div style={{ fontSize: "12px", marginTop: "2px" }}>Opbouwfase</div>}
                   </div>
                 );
