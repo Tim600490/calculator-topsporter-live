@@ -488,18 +488,30 @@ const InvestmentCalculator = () => {
   useEffect(() => {
     if (startAge < 18) {
       setStartAge(18);
+      return;
+    }
+    if (startAge > 50) {
+      setStartAge(50);
     }
   }, [startAge]);
 
   useEffect(() => {
     if (startAge2 < 18) {
       setStartAge2(18);
+      return;
+    }
+    if (startAge2 > 50) {
+      setStartAge2(50);
     }
   }, [startAge2]);
 
   useEffect(() => {
     if (startAge3 < 18) {
       setStartAge3(18);
+      return;
+    }
+    if (startAge3 > 50) {
+      setStartAge3(50);
     }
   }, [startAge3]);
 
@@ -2480,7 +2492,7 @@ const InvestmentCalculator = () => {
               <input
                 type="range"
                 min="18"
-                max="30"
+                max="50"
                 step="1"
                 value={startAge}
                 onChange={(e) => setStartAge(Number(e.target.value))}
@@ -2488,7 +2500,7 @@ const InvestmentCalculator = () => {
                   width: "100%",
                   height: "8px",
                   borderRadius: "4px",
-                  background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${((startAge - 18) / 12) * 100}%, #E5E7EB ${((startAge - 18) / 12) * 100}%, #E5E7EB 100%)`,
+                  background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${((startAge - 18) / 32) * 100}%, #E5E7EB ${((startAge - 18) / 32) * 100}%, #E5E7EB 100%)`,
                   outline: "none",
                   appearance: "none",
                   cursor: "pointer"
@@ -2504,7 +2516,7 @@ const InvestmentCalculator = () => {
                 }}
               >
                 <span>18</span>
-                <span>30</span>
+                <span>50</span>
               </div>
             </div>
           </div>
