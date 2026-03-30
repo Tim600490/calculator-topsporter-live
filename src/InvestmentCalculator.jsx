@@ -774,7 +774,7 @@ const InvestmentCalculator = () => {
     setPhase3MonthlyDeposit(0);
     setPhase3EndYear(0);
     setInvestmentHorizon(20);
-    setProfile("Gedreven");
+    setProfile("Behouden");
     setStartDepositsInYear2(false);
     setOneTimeExtras([
       { amount: 0, year: 5, month: 6 },
