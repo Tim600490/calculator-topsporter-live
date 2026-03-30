@@ -1764,11 +1764,6 @@ const InvestmentCalculator = () => {
       }
       return numericValue;
     };
-    const pensionExpectedPayoutRate = Math.max(0, pensionReturnRate / 100);
-    const pensionPayoutScenarioSpread = 0.0075; // 0,75%-punt bandbreedte rond het ingevoerde banksparen-rendement
-    const pensionPayoutLowRate = Math.max(0, pensionExpectedPayoutRate - pensionPayoutScenarioSpread);
-    const pensionPayoutHighRate = pensionExpectedPayoutRate + pensionPayoutScenarioSpread;
-
     return lifeline.potData.map((row) => {
       const rawCfk = hasCfk && row.age >= careerStartAge ? row.cfk : null;
       const rawVva = row.age >= startAge && row.age <= freeWealthHorizonAge ? row.vrij : null;
@@ -1780,19 +1775,6 @@ const InvestmentCalculator = () => {
       const vvaValue = normalizeSeriesValue(rawVva, vvaState);
       const pensioenValue = normalizeSeriesValue(rawPensioen, pensioenState);
       const nextgenValue = normalizeSeriesValue(rawNextGen, nextgenState);
-      const isPensionPayoutPhase = row.age >= aowAge;
-      const yearsIntoPayout = Math.max(0, row.age - aowAge);
-      const pensionExpectedGrowthFactor = Math.pow(1 + pensionExpectedPayoutRate, yearsIntoPayout);
-      const pensionPayoutLowFactor =
-        pensionExpectedGrowthFactor > 0
-          ? Math.pow(1 + pensionPayoutLowRate, yearsIntoPayout) / pensionExpectedGrowthFactor
-          : 1;
-      const pensionPayoutHighFactor =
-        pensionExpectedGrowthFactor > 0
-          ? Math.pow(1 + pensionPayoutHighRate, yearsIntoPayout) / pensionExpectedGrowthFactor
-          : 1;
-      const pensionLowFactor = isPensionPayoutPhase ? pensionPayoutLowFactor : pensionScenarioLowFactor;
-      const pensionHighFactor = isPensionPayoutPhase ? pensionPayoutHighFactor : pensionScenarioHighFactor;
 
       return {
         age: row.age,
@@ -1804,11 +1786,11 @@ const InvestmentCalculator = () => {
           vvaValue != null
             ? Math.max(0, vvaValue * (freeWealthScenarioHighFactor - freeWealthScenarioLowFactor))
             : null,
-        pensioenLow: pensioenValue != null ? pensioenValue * pensionLowFactor : null,
-        pensioenHigh: pensioenValue != null ? pensioenValue * pensionHighFactor : null,
+        pensioenLow: pensioenValue != null ? pensioenValue * pensionScenarioLowFactor : null,
+        pensioenHigh: pensioenValue != null ? pensioenValue * pensionScenarioHighFactor : null,
         pensioenBand:
           pensioenValue != null
-            ? Math.max(0, pensioenValue * (pensionHighFactor - pensionLowFactor))
+            ? Math.max(0, pensioenValue * (pensionScenarioHighFactor - pensionScenarioLowFactor))
             : null,
         pensioen: pensioenValue,
         nextgen: nextgenValue
@@ -1822,8 +1804,6 @@ const InvestmentCalculator = () => {
     freeWealthScenarioHighFactor,
     pensionScenarioLowFactor,
     pensionScenarioHighFactor,
-    pensionReturnRate,
-    aowAge,
     startAge,
     startAge2,
     startAge3,
