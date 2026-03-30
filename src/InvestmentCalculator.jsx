@@ -3728,7 +3728,7 @@ const InvestmentCalculator = () => {
                         key={`vrij-payout-area-${idx}`}
                         x1={visibleStart}
                         x2={visibleEnd}
-                        fill="rgba(210,187,93,0.14)"
+                        fill="rgba(176,150,62,0.12)"
                         strokeOpacity={0}
                       />
                     ) : null;
