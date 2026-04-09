@@ -2293,6 +2293,12 @@ const InvestmentCalculator = () => {
     }
     return Math.max(maxValue, row.vva);
   }, 0);
+  const cfkExpectedEndResult = lifelineCfkGraphData.reduce((maxValue, row) => {
+    if (row.cfk == null) {
+      return maxValue;
+    }
+    return Math.max(maxValue, row.cfk);
+  }, 0);
   const hasFreeWealth = lifeline.potData.some((row) => (row.vrij || 0) > 0);
   const pensionExpectedEndResult = lifeline.pensionCapitalAtAow ?? 0;
   const nextGenerationExpectedEndResult = finalBalance3;
@@ -4042,26 +4048,36 @@ const InvestmentCalculator = () => {
             gridTemplateColumns: isDesktop ? "repeat(4, minmax(0, 1fr))" : "1fr"
           }}
         >
-          <div style={{ background: "#fff", borderRadius: "8px", padding: "12px", border: "1px solid #e1dccb" }}>
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: "8px",
+              padding: "12px",
+              border: "1px solid #e1dccb",
+              display: "flex",
+              flexDirection: "column",
+              minHeight: "100%"
+            }}
+          >
             <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "14px", fontWeight: 700, marginBottom: "10px" }}>
               <span>CFK</span>
               <span style={{ width: "14px", height: "3px", backgroundColor: "#0d2a28", borderRadius: "2px" }} />
             </div>
             <div style={{ fontSize: "12px", color: "#6B7280" }}>Verwacht eindresultaat (bruto - box1)</div>
             <div style={{ fontSize: "16px", fontWeight: 700, marginTop: "6px", marginBottom: "10px" }}>
-              {formatCurrency(cfkExpectedValueAtPayoutStart)}
+              {formatCurrency(cfkExpectedEndResult)}
             </div>
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: isDesktop ? "1fr 1fr" : "1fr",
+                gridTemplateColumns: isDesktop ? "minmax(0, 1fr) minmax(0, 110px)" : "1fr",
                 gap: "12px",
                 alignItems: "end"
               }}
             >
-              <div>
+              <div style={{ minWidth: 0 }}>
                 <label style={{ fontSize: "12px", color: "#6B7280" }}>CFK waarde</label>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "6px", maxWidth: "136px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "6px", maxWidth: "128px" }}>
                   <span style={{ fontSize: "14px", color: "#111827" }}>€</span>
                   <input
                     type="text"
@@ -4080,7 +4096,7 @@ const InvestmentCalculator = () => {
                   />
                 </div>
               </div>
-              <div>
+              <div style={{ minWidth: 0 }}>
                 <label style={{ fontSize: "12px", color: "#6B7280" }}>Rendement % p/j</label>
                 <input
                   type="number"
@@ -4091,7 +4107,7 @@ const InvestmentCalculator = () => {
                   onChange={(e) => setCfkReturnRate(Number(e.target.value))}
                   style={{
                     width: "100%",
-                    maxWidth: "136px",
+                    maxWidth: "96px",
                     marginTop: "6px",
                     padding: "6px 8px",
                     border: "1px solid #D2BB5D",
@@ -4103,40 +4119,42 @@ const InvestmentCalculator = () => {
                 />
               </div>
             </div>
-            <div style={{ fontSize: "12px", color: "#6B7280", marginTop: "10px" }}>
-              Start uitkering: {cfkStartAge} jaar
+            <div style={{ marginTop: "auto", paddingTop: "10px" }}>
+              <div style={{ fontSize: "12px", color: "#6B7280" }}>
+                Start uitkering: {cfkStartAge} jaar
+              </div>
+              <label style={{ fontSize: "12px", color: "#6B7280", marginTop: "8px", display: "block" }}>
+                Uitkeringsduur (maanden)
+              </label>
+              <input
+                className="cfk-duration-slider"
+                type="range"
+                min={cfkDurationRange.min}
+                max={cfkDurationRange.max}
+                step="1"
+                value={cfkDurationMonths}
+                onChange={(e) => setCfkDurationMonths(Number(e.target.value))}
+                style={{
+                  width: "100%",
+                  marginTop: "6px",
+                  height: "6px",
+                  borderRadius: "4px",
+                  background: `linear-gradient(to right, #0d2a28 0%, #0d2a28 ${
+                    cfkDurationRange.max === cfkDurationRange.min
+                      ? 100
+                      : ((cfkDurationMonths - cfkDurationRange.min) / (cfkDurationRange.max - cfkDurationRange.min)) * 100
+                  }%, #E5E7EB ${
+                    cfkDurationRange.max === cfkDurationRange.min
+                      ? 100
+                      : ((cfkDurationMonths - cfkDurationRange.min) / (cfkDurationRange.max - cfkDurationRange.min)) * 100
+                  }%, #E5E7EB 100%)`,
+                  outline: "none",
+                  appearance: "none",
+                  cursor: "pointer"
+                }}
+              />
+              <div style={{ fontSize: "12px", color: "#6B7280", textAlign: "right" }}>{cfkDurationMonths} mnd</div>
             </div>
-            <label style={{ fontSize: "12px", color: "#6B7280", marginTop: "8px", display: "block" }}>
-              Uitkeringsduur (maanden)
-            </label>
-            <input
-              className="cfk-duration-slider"
-              type="range"
-              min={cfkDurationRange.min}
-              max={cfkDurationRange.max}
-              step="1"
-              value={cfkDurationMonths}
-              onChange={(e) => setCfkDurationMonths(Number(e.target.value))}
-              style={{
-                width: "100%",
-                marginTop: "6px",
-                height: "6px",
-                borderRadius: "4px",
-                background: `linear-gradient(to right, #0d2a28 0%, #0d2a28 ${
-                  cfkDurationRange.max === cfkDurationRange.min
-                    ? 100
-                    : ((cfkDurationMonths - cfkDurationRange.min) / (cfkDurationRange.max - cfkDurationRange.min)) * 100
-                }%, #E5E7EB ${
-                  cfkDurationRange.max === cfkDurationRange.min
-                    ? 100
-                    : ((cfkDurationMonths - cfkDurationRange.min) / (cfkDurationRange.max - cfkDurationRange.min)) * 100
-                }%, #E5E7EB 100%)`,
-                outline: "none",
-                appearance: "none",
-                cursor: "pointer"
-              }}
-            />
-            <div style={{ fontSize: "12px", color: "#6B7280", textAlign: "right" }}>{cfkDurationMonths} mnd</div>
           </div>
 
           <div style={{ background: "#fff", borderRadius: "8px", padding: "12px", border: "1px solid #e1dccb" }}>
