@@ -4048,6 +4048,28 @@ const InvestmentCalculator = () => {
                 Vrij Vermogen Animo
               </button>
             )}
+            {hasNextGeneration && (
+              <button
+                type="button"
+                onClick={() => setActiveScenarioBandKey((prev) => (prev === "nextgen" ? null : "nextgen"))}
+                style={{
+                  border: `1px solid ${subtleOverlayTextColor}`,
+                  color: subtleOverlayTextColor,
+                  backgroundColor: activeScenarioBandKey === "nextgen" ? "rgba(0,0,0,0.08)" : "transparent",
+                  borderRadius: "4px",
+                  padding: "3px 8px",
+                  fontSize: "11px",
+                  lineHeight: 1.2,
+                  cursor: "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px"
+                }}
+              >
+                <span style={{ width: "10px", height: "3px", backgroundColor: "#ffa07a", borderRadius: "2px" }} />
+                Next Generation Animo
+              </button>
+            )}
             {hasPension && (
               <button
                 type="button"
@@ -4089,28 +4111,6 @@ const InvestmentCalculator = () => {
               >
                 <span style={{ width: "10px", height: "3px", backgroundColor: "#c0c0c0", borderRadius: "2px" }} />
                 AOW uitkering
-              </button>
-            )}
-            {hasNextGeneration && (
-              <button
-                type="button"
-                onClick={() => setActiveScenarioBandKey((prev) => (prev === "nextgen" ? null : "nextgen"))}
-                style={{
-                  border: `1px solid ${subtleOverlayTextColor}`,
-                  color: subtleOverlayTextColor,
-                  backgroundColor: activeScenarioBandKey === "nextgen" ? "rgba(0,0,0,0.08)" : "transparent",
-                  borderRadius: "4px",
-                  padding: "3px 8px",
-                  fontSize: "11px",
-                  lineHeight: 1.2,
-                  cursor: "pointer",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "6px"
-                }}
-              >
-                <span style={{ width: "10px", height: "3px", backgroundColor: "#ffa07a", borderRadius: "2px" }} />
-                Next Generation Animo
               </button>
             )}
             <button
@@ -4434,7 +4434,7 @@ const InvestmentCalculator = () => {
             <div style={{ fontSize: "12px", color: "#6B7280" }}>Verwacht eindresultaat (bruto - box1)</div>
             <div style={{ fontSize: "16px", fontWeight: 700, marginTop: "6px" }}>{formatCurrency(pensionExpectedEndResult)}</div>
             <label style={{ fontSize: "12px", color: "#6B7280", marginTop: "10px", display: "block" }}>
-              Rendement (% p/j)
+              Rendement vanaf uitkering (% p/j)
             </label>
             <input
               type="number"
