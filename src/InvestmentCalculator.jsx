@@ -374,6 +374,12 @@ const InvestmentCalculator = () => {
   const annualReturn3 = riskProfiles[profile3];
   const careerStartAge = careerPhaseStartAge;
   const cfkStartAge = careerEndAge + 3;
+  const freeWealthHorizonAge = startAge + investmentHorizon;
+  const freeWealthLastPayoutAge = freeWealthPayouts.reduce(
+    (max, row) => (row.amount > 0 ? Math.max(max, row.toAge) : max),
+    freeWealthHorizonAge
+  );
+  const freeWealthVisibleEndAge = Math.max(freeWealthHorizonAge, freeWealthLastPayoutAge);
   const timelineStartAge = Math.min(startAge, startAge2, startAge3);
   const cfkExpectedValueAtPayoutStart = useMemo(() => {
     const cfkGrowthRate = cfkReturnRate / 100;
@@ -1946,7 +1952,7 @@ const InvestmentCalculator = () => {
     };
     return lifeline.potData.map((row) => {
       const rawCfk = hasCfk && row.age >= careerStartAge ? row.cfk : null;
-      const rawVva = row.age >= startAge ? row.vrij : null;
+      const rawVva = row.age >= startAge && row.age <= freeWealthVisibleEndAge ? row.vrij : null;
       const rawPensioen = row.age >= startAge2 ? row.pensioen : null;
       const rawNextGen =
         row.age >= startAge3 && row.age <= lifeline.nextGenerationHorizonAge ? row.nextgen : null;
@@ -1979,6 +1985,7 @@ const InvestmentCalculator = () => {
   }, [
     hasCfk,
     lifeline.potData,
+    freeWealthVisibleEndAge,
     freeWealthScenarioLowFactor,
     freeWealthScenarioHighFactor,
     pensionScenarioLowFactor,
