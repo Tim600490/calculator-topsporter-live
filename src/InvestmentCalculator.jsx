@@ -326,9 +326,10 @@ const InvestmentCalculator = () => {
   const [freeWealthPayouts, setFreeWealthPayouts] = useState([
     { amount: 0, fromAge: 35, toAge: 36 },
     { amount: 0, fromAge: 35, toAge: 36 },
-    { amount: 0, fromAge: 35, toAge: 36 },
     { amount: 0, fromAge: 35, toAge: 36 }
   ]);
+  const [freeWealthSwitchToConservative, setFreeWealthSwitchToConservative] = useState(false);
+  const [freeWealthConservativeFromYear, setFreeWealthConservativeFromYear] = useState(1);
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const [hoveredIndex2, setHoveredIndex2] = useState(null);
   const [hoveredIndex3, setHoveredIndex3] = useState(null);
@@ -372,6 +373,7 @@ const InvestmentCalculator = () => {
   const annualReturn = riskProfiles[profile];
   const annualReturn2 = riskProfiles[profile2];
   const annualReturn3 = riskProfiles[profile3];
+  const annualReturnBehouden = riskProfiles.Behouden;
   const careerStartAge = careerPhaseStartAge;
   const cfkStartAge = careerEndAge + 3;
   const freeWealthHorizonAge = startAge + investmentHorizon;
@@ -554,6 +556,13 @@ const InvestmentCalculator = () => {
       return changed ? next : prev;
     });
   }, [startAge]);
+  useEffect(() => {
+    const maxYear = Math.max(1, investmentHorizon);
+    setFreeWealthConservativeFromYear((prev) => {
+      const normalized = Math.min(maxYear, Math.max(1, Math.round(Number(prev) || 1)));
+      return normalized === prev ? prev : normalized;
+    });
+  }, [investmentHorizon]);
 
   useEffect(() => {
     setOneTimeExtras((prev) => {
@@ -789,9 +798,10 @@ const InvestmentCalculator = () => {
     setFreeWealthPayouts([
       { amount: 0, fromAge: 35, toAge: 36 },
       { amount: 0, fromAge: 35, toAge: 36 },
-      { amount: 0, fromAge: 35, toAge: 36 },
       { amount: 0, fromAge: 35, toAge: 36 }
     ]);
+    setFreeWealthSwitchToConservative(false);
+    setFreeWealthConservativeFromYear(1);
 
     setStartAmount2(0);
     setStartAge2(18);
@@ -860,9 +870,10 @@ const InvestmentCalculator = () => {
     setFreeWealthPayouts([
       { amount: 50000, fromAge: 36, toAge: 37 },
       { amount: 55000, fromAge: 50, toAge: 66 },
-      { amount: 29859, fromAge: 67, toAge: 67 },
-      { amount: 0, fromAge: 35, toAge: 36 }
+      { amount: 29859, fromAge: 67, toAge: 67 }
     ]);
+    setFreeWealthSwitchToConservative(false);
+    setFreeWealthConservativeFromYear(1);
 
     setStartAmount2(25000);
     setStartAge2(28);
@@ -1767,7 +1778,13 @@ const InvestmentCalculator = () => {
           const withinCalculatorHorizon = absoluteMonth <= investmentHorizon * 12;
           const activeDeposit = withinCalculatorHorizon ? getMonthlyDepositForMonth(absoluteMonth) : 0;
           const oneTimeExtra = withinCalculatorHorizon ? getOneTimeExtraForMonth(absoluteMonth) : 0;
-          freeWealthBalance = freeWealthBalance * (1 + annualReturn / 12);
+          const freeWealthTimelineYear = Math.ceil(absoluteMonth / 12);
+          const useConservativeReturn =
+            freeWealthSwitchToConservative &&
+            freeWealthTimelineYear >= freeWealthConservativeFromYear &&
+            annualReturn !== annualReturnBehouden;
+          const activeAnnualReturn = useConservativeReturn ? annualReturnBehouden : annualReturn;
+          freeWealthBalance = freeWealthBalance * (1 + activeAnnualReturn / 12);
           freeWealthBalance += activeDeposit + oneTimeExtra;
         }
       }
@@ -1811,6 +1828,8 @@ const InvestmentCalculator = () => {
     investmentHorizon,
     investmentHorizon2,
     investmentHorizon3,
+    freeWealthSwitchToConservative,
+    freeWealthConservativeFromYear,
     getMonthlyDepositForMonth2,
     getMonthlyDepositForMonth3,
     getOneTimeExtraForMonth2,
@@ -1818,6 +1837,7 @@ const InvestmentCalculator = () => {
     pensionAowEnabled,
     pensionReturnRate,
     pensionYearsAbroad,
+    annualReturnBehouden,
     startAge,
     startAge2,
     startAge3,
@@ -4203,6 +4223,81 @@ const InvestmentCalculator = () => {
                 />
               </div>
             ))}
+            <div
+              style={{
+                marginTop: "10px",
+                borderTop: `1px solid ${subtleOverlayTextColor}`,
+                width: "92%"
+              }}
+            />
+            <div
+              style={{
+                marginTop: "10px",
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+                flexWrap: "nowrap",
+                width: "92%"
+              }}
+            >
+              <label
+                style={{
+                  fontSize: "12px",
+                  color: "#6B7280",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  cursor: "pointer"
+                }}
+              >
+                <span>behouden</span>
+                <input
+                  type="checkbox"
+                  checked={freeWealthSwitchToConservative}
+                  onChange={(e) => setFreeWealthSwitchToConservative(e.target.checked)}
+                  style={{ width: "14px", height: "14px", accentColor: "#D2BB5D", cursor: "pointer" }}
+                />
+              </label>
+              <label
+                style={{
+                  marginLeft: "12px",
+                  fontSize: "12px",
+                  color: "#6B7280",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "8px"
+                }}
+              >
+                <span>vanaf jaar</span>
+                <input
+                  type="number"
+                  min="1"
+                  max={Math.max(1, investmentHorizon)}
+                  step="1"
+                  value={freeWealthConservativeFromYear}
+                  onChange={(e) => {
+                    const raw = e.target.value;
+                    if (raw === "") {
+                      return;
+                    }
+                    const parsed = Number(raw);
+                    if (Number.isFinite(parsed)) {
+                      const clamped = Math.min(Math.max(1, Math.floor(parsed)), Math.max(1, investmentHorizon));
+                      setFreeWealthConservativeFromYear(clamped);
+                    }
+                  }}
+                  style={{
+                    width: "44px",
+                    padding: "5px 6px",
+                    border: "1px solid #D2BB5D",
+                    borderRadius: "6px",
+                    fontSize: "12px",
+                    outline: "none",
+                    backgroundColor: "#fff"
+                  }}
+                />
+              </label>
+            </div>
           </div>
 
           <div style={{ background: "#fff", borderRadius: "8px", padding: "12px", border: "1px solid #e1dccb" }}>
