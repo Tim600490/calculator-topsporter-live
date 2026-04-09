@@ -2051,7 +2051,7 @@ const InvestmentCalculator = () => {
           phase.key === "career" ||
           (phase.key === "cfk" && hasCfk) ||
           (phase.key === "pension" && hasPension) ||
-          (phase.key === "aow" && hasAowIncome && !hasPension)
+          (phase.key === "aow" && hasAowIncome)
         )
     );
   }, [hasAowIncome, hasCfk, hasPension, lifelinePhases, lifelineZoomMode]);
@@ -3747,22 +3747,6 @@ const InvestmentCalculator = () => {
                 onMouseLeave={() => setHoveredLifelineSeriesKey(null)}
               >
                 <CartesianGrid stroke="#e5e2d8" vertical={false} />
-                {lifelineVisiblePhases.map((phase) => {
-                  if (phase.key === "pension" && hasAowIncome) {
-                    return null;
-                  }
-                  const visibleStart = Math.max(phase.start, lifelineChartView.xDomain[0]);
-                  const visibleEnd = Math.min(phase.end, lifelineChartView.xDomain[1]);
-                  return visibleEnd > visibleStart ? (
-                    <ReferenceArea
-                      key={`phase-${phase.key}`}
-                      x1={visibleStart}
-                      x2={visibleEnd}
-                      fill={phase.color}
-                      strokeOpacity={0}
-                    />
-                  ) : null;
-                })}
                 {lifelineZoomMode !== "week" && hasAowIncome && (() => {
                   const visibleStart = Math.max(aowAge, lifelineChartView.xDomain[0]);
                   const visibleEnd = Math.min(lifelineChartView.xDomain[1], lifeline.maxAge);
@@ -3778,21 +3762,19 @@ const InvestmentCalculator = () => {
                     />
                   ) : null;
                 })()}
-                {lifelineZoomMode !== "week" && hasAowIncome && hasPension && (() => {
-                  const visibleStart = Math.max(aowAge, lifelineChartView.xDomain[0]);
-                  const visibleEnd = Math.min(aowAge + lifeline.pensionPayoutYears, lifelineChartView.xDomain[1]);
+                {lifelineVisiblePhases.map((phase) => {
+                  const visibleStart = Math.max(phase.start, lifelineChartView.xDomain[0]);
+                  const visibleEnd = Math.min(phase.end, lifelineChartView.xDomain[1]);
                   return visibleEnd > visibleStart ? (
                     <ReferenceArea
+                      key={`phase-${phase.key}`}
                       x1={visibleStart}
                       x2={visibleEnd}
-                      y1={lifeline.aowAnnualIncome}
-                      y2={lifeline.aowAnnualIncome + lifeline.pensionAnnualPayout}
-                      fill="#6672a8"
-                      fillOpacity={0.22}
+                      fill={phase.color}
                       strokeOpacity={0}
                     />
                   ) : null;
-                })()}
+                })}
                 {lifelineZoomMode !== "week" &&
                   lifelineFreeWealthPayoutAreas.map((range, idx) => {
                     const visibleStart = Math.max(range.start, lifelineChartView.xDomain[0]);
@@ -3943,7 +3925,10 @@ const InvestmentCalculator = () => {
                     style={{
                       position: "absolute",
                       left: getLifelinePhaseLabelLeft(phase, lifelineChartView.xDomain[0], lifelineChartView.xDomain[1]),
-                      transform: "translateX(-50%)",
+                      transform:
+                        phase.key === "aow" && hasPension
+                          ? "translate(-50%, 22px)"
+                          : "translateX(-50%)",
                       textAlign: "center",
                       fontSize: "13px",
                       color:
@@ -3965,17 +3950,14 @@ const InvestmentCalculator = () => {
                       </>
                     ) : phase.key === "pension" ? (
                       <>
-                        {hasAowIncome ? (
-                          <div>Pensioen uitkering {rangeLabel} + AOW uitkering</div>
-                        ) : (
-                          <>
-                            <div>Pensioen uitkering</div>
-                            <div style={{ fontSize: "12px", marginTop: "2px" }}>{rangeLabel}</div>
-                          </>
-                        )}
+                        <div>Pensioen uitkering</div>
+                        <div style={{ fontSize: "12px", marginTop: "2px" }}>{rangeLabel}</div>
                       </>
                     ) : phase.key === "aow" ? (
-                      <div>AOW-uitkering</div>
+                      <>
+                        <div>AOW uitkering</div>
+                        <div style={{ fontSize: "12px", marginTop: "2px" }}>{rangeLabel}</div>
+                      </>
                     ) : (
                       <div>{phase.label} {rangeLabel}</div>
                     )}
@@ -4052,7 +4034,7 @@ const InvestmentCalculator = () => {
                 Pensioen Animo
               </button>
             )}
-            {hasAowIncome && !hasPension && (
+            {hasAowIncome && (
               <button
                 type="button"
                 style={{
