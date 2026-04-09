@@ -2069,15 +2069,20 @@ const InvestmentCalculator = () => {
     if (hasPension) {
       markers.push(aowAge, aowAge + lifeline.pensionPayoutYears);
     }
+    if (hasAowIncome) {
+      markers.push(aowAge, lifeline.maxAge);
+    }
     return Array.from(new Set(markers)).sort((a, b) => a - b);
   }, [
     aowAge,
     careerEndAge,
     careerStartAge,
     cfkStartAge,
+    hasAowIncome,
     hasCfk,
     hasPension,
     lifeline.cfkPayoutEndAge,
+    lifeline.maxAge,
     lifeline.pensionPayoutYears,
     lifelineZoomMode
   ]);
