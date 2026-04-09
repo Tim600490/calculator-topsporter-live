@@ -4053,10 +4053,7 @@ const InvestmentCalculator = () => {
               background: "#fff",
               borderRadius: "8px",
               padding: "12px",
-              border: "1px solid #e1dccb",
-              display: "flex",
-              flexDirection: "column",
-              minHeight: "100%"
+              border: "1px solid #e1dccb"
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "14px", fontWeight: 700, marginBottom: "10px" }}>
@@ -4119,7 +4116,7 @@ const InvestmentCalculator = () => {
                 />
               </div>
             </div>
-            <div style={{ marginTop: "auto", paddingTop: "10px" }}>
+            <div style={{ marginTop: "10px" }}>
               <div style={{ fontSize: "12px", color: "#6B7280" }}>
                 Start uitkering: {cfkStartAge} jaar
               </div>
