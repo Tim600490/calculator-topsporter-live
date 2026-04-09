@@ -4047,46 +4047,62 @@ const InvestmentCalculator = () => {
               <span>CFK</span>
               <span style={{ width: "14px", height: "3px", backgroundColor: "#0d2a28", borderRadius: "2px" }} />
             </div>
-            <label style={{ fontSize: "12px", color: "#6B7280" }}>CFK waarde (bruto - box1)</label>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", width: "50%", marginTop: "6px" }}>
-              <span style={{ fontSize: "14px", color: "#111827" }}>€</span>
-              <input
-                type="text"
-                inputMode="numeric"
-                value={formatEuroInput(cfkPot)}
-                onChange={(e) => setCfkPot(clampEuro(parseEuroInput(e.target.value), 0, 5000000))}
-                style={{
-                  width: "100%",
-                  padding: "6px 8px",
-                  border: "1px solid #D2BB5D",
-                  borderRadius: "6px",
-                  fontSize: "14px",
-                  outline: "none",
-                  backgroundColor: "#fff"
-                }}
-              />
+            <div style={{ fontSize: "12px", color: "#6B7280" }}>Verwacht eindresultaat (bruto - box1)</div>
+            <div style={{ fontSize: "16px", fontWeight: 700, marginTop: "6px", marginBottom: "10px" }}>
+              {formatCurrency(cfkExpectedValueAtPayoutStart)}
             </div>
-            <label style={{ fontSize: "12px", color: "#6B7280", marginTop: "10px", display: "block" }}>
-              Rendement (%p/j vanaf uitkering)
-            </label>
-            <input
-              type="number"
-              min="0"
-              max="10"
-              step="0.1"
-              value={cfkReturnRate}
-              onChange={(e) => setCfkReturnRate(Number(e.target.value))}
+            <div
               style={{
-                width: "50%",
-                marginTop: "6px",
-                padding: "6px 8px",
-                border: "1px solid #D2BB5D",
-                borderRadius: "6px",
-                fontSize: "14px",
-                outline: "none",
-                backgroundColor: "#fff"
+                display: "grid",
+                gridTemplateColumns: isDesktop ? "1fr 1fr" : "1fr",
+                gap: "12px",
+                alignItems: "end"
               }}
-            />
+            >
+              <div>
+                <label style={{ fontSize: "12px", color: "#6B7280" }}>CFK waarde</label>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "6px", maxWidth: "136px" }}>
+                  <span style={{ fontSize: "14px", color: "#111827" }}>€</span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={formatEuroInput(cfkPot)}
+                    onChange={(e) => setCfkPot(clampEuro(parseEuroInput(e.target.value), 0, 5000000))}
+                    style={{
+                      width: "100%",
+                      padding: "6px 8px",
+                      border: "1px solid #D2BB5D",
+                      borderRadius: "6px",
+                      fontSize: "14px",
+                      outline: "none",
+                      backgroundColor: "#fff"
+                    }}
+                  />
+                </div>
+              </div>
+              <div>
+                <label style={{ fontSize: "12px", color: "#6B7280" }}>Rendement % p/j</label>
+                <input
+                  type="number"
+                  min="0"
+                  max="10"
+                  step="0.1"
+                  value={cfkReturnRate}
+                  onChange={(e) => setCfkReturnRate(Number(e.target.value))}
+                  style={{
+                    width: "100%",
+                    maxWidth: "136px",
+                    marginTop: "6px",
+                    padding: "6px 8px",
+                    border: "1px solid #D2BB5D",
+                    borderRadius: "6px",
+                    fontSize: "14px",
+                    outline: "none",
+                    backgroundColor: "#fff"
+                  }}
+                />
+              </div>
+            </div>
             <div style={{ fontSize: "12px", color: "#6B7280", marginTop: "10px" }}>
               Start uitkering: {cfkStartAge} jaar
             </div>
