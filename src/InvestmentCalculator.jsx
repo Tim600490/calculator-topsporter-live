@@ -2262,10 +2262,12 @@ const InvestmentCalculator = () => {
     return { left, top };
   }, [hoveredPotPoint, potChartSize.width, potChartSize.height, lifeline.potData, hoveredPotIndex]);
 
-  const freeWealthExpectedEndResult =
-    lifeline.potData.find((row) => row.age === freeWealthHorizonAge)?.vrij ??
-    lifeline.potData[lifeline.potData.length - 1]?.vrij ??
-    0;
+  const freeWealthExpectedEndResult = lifelineCfkGraphData.reduce((maxValue, row) => {
+    if (row.vva == null) {
+      return maxValue;
+    }
+    return Math.max(maxValue, row.vva);
+  }, 0);
   const hasFreeWealth = lifeline.potData.some((row) => (row.vrij || 0) > 0);
   const pensionExpectedEndResult = lifeline.pensionCapitalAtAow ?? 0;
   const nextGenerationExpectedEndResult = finalBalance3;
@@ -3728,7 +3730,7 @@ const InvestmentCalculator = () => {
                         key={`vrij-payout-area-${idx}`}
                         x1={visibleStart}
                         x2={visibleEnd}
-                        fill="rgba(210,187,93,0.10)"
+                        fill="rgba(210,187,93,0.13)"
                         strokeOpacity={0}
                       />
                     ) : null;
@@ -4040,7 +4042,7 @@ const InvestmentCalculator = () => {
               />
             </div>
             <label style={{ fontSize: "12px", color: "#6B7280", marginTop: "10px", display: "block" }}>
-              Rendement (% p/j)
+              Rendement (%p/j vanaf uitkering)
             </label>
             <input
               type="number"
