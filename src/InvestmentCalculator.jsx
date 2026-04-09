@@ -2147,6 +2147,34 @@ const InvestmentCalculator = () => {
     lifelineZoomMode,
     timelineStartAge
   ]);
+  const lifelineYAxisMax = useMemo(() => {
+    if (lifelineZoomMode === "week") {
+      const weekMax = Math.max(
+        ...lifelineChartView.data.map((row) => Math.max(row.cfk || 0, row.vva || 0, row.pensioen || 0, row.nextgen || 0)),
+        4
+      );
+      return Math.max(4, weekMax * 1.05);
+    }
+
+    const lineMax = Math.max(
+      ...lifelineChartView.data.map((row) => Math.max(row.cfk || 0, row.vva || 0, row.pensioen || 0, row.nextgen || 0)),
+      0
+    );
+    const aowOverlayMax = hasAowIncome
+      ? hasPension
+        ? (lifeline.aowAnnualIncome || 0) + (lifeline.pensionAnnualPayout || 0)
+        : (lifeline.aowAnnualIncome || 0)
+      : 0;
+    const baseline = Math.max(1, lineMax, aowOverlayMax);
+    return baseline * 1.05;
+  }, [
+    hasAowIncome,
+    hasPension,
+    lifeline.aowAnnualIncome,
+    lifeline.pensionAnnualPayout,
+    lifelineChartView.data,
+    lifelineZoomMode
+  ]);
   const lifelineCareerStartMarkerLeft = useMemo(() => {
     if (lifelineZoomMode !== "full" || !lifelineChartSize.width) {
       return null;
@@ -3831,6 +3859,7 @@ const InvestmentCalculator = () => {
                 <YAxis
                   tick={{ fontSize: 11, fill: "#4b5563" }}
                   tickFormatter={formatCurrencyShort}
+                  domain={[0, lifelineYAxisMax]}
                   axisLine={false}
                   tickLine={false}
                   width={60}
@@ -3919,12 +3948,20 @@ const InvestmentCalculator = () => {
             <div style={{ position: "relative", marginTop: "4px", height: "40px" }}>
               {lifelineVisiblePhases.map((phase) => {
                 const rangeLabel = `(${Math.round(phase.start)}-${Math.round(phase.end)})`;
+                const labelPhase =
+                  phase.key === "aow" && hasPension
+                    ? { ...phase, start: aowAge, end: aowAge + lifeline.pensionPayoutYears }
+                    : phase;
                 return (
                   <div
                     key={`label-${phase.key}`}
                     style={{
                       position: "absolute",
-                      left: getLifelinePhaseLabelLeft(phase, lifelineChartView.xDomain[0], lifelineChartView.xDomain[1]),
+                      left: getLifelinePhaseLabelLeft(
+                        labelPhase,
+                        lifelineChartView.xDomain[0],
+                        lifelineChartView.xDomain[1]
+                      ),
                       transform:
                         phase.key === "aow" && hasPension
                           ? "translate(-50%, 22px)"
@@ -3949,15 +3986,9 @@ const InvestmentCalculator = () => {
                         <div style={{ fontSize: "12px", marginTop: "2px" }}>{rangeLabel}</div>
                       </>
                     ) : phase.key === "pension" ? (
-                      <>
-                        <div>Pensioen uitkering</div>
-                        <div style={{ fontSize: "12px", marginTop: "2px" }}>{rangeLabel}</div>
-                      </>
+                      <div>Pensioen uitkering {rangeLabel}</div>
                     ) : phase.key === "aow" ? (
-                      <>
-                        <div>AOW uitkering</div>
-                        <div style={{ fontSize: "12px", marginTop: "2px" }}>{rangeLabel}</div>
-                      </>
+                      <div>AOW uitkering {rangeLabel}</div>
                     ) : (
                       <div>{phase.label} {rangeLabel}</div>
                     )}
