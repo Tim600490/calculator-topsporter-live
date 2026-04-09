@@ -348,7 +348,6 @@ const InvestmentCalculator = () => {
   const [potChartSize, setPotChartSize] = useState({ width: 0, height: 0 });
   const subtleOverlayTextColor = "rgba(0,0,0,0.45)";
   const hasCfk = cfkPot > 0;
-  const freeWealthHorizonAge = startAge + investmentHorizon;
 
   // Risk profile returns (exact net annual returns)
   const riskProfiles = {
@@ -1947,7 +1946,7 @@ const InvestmentCalculator = () => {
     };
     return lifeline.potData.map((row) => {
       const rawCfk = hasCfk && row.age >= careerStartAge ? row.cfk : null;
-      const rawVva = row.age >= startAge && row.age <= freeWealthHorizonAge ? row.vrij : null;
+      const rawVva = row.age >= startAge ? row.vrij : null;
       const rawPensioen = row.age >= startAge2 ? row.pensioen : null;
       const rawNextGen =
         row.age >= startAge3 && row.age <= lifeline.nextGenerationHorizonAge ? row.nextgen : null;
@@ -1979,7 +1978,6 @@ const InvestmentCalculator = () => {
     });
   }, [
     hasCfk,
-    freeWealthHorizonAge,
     lifeline.potData,
     freeWealthScenarioLowFactor,
     freeWealthScenarioHighFactor,
