@@ -1899,7 +1899,8 @@ const InvestmentCalculator = () => {
       { key: "bridge", label: "Vrij Vermogen Animo", start: careerEndAge, end: cfkStartAge, color: "transparent" },
       { key: "cfk", label: "CFK", start: cfkStartAge, end: lifeline.cfkPayoutEndAge, color: "rgba(13,42,40,0.14)" },
       { key: "free", label: "Vrije periode", start: lifeline.cfkPayoutEndAge, end: freeEnd, color: "transparent" },
-      { key: "pension", label: "Pensioen Animo", start: aowAge, end: pensionEnd, color: "rgba(102,114,168,0.14)" }
+      { key: "pension", label: "Pensioen Animo", start: aowAge, end: pensionEnd, color: "rgba(102,114,168,0.14)" },
+      { key: "aow", label: "AOW-uitkering", start: aowAge, end: lifeline.maxAge, color: "transparent" }
     ];
   }, [
     aowAge,
@@ -1910,7 +1911,8 @@ const InvestmentCalculator = () => {
     startAge,
     lifeline.cfkPayoutEndAge,
     lifeline.freeWealthEndAge,
-    lifeline.pensionPayoutYears
+    lifeline.pensionPayoutYears,
+    lifeline.maxAge
   ]);
   const lifelineFreeWealthPayoutAreas = useMemo(() => {
     const payoutAges = lifeline.incomeData
@@ -2016,6 +2018,7 @@ const InvestmentCalculator = () => {
     careerStartAge
   ]);
   const hasPension = (lifeline.pensionCapitalAtAow ?? 0) > 0;
+  const hasAowIncome = pensionAowEnabled && (lifeline.aowAnnualIncome || 0) > 0;
   const hasNextGeneration = lifeline.potData.some((row) => (row.nextgen || 0) > 0);
   const lifelineWeekGraphData = useMemo(() => {
     const firstRow = lifelineCfkGraphData[0] ?? { cfk: null, vva: 0, pensioen: 0, nextgen: 0 };
@@ -2044,9 +2047,14 @@ const InvestmentCalculator = () => {
     return lifelinePhases.filter(
       (phase) =>
         phase.end > phase.start &&
-        (phase.key === "career" || (phase.key === "cfk" && hasCfk) || (phase.key === "pension" && hasPension))
+        (
+          phase.key === "career" ||
+          (phase.key === "cfk" && hasCfk) ||
+          (phase.key === "pension" && hasPension) ||
+          (phase.key === "aow" && hasAowIncome && !hasPension)
+        )
     );
-  }, [hasCfk, hasPension, lifelinePhases, lifelineZoomMode]);
+  }, [hasAowIncome, hasCfk, hasPension, lifelinePhases, lifelineZoomMode]);
   const lifelinePhaseBoundaries = useMemo(() => {
     if (lifelineZoomMode === "week") {
       return [];
@@ -3740,6 +3748,9 @@ const InvestmentCalculator = () => {
               >
                 <CartesianGrid stroke="#e5e2d8" vertical={false} />
                 {lifelineVisiblePhases.map((phase) => {
+                  if (phase.key === "pension" && hasAowIncome) {
+                    return null;
+                  }
                   const visibleStart = Math.max(phase.start, lifelineChartView.xDomain[0]);
                   const visibleEnd = Math.min(phase.end, lifelineChartView.xDomain[1]);
                   return visibleEnd > visibleStart ? (
@@ -3752,6 +3763,36 @@ const InvestmentCalculator = () => {
                     />
                   ) : null;
                 })}
+                {lifelineZoomMode !== "week" && hasAowIncome && (() => {
+                  const visibleStart = Math.max(aowAge, lifelineChartView.xDomain[0]);
+                  const visibleEnd = Math.min(lifelineChartView.xDomain[1], lifeline.maxAge);
+                  return visibleEnd > visibleStart ? (
+                    <ReferenceArea
+                      x1={visibleStart}
+                      x2={visibleEnd}
+                      y1={0}
+                      y2={lifeline.aowAnnualIncome}
+                      fill="#c0c0c0"
+                      fillOpacity={0.32}
+                      strokeOpacity={0}
+                    />
+                  ) : null;
+                })()}
+                {lifelineZoomMode !== "week" && hasAowIncome && hasPension && (() => {
+                  const visibleStart = Math.max(aowAge, lifelineChartView.xDomain[0]);
+                  const visibleEnd = Math.min(aowAge + lifeline.pensionPayoutYears, lifelineChartView.xDomain[1]);
+                  return visibleEnd > visibleStart ? (
+                    <ReferenceArea
+                      x1={visibleStart}
+                      x2={visibleEnd}
+                      y1={lifeline.aowAnnualIncome}
+                      y2={lifeline.aowAnnualIncome + lifeline.pensionAnnualPayout}
+                      fill="#6672a8"
+                      fillOpacity={0.22}
+                      strokeOpacity={0}
+                    />
+                  ) : null;
+                })()}
                 {lifelineZoomMode !== "week" &&
                   lifelineFreeWealthPayoutAreas.map((range, idx) => {
                     const visibleStart = Math.max(range.start, lifelineChartView.xDomain[0]);
@@ -3905,7 +3946,14 @@ const InvestmentCalculator = () => {
                       transform: "translateX(-50%)",
                       textAlign: "center",
                       fontSize: "13px",
-                      color: phase.key === "career" ? "#65c368" : phase.key === "pension" ? "#6672a8" : "#0d2a28",
+                      color:
+                        phase.key === "career"
+                          ? "#65c368"
+                          : phase.key === "pension"
+                            ? "#6672a8"
+                            : phase.key === "aow"
+                              ? "#8d8d8d"
+                              : "#0d2a28",
                       fontWeight: 600,
                       whiteSpace: "nowrap"
                     }}
@@ -3917,9 +3965,17 @@ const InvestmentCalculator = () => {
                       </>
                     ) : phase.key === "pension" ? (
                       <>
-                        <div>Pensioen uitkering</div>
-                        <div style={{ fontSize: "12px", marginTop: "2px" }}>{rangeLabel}</div>
+                        {hasAowIncome ? (
+                          <div>Pensioen uitkering {rangeLabel} + AOW uitkering</div>
+                        ) : (
+                          <>
+                            <div>Pensioen uitkering</div>
+                            <div style={{ fontSize: "12px", marginTop: "2px" }}>{rangeLabel}</div>
+                          </>
+                        )}
                       </>
+                    ) : phase.key === "aow" ? (
+                      <div>AOW-uitkering</div>
                     ) : (
                       <div>{phase.label} {rangeLabel}</div>
                     )}
@@ -3994,6 +4050,27 @@ const InvestmentCalculator = () => {
               >
                 <span style={{ width: "10px", height: "3px", backgroundColor: "#6672a8", borderRadius: "2px" }} />
                 Pensioen Animo
+              </button>
+            )}
+            {hasAowIncome && !hasPension && (
+              <button
+                type="button"
+                style={{
+                  border: `1px solid ${subtleOverlayTextColor}`,
+                  color: subtleOverlayTextColor,
+                  backgroundColor: "transparent",
+                  borderRadius: "4px",
+                  padding: "3px 8px",
+                  fontSize: "11px",
+                  lineHeight: 1.2,
+                  cursor: "default",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px"
+                }}
+              >
+                <span style={{ width: "10px", height: "3px", backgroundColor: "#c0c0c0", borderRadius: "2px" }} />
+                AOW uitkering
               </button>
             )}
             {hasNextGeneration && (
