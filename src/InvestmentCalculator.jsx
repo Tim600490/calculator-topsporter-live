@@ -293,7 +293,8 @@ const InvestmentCalculator = () => {
   const [oneTimeExtras2, setOneTimeExtras2] = useState([
     { amount: 0, year: 1, month: 12 },
     { amount: 0, year: 2, month: 12 },
-    { amount: 0, year: 3, month: 12 }
+    { amount: 0, year: 3, month: 12 },
+    { amount: 0, year: 4, month: 12 }
   ]);
   const [oneTimeExtras3, setOneTimeExtras3] = useState([
     { amount: 0, year: 5, month: 6 },
@@ -817,7 +818,8 @@ const InvestmentCalculator = () => {
     setOneTimeExtras2([
       { amount: 0, year: 1, month: 12 },
       { amount: 0, year: 2, month: 12 },
-      { amount: 0, year: 3, month: 12 }
+      { amount: 0, year: 3, month: 12 },
+      { amount: 0, year: 4, month: 12 }
     ]);
     setPensionReturnRate(2.5);
     setPensionAowEnabled(false);
@@ -889,7 +891,8 @@ const InvestmentCalculator = () => {
     setOneTimeExtras2([
       { amount: 25000, year: 2, month: 12 },
       { amount: 0, year: 2, month: 12 },
-      { amount: 0, year: 3, month: 12 }
+      { amount: 0, year: 3, month: 12 },
+      { amount: 0, year: 4, month: 12 }
     ]);
     setPensionReturnRate(2.5);
     setPensionAowEnabled(true);
@@ -4353,7 +4356,7 @@ const InvestmentCalculator = () => {
               style={{
                 marginTop: "10px",
                 borderTop: `1px solid ${subtleOverlayTextColor}`,
-                width: "92%"
+                width: "100%"
               }}
             />
             <div
