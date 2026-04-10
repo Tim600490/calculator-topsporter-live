@@ -4254,7 +4254,7 @@ const InvestmentCalculator = () => {
               <span>Vrij Vermogen Animo</span>
               <span style={{ width: "14px", height: "3px", backgroundColor: "#d2bb5d", borderRadius: "2px" }} />
             </div>
-            <div style={{ fontSize: "12px", color: "#6B7280" }}>Verwacht eindresultaat (netto - box3)</div>
+            <div style={{ fontSize: "12px", color: "#6B7280" }}>Verwacht eindresultaat (netto - box 2 / 3)</div>
             <div style={{ fontSize: "16px", fontWeight: 700, marginTop: "6px" }}>
               {formatCurrency(freeWealthExpectedEndResult)}
             </div>
@@ -4376,7 +4376,7 @@ const InvestmentCalculator = () => {
                   cursor: "pointer"
                 }}
               >
-                <span>behouden</span>
+                <span>Behouden</span>
                 <input
                   type="checkbox"
                   checked={freeWealthSwitchToConservative}
