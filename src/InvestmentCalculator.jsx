@@ -1940,6 +1940,7 @@ const InvestmentCalculator = () => {
   const pensionScenarioHighFactor = finalBalance2 > 0 ? bestCaseBalance2 / finalBalance2 : 1;
 
   const lifelineCfkGraphData = useMemo(() => {
+    const ZERO_EPSILON = 1; // euro
     const cfkState = { seenPositive: false, hitZero: false };
     const vvaState = { seenPositive: false, hitZero: false };
     const pensioenState = { seenPositive: false, hitZero: false };
@@ -1953,6 +1954,13 @@ const InvestmentCalculator = () => {
         return null;
       }
       const numericValue = Number(rawValue) || 0;
+      if (Math.abs(numericValue) <= ZERO_EPSILON) {
+        if (state.seenPositive) {
+          state.hitZero = true;
+          return 0;
+        }
+        return 0;
+      }
       if (numericValue > 0) {
         state.seenPositive = true;
         return numericValue;
@@ -1964,7 +1972,8 @@ const InvestmentCalculator = () => {
       return numericValue;
     };
     return lifeline.potData.map((row) => {
-      const rawCfk = hasCfk && row.age >= careerStartAge ? row.cfk : null;
+      const rawCfk =
+        hasCfk && row.age >= careerStartAge && row.age <= lifeline.cfkPayoutEndAge ? row.cfk : null;
       const rawVva = row.age >= startAge && row.age <= freeWealthVisibleEndAge ? row.vrij : null;
       const rawPensioen = row.age >= startAge2 ? row.pensioen : null;
       const rawNextGen =
