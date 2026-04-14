@@ -376,7 +376,7 @@ const InvestmentCalculator = () => {
   const annualReturn3 = riskProfiles[profile3];
   const annualReturnBehouden = riskProfiles.Behouden;
   const careerStartAge = careerPhaseStartAge;
-  const cfkStartAge = careerEndAge + 3;
+  const cfkStartAge = careerEndAge;
   const freeWealthHorizonAge = startAge + investmentHorizon;
   const freeWealthLastPayoutAge = freeWealthPayouts.reduce(
     (max, row) => (row.amount > 0 ? Math.max(max, row.toAge) : max),
@@ -1538,16 +1538,23 @@ const InvestmentCalculator = () => {
       startAmount;
     const cfkDurationYears = cfkDurationMonths / 12;
     const cfkGrowthRate = cfkReturnRate / 100;
-    const cfkMonthlyReturn = cfkGrowthRate / 12;
-    const cfkYearsToCareerEnd = Math.max(0, careerEndAge - careerStartAge);
     const cfkYearsToPayoutStart = Math.max(0, cfkStartAge - careerStartAge);
-    const cfkMonthsToCareerEnd = Math.max(0, cfkYearsToCareerEnd * 12);
-    const cfkMonthsToPayoutStart = Math.max(0, cfkYearsToPayoutStart * 12);
-    const cfkBalanceAtCareerEnd = cfkPot * Math.pow(1 + cfkMonthlyReturn, cfkMonthsToCareerEnd);
-    const cfkBalanceAtPayoutStart = cfkPot * Math.pow(1 + cfkMonthlyReturn, cfkMonthsToPayoutStart);
-    const cfkMonthlyPayoutFixed =
-      cfkDurationMonths > 0 ? Math.floor(cfkBalanceAtPayoutStart / cfkDurationMonths) : 0;
-    const cfkAnnualPayout = cfkMonthlyPayoutFixed * 12;
+    const cfkBalanceAtCareerEnd = cfkPot * Math.pow(1 + cfkGrowthRate, Math.max(0, careerEndAge - careerStartAge));
+    const cfkBalanceAtPayoutStart = cfkPot * Math.pow(1 + cfkGrowthRate, cfkYearsToPayoutStart);
+    const getAnnualAnnuityPayout = (capital, years, annualGrowthRate) => {
+      if (capital <= 0 || years <= 0) {
+        return 0;
+      }
+      if (annualGrowthRate === 0) {
+        return capital / years;
+      }
+      const discountFactor = 1 - Math.pow(1 + annualGrowthRate, -years);
+      if (discountFactor <= 0) {
+        return capital / years;
+      }
+      return (capital * annualGrowthRate) / discountFactor;
+    };
+    const cfkAnnualPayout = getAnnualAnnuityPayout(cfkBalanceAtPayoutStart, cfkDurationYears, cfkGrowthRate);
     const cfkPayoutEndAge = cfkStartAge + cfkDurationYears;
 
     const getPensionBalanceAtAge = (age) => {
@@ -1663,48 +1670,29 @@ const InvestmentCalculator = () => {
     let cfkSimBalance = cfkPot;
 
     for (let age = careerStartAge; age <= maxAge; age++) {
-
       cfkYearStartBalanceByAge.set(age, cfkSimBalance);
-
-      // Growth-only period before CFK payout starts.
-      if (age < cfkStartAge) {
-        for (let month = 1; month <= 12; month++) {
-          cfkSimBalance = cfkSimBalance * (1 + cfkMonthlyReturn);
-        }
-        cfkYearIncomeByAge.set(age, 0);
-        continue;
-      }
-
-      // CFK payout period with slotuitkering in the final month.
-      const payoutEndMonthAbsolute = (cfkStartAge - careerStartAge) * 12 + cfkDurationMonths;
-      const yearStartMonthAbsolute = (age - careerStartAge) * 12;
-      const yearEndMonthAbsolute = yearStartMonthAbsolute + 12;
-      const payoutMonthsInThisYear = Math.max(
-        0,
-        Math.min(yearEndMonthAbsolute, payoutEndMonthAbsolute) - yearStartMonthAbsolute
-      );
-
-      if (payoutMonthsInThisYear <= 0 || cfkSimBalance <= 0) {
-        cfkYearIncomeByAge.set(age, 0);
-        continue;
-      }
-
       let yearIncome = 0;
+      let nextBalance = cfkSimBalance;
+      const intervalStart = age;
+      const intervalEnd = age + 1;
 
-      for (let month = 1; month <= payoutMonthsInThisYear; month++) {
-        cfkSimBalance = cfkSimBalance * (1 + cfkMonthlyReturn);
-        const regularPayout = Math.min(cfkMonthlyPayoutFixed, cfkSimBalance);
-        cfkSimBalance = Math.max(0, cfkSimBalance - regularPayout);
-        yearIncome += regularPayout;
-
-        const currentAbsoluteMonth = yearStartMonthAbsolute + month;
-        if (currentAbsoluteMonth === payoutEndMonthAbsolute) {
-          // Article 10 Slotuitkering: pay out all residual value at the end with accrued return.
-          yearIncome += cfkSimBalance;
-          cfkSimBalance = 0;
-        }
+      const prePayoutFraction = Math.max(0, Math.min(intervalEnd, cfkStartAge) - intervalStart);
+      if (prePayoutFraction > 0) {
+        nextBalance = nextBalance * Math.pow(1 + cfkGrowthRate, prePayoutFraction);
       }
 
+      const payoutStartInInterval = Math.max(intervalStart, cfkStartAge);
+      const payoutEndInInterval = Math.min(intervalEnd, cfkPayoutEndAge);
+      const payoutFraction = Math.max(0, payoutEndInInterval - payoutStartInInterval);
+
+      if (payoutFraction > 0 && nextBalance > 0) {
+        nextBalance = nextBalance * Math.pow(1 + cfkGrowthRate, payoutFraction);
+        const plannedPayout = cfkAnnualPayout * payoutFraction;
+        yearIncome = Math.min(plannedPayout, nextBalance);
+        nextBalance = Math.max(0, nextBalance - yearIncome);
+      }
+
+      cfkSimBalance = nextBalance;
       cfkYearIncomeByAge.set(age, yearIncome);
     }
 
