@@ -4786,11 +4786,19 @@ const InvestmentCalculator = () => {
             <div
               style={{
                 minHeight: "270px",
-                border: "1px dashed #d1d5db",
+                border: "1px solid #e5e7eb",
                 borderRadius: "8px",
-                backgroundColor: "#f9fafb"
+                backgroundColor: "#f9fafb",
+                padding: "16px"
               }}
-            />
+            >
+              <div style={{ fontSize: "14px", color: "#6B7280", marginBottom: "8px" }}>
+                Verwacht eindresultaat
+              </div>
+              <div style={{ fontSize: "32px", fontWeight: 700, color: "#111827", lineHeight: 1.1 }}>
+                {formatCurrency(finalBalance)}
+              </div>
+            </div>
           </div>
         </div>
       )}
