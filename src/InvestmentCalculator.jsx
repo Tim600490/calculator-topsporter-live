@@ -331,6 +331,7 @@ const InvestmentCalculator = () => {
   ]);
   const [freeWealthSwitchToConservative, setFreeWealthSwitchToConservative] = useState(false);
   const [freeWealthConservativeFromYear, setFreeWealthConservativeFromYear] = useState(1);
+  const [isFreeWealthInfoModalOpen, setIsFreeWealthInfoModalOpen] = useState(false);
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const [hoveredIndex2, setHoveredIndex2] = useState(null);
   const [hoveredIndex3, setHoveredIndex3] = useState(null);
@@ -4250,10 +4251,26 @@ const InvestmentCalculator = () => {
           </div>
 
           <div style={{ background: "#fff", borderRadius: "8px", padding: "12px", border: "1px solid #e1dccb" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "14px", fontWeight: 700, marginBottom: "10px" }}>
+            <button
+              type="button"
+              onClick={() => setIsFreeWealthInfoModalOpen(true)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                fontSize: "14px",
+                fontWeight: 700,
+                marginBottom: "10px",
+                border: "none",
+                background: "transparent",
+                padding: 0,
+                cursor: "pointer",
+                color: "#111827"
+              }}
+            >
               <span>Vrij Vermogen Animo</span>
               <span style={{ width: "14px", height: "3px", backgroundColor: "#d2bb5d", borderRadius: "2px" }} />
-            </div>
+            </button>
             <div style={{ fontSize: "12px", color: "#6B7280" }}>Verwacht eindresultaat (box 2 / 3)</div>
             <div style={{ fontSize: "16px", fontWeight: 700, marginTop: "6px" }}>
               {formatCurrency(freeWealthExpectedEndResult)}
@@ -4716,6 +4733,67 @@ const InvestmentCalculator = () => {
           background: #0d2a28 !important;
         }
       `}</style>
+      {isFreeWealthInfoModalOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Vrij Vermogen Animo overzicht"
+          onClick={() => setIsFreeWealthInfoModalOpen(false)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            backgroundColor: "rgba(13,42,40,0.45)",
+            zIndex: 1000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "20px"
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: "100%",
+              maxWidth: "640px",
+              minHeight: "360px",
+              backgroundColor: "#ffffff",
+              border: "1px solid #e1dccb",
+              borderRadius: "12px",
+              boxShadow: "0 12px 40px rgba(0,0,0,0.2)",
+              padding: "20px"
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+              <div style={{ fontSize: "20px", fontWeight: 700, color: "#111827" }}>Vrij Vermogen Animo</div>
+              <button
+                type="button"
+                onClick={() => setIsFreeWealthInfoModalOpen(false)}
+                style={{
+                  border: "1px solid #d1d5db",
+                  backgroundColor: "#fff",
+                  color: "#111827",
+                  borderRadius: "8px",
+                  width: "34px",
+                  height: "34px",
+                  lineHeight: "1",
+                  fontSize: "20px",
+                  cursor: "pointer"
+                }}
+              >
+                ×
+              </button>
+            </div>
+            <div
+              style={{
+                minHeight: "270px",
+                border: "1px dashed #d1d5db",
+                borderRadius: "8px",
+                backgroundColor: "#f9fafb"
+              }}
+            />
+          </div>
+        </div>
+      )}
       </div>
     </div>
   );
