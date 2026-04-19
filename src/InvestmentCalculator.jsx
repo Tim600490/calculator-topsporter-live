@@ -1015,6 +1015,32 @@ const InvestmentCalculator = () => {
   const freeWealthOwnContributionTotal =
     startAmount + freeWealthPeriodicContributionTotal + freeWealthOneTimeContributionTotal;
   const freeWealthReturnAmount = finalBalance - freeWealthOwnContributionTotal;
+  const freeWealthSavingsBalance = useMemo(() => {
+    const annualSavingsRate = 0.015;
+    const monthlySavingsRate = annualSavingsRate / 12;
+    const totalMonths = investmentHorizon * 12;
+    let balance = startAmount;
+
+    for (let month = 1; month <= totalMonths; month++) {
+      const activeDeposit = getMonthlyDepositForMonth(month);
+      const oneTimeExtra = getOneTimeExtraForMonth(month);
+      balance = balance * (1 + monthlySavingsRate);
+      balance += activeDeposit + oneTimeExtra;
+    }
+
+    return balance;
+  }, [
+    investmentHorizon,
+    startAmount,
+    phase1MonthlyDeposit,
+    phase1Years,
+    phase2MonthlyDeposit,
+    phase2EndYear,
+    phase3MonthlyDeposit,
+    phase3EndYear,
+    oneTimeExtras,
+    startDepositsInYear2
+  ]);
 
   const calculationData2 = useMemo(() => {
     const data = [];
@@ -4907,6 +4933,12 @@ const InvestmentCalculator = () => {
                   </div>
                   <div style={{ fontSize: "14px", fontWeight: 700, color: "#0d2a28", marginTop: "6px" }}>
                     {formatCurrency(freeWealthReturnAmount)}
+                  </div>
+                </div>
+                <div style={{ marginTop: "10px", paddingTop: "10px", borderTop: "1px solid #e5e7eb" }}>
+                  <div style={{ fontSize: "14px", color: "#111827" }}>
+                    Zelfde inleg op spaarrekening (1,5% p/j):{" "}
+                    <span style={{ fontWeight: 700 }}>{formatCurrency(freeWealthSavingsBalance)}</span>
                   </div>
                 </div>
               </div>
