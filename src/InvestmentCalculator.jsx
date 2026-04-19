@@ -985,6 +985,36 @@ const InvestmentCalculator = () => {
   ]);
 
   const finalBalance = calculationData[calculationData.length - 1]?.balance || 0;
+  const freeWealthPeriodicContributionTotal = useMemo(() => {
+    let total = 0;
+    const totalMonths = investmentHorizon * 12;
+    for (let month = 1; month <= totalMonths; month++) {
+      total += getMonthlyDepositForMonth(month);
+    }
+    return total;
+  }, [
+    investmentHorizon,
+    phase1MonthlyDeposit,
+    phase1Years,
+    phase2MonthlyDeposit,
+    phase2EndYear,
+    phase3MonthlyDeposit,
+    phase3EndYear,
+    startDepositsInYear2
+  ]);
+  const freeWealthOneTimeContributionTotal = useMemo(() => {
+    const totalMonths = investmentHorizon * 12;
+    return oneTimeExtras.reduce((sum, entry) => {
+      if ((entry.amount || 0) <= 0) {
+        return sum;
+      }
+      const targetMonth = (entry.year - 1) * 12 + entry.month;
+      return targetMonth >= 1 && targetMonth <= totalMonths ? sum + entry.amount : sum;
+    }, 0);
+  }, [investmentHorizon, oneTimeExtras]);
+  const freeWealthOwnContributionTotal =
+    startAmount + freeWealthPeriodicContributionTotal + freeWealthOneTimeContributionTotal;
+  const freeWealthReturnAmount = finalBalance - freeWealthOwnContributionTotal;
 
   const calculationData2 = useMemo(() => {
     const data = [];
@@ -4797,6 +4827,39 @@ const InvestmentCalculator = () => {
               </div>
               <div style={{ fontSize: "32px", fontWeight: 700, color: "#111827", lineHeight: 1.1 }}>
                 {formatCurrency(finalBalance)}
+              </div>
+              <div style={{ marginTop: "16px", borderTop: "1px solid #e5e7eb", paddingTop: "12px" }}>
+                <div style={{ fontSize: "13px", color: "#6B7280", marginBottom: "8px" }}>
+                  Opbouw uit eigen inleg
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr auto", rowGap: "6px", columnGap: "12px" }}>
+                  <div style={{ fontSize: "14px", color: "#111827" }}>Startbedrag</div>
+                  <div style={{ fontSize: "14px", fontWeight: 600, color: "#111827" }}>{formatCurrency(startAmount)}</div>
+
+                  <div style={{ fontSize: "14px", color: "#111827" }}>Periodieke inleg</div>
+                  <div style={{ fontSize: "14px", fontWeight: 600, color: "#111827" }}>
+                    {formatCurrency(freeWealthPeriodicContributionTotal)}
+                  </div>
+
+                  <div style={{ fontSize: "14px", color: "#111827" }}>Eenmalige extra inleg</div>
+                  <div style={{ fontSize: "14px", fontWeight: 600, color: "#111827" }}>
+                    {formatCurrency(freeWealthOneTimeContributionTotal)}
+                  </div>
+
+                  <div style={{ fontSize: "14px", fontWeight: 700, color: "#111827", marginTop: "2px" }}>
+                    Totaal eigen inleg
+                  </div>
+                  <div style={{ fontSize: "14px", fontWeight: 700, color: "#111827", marginTop: "2px" }}>
+                    {formatCurrency(freeWealthOwnContributionTotal)}
+                  </div>
+
+                  <div style={{ fontSize: "14px", fontWeight: 700, color: "#0d2a28", marginTop: "6px" }}>
+                    Rendement
+                  </div>
+                  <div style={{ fontSize: "14px", fontWeight: 700, color: "#0d2a28", marginTop: "6px" }}>
+                    {formatCurrency(freeWealthReturnAmount)}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
