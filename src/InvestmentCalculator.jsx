@@ -4848,10 +4848,31 @@ const InvestmentCalculator = () => {
                     justifyContent: "center"
                   }}
                 >
-                  <div style={{ textAlign: "center", fontSize: "clamp(20px, 2.2vw, 30px)", fontWeight: 700, color: "#111827", lineHeight: 1.1 }}>
+                  <div
+                    style={{
+                      textAlign: "center",
+                      fontSize: "clamp(16px, 1.6vw, 20px)",
+                      fontWeight: 700,
+                      color: "#111827",
+                      lineHeight: 1.1,
+                      whiteSpace: "nowrap"
+                    }}
+                  >
                     Looptijd: {investmentHorizon} jaar
                   </div>
-                  <div style={{ borderTop: "2px solid #9ca3af", marginTop: "10px", paddingTop: "10px", textAlign: "center", fontSize: "clamp(20px, 2.2vw, 30px)", fontWeight: 700, color: "#111827", lineHeight: 1.1 }}>
+                  <div
+                    style={{
+                      borderTop: "2px solid #9ca3af",
+                      marginTop: "10px",
+                      paddingTop: "10px",
+                      textAlign: "center",
+                      fontSize: "clamp(16px, 1.6vw, 20px)",
+                      fontWeight: 700,
+                      color: "#111827",
+                      lineHeight: 1.1,
+                      whiteSpace: "nowrap"
+                    }}
+                  >
                     Portefeuille: {profile}
                   </div>
                 </div>
