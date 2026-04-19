@@ -4904,23 +4904,7 @@ const InvestmentCalculator = () => {
                 </div>
               </div>
               <div>
-                <div style={{ fontSize: "13px", color: "#6B7280", marginBottom: "8px" }}>
-                  Opbouw uit eigen inleg
-                </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr auto", rowGap: "6px", columnGap: "12px" }}>
-                  <div style={{ fontSize: "14px", color: "#111827" }}>Startbedrag</div>
-                  <div style={{ fontSize: "14px", fontWeight: 600, color: "#111827" }}>{formatCurrency(startAmount)}</div>
-
-                  <div style={{ fontSize: "14px", color: "#111827" }}>Periodieke inleg</div>
-                  <div style={{ fontSize: "14px", fontWeight: 600, color: "#111827" }}>
-                    {formatCurrency(freeWealthPeriodicContributionTotal)}
-                  </div>
-
-                  <div style={{ fontSize: "14px", color: "#111827" }}>Eenmalige extra inleg</div>
-                  <div style={{ fontSize: "14px", fontWeight: 600, color: "#111827" }}>
-                    {formatCurrency(freeWealthOneTimeContributionTotal)}
-                  </div>
-
                   <div style={{ fontSize: "14px", fontWeight: 700, color: "#111827", marginTop: "2px" }}>
                     Totaal eigen inleg
                   </div>
