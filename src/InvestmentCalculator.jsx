@@ -4822,13 +4822,41 @@ const InvestmentCalculator = () => {
                 padding: "16px"
               }}
             >
-              <div style={{ fontSize: "14px", color: "#6B7280", marginBottom: "8px" }}>
-                Verwacht eindresultaat
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  borderBottom: "1px solid #d1d5db",
+                  paddingBottom: "12px",
+                  marginBottom: "12px"
+                }}
+              >
+                <div style={{ paddingRight: "12px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                  <div style={{ fontSize: "14px", color: "#6B7280", marginBottom: "8px" }}>
+                    Verwacht eindresultaat
+                  </div>
+                  <div style={{ fontSize: "clamp(28px, 3vw, 44px)", fontWeight: 700, color: "#111827", lineHeight: 1 }}>
+                    {formatCurrency(finalBalance)}
+                  </div>
+                </div>
+                <div
+                  style={{
+                    borderLeft: "2px solid #9ca3af",
+                    paddingLeft: "16px",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center"
+                  }}
+                >
+                  <div style={{ textAlign: "center", fontSize: "clamp(20px, 2.2vw, 30px)", fontWeight: 700, color: "#111827", lineHeight: 1.1 }}>
+                    Looptijd: {investmentHorizon} jaar
+                  </div>
+                  <div style={{ borderTop: "2px solid #9ca3af", marginTop: "10px", paddingTop: "10px", textAlign: "center", fontSize: "clamp(20px, 2.2vw, 30px)", fontWeight: 700, color: "#111827", lineHeight: 1.1 }}>
+                    Portefeuille: {profile}
+                  </div>
+                </div>
               </div>
-              <div style={{ fontSize: "32px", fontWeight: 700, color: "#111827", lineHeight: 1.1 }}>
-                {formatCurrency(finalBalance)}
-              </div>
-              <div style={{ marginTop: "16px", borderTop: "1px solid #e5e7eb", paddingTop: "12px" }}>
+              <div>
                 <div style={{ fontSize: "13px", color: "#6B7280", marginBottom: "8px" }}>
                   Opbouw uit eigen inleg
                 </div>
