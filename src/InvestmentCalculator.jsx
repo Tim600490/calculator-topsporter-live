@@ -4936,8 +4936,8 @@ const InvestmentCalculator = () => {
                   </div>
                 </div>
                 <div style={{ marginTop: "10px", paddingTop: "10px", borderTop: "1px solid #e5e7eb" }}>
-                  <div style={{ fontSize: "14px", color: "#111827" }}>
-                    Zelfde inleg op spaarrekening (1,5% p/j):{" "}
+                  <div style={{ fontSize: "14px", color: "#111827", textAlign: "center" }}>
+                    Verwacht eindresultaat op een spaarrekening (1,5% p/j):{" "}
                     <span style={{ fontWeight: 700 }}>{formatCurrency(freeWealthSavingsBalance)}</span>
                   </div>
                 </div>
