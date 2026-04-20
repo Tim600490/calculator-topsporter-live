@@ -332,6 +332,7 @@ const InvestmentCalculator = () => {
   const [freeWealthSwitchToConservative, setFreeWealthSwitchToConservative] = useState(false);
   const [freeWealthConservativeFromYear, setFreeWealthConservativeFromYear] = useState(1);
   const [isFreeWealthInfoModalOpen, setIsFreeWealthInfoModalOpen] = useState(false);
+  const [isPensionInfoModalOpen, setIsPensionInfoModalOpen] = useState(false);
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const [hoveredIndex2, setHoveredIndex2] = useState(null);
   const [hoveredIndex3, setHoveredIndex3] = useState(null);
@@ -1098,6 +1099,50 @@ const InvestmentCalculator = () => {
   ]);
 
   const finalBalance2 = calculationData2[calculationData2.length - 1]?.balance || 0;
+  const pensionPeriodicContributionTotal = useMemo(() => {
+    let total = 0;
+    const totalMonths = investmentHorizon2 * 12;
+    for (let month = 1; month <= totalMonths; month++) {
+      total += getMonthlyDepositForMonth2(month);
+    }
+    return total;
+  }, [
+    investmentHorizon2,
+    phase1MonthlyDeposit2,
+    phase1Years2,
+    phase2MonthlyDeposit2,
+    phase2EndYear2,
+    phase3MonthlyDeposit2,
+    phase3EndYear2,
+    startDepositsInYear22
+  ]);
+  const pensionOneTimeContributionTotal = useMemo(() => {
+    const totalMonths = investmentHorizon2 * 12;
+    return oneTimeExtras2.reduce((sum, entry) => {
+      if ((entry.amount || 0) <= 0) {
+        return sum;
+      }
+      const targetMonth = (entry.year - 1) * 12 + entry.month;
+      return targetMonth >= 1 && targetMonth <= totalMonths ? sum + entry.amount : sum;
+    }, 0);
+  }, [investmentHorizon2, oneTimeExtras2]);
+  const pensionTaxRefundOnOneTimeContributions = useMemo(() => {
+    const totalMonths = investmentHorizon2 * 12;
+    return oneTimeExtras2.reduce((sum, entry) => {
+      const amount = entry.amount || 0;
+      if (amount <= 0) {
+        return sum;
+      }
+      const targetMonth = (entry.year - 1) * 12 + entry.month;
+      if (targetMonth < 1 || targetMonth > totalMonths) {
+        return sum;
+      }
+      const refundRate = amount > 17700 ? 0.495 : 0.37;
+      return sum + amount * refundRate;
+    }, 0);
+  }, [investmentHorizon2, oneTimeExtras2]);
+  const pensionGrossContributionTotal = startAmount2 + pensionPeriodicContributionTotal + pensionOneTimeContributionTotal;
+  const pensionNetOwnContributionTotal = pensionGrossContributionTotal - pensionTaxRefundOnOneTimeContributions;
 
   const calculationData3 = useMemo(() => {
     const data = [];
@@ -1374,6 +1419,7 @@ const InvestmentCalculator = () => {
     }
     return formatCurrency(amount);
   };
+  const formatPercentOneDecimal = (value) => `${(Number(value) || 0).toFixed(1).replace(".", ",")}%`;
 
   const isDesktop = window.innerWidth >= 1024;
   const hoveredPoint = hoveredIndex != null ? calculationData[hoveredIndex] : null;
@@ -2405,6 +2451,15 @@ const InvestmentCalculator = () => {
   }, 0);
   const hasFreeWealth = lifeline.potData.some((row) => (row.vrij || 0) > 0);
   const pensionExpectedEndResult = lifeline.pensionCapitalAtAow ?? 0;
+  const pensionReturnOnNetContribution = pensionExpectedEndResult - pensionNetOwnContributionTotal;
+  const pensionTaxBenefitPct =
+    pensionGrossContributionTotal > 0
+      ? (pensionTaxRefundOnOneTimeContributions / pensionGrossContributionTotal) * 100
+      : 0;
+  const pensionReturnOnNetContributionPct =
+    pensionNetOwnContributionTotal > 0
+      ? (pensionReturnOnNetContribution / pensionNetOwnContributionTotal) * 100
+      : 0;
   const nextGenerationExpectedEndResult = finalBalance3;
   const isLifelineFocusMode = Boolean(activeScenarioBandKey);
   const showLifelineCfkLine = hasCfk && (!isLifelineFocusMode || activeScenarioBandKey === "cfk");
@@ -4506,10 +4561,26 @@ const InvestmentCalculator = () => {
           </div>
 
           <div style={{ background: "#fff", borderRadius: "8px", padding: "12px", border: "1px solid #e1dccb" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "14px", fontWeight: 700, marginBottom: "10px" }}>
+            <button
+              type="button"
+              onClick={() => setIsPensionInfoModalOpen(true)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                fontSize: "14px",
+                fontWeight: 700,
+                marginBottom: "10px",
+                border: "none",
+                background: "transparent",
+                padding: 0,
+                cursor: "pointer",
+                color: "#111827"
+              }}
+            >
               <span>Pensioen Animo</span>
               <span style={{ width: "14px", height: "3px", backgroundColor: "#6672a8", borderRadius: "2px" }} />
-            </div>
+            </button>
             <div style={{ fontSize: "12px", color: "#6B7280" }}>Verwacht eindresultaat (bruto - box1)</div>
             <div style={{ fontSize: "16px", fontWeight: 700, marginTop: "6px" }}>{formatCurrency(pensionExpectedEndResult)}</div>
             <label style={{ fontSize: "12px", color: "#6B7280", marginTop: "10px", display: "block" }}>
@@ -4950,6 +5021,167 @@ const InvestmentCalculator = () => {
               >
                 Extra resultaat met Animo: {freeWealthExtraVsSavings >= 0 ? "+" : "-"}
                 {formatCurrency(Math.abs(freeWealthExtraVsSavings))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {isPensionInfoModalOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Pensioen Animo overzicht"
+          onClick={() => setIsPensionInfoModalOpen(false)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            backgroundColor: "rgba(13,42,40,0.45)",
+            zIndex: 1000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "20px"
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: "100%",
+              maxWidth: "760px",
+              backgroundColor: "#ffffff",
+              border: "1px solid #e1dccb",
+              borderRadius: "12px",
+              boxShadow: "0 12px 40px rgba(0,0,0,0.2)",
+              padding: "20px"
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+              <div style={{ fontSize: "20px", fontWeight: 700, color: "#111827" }}>Pensioen Animo</div>
+              <button
+                type="button"
+                onClick={() => setIsPensionInfoModalOpen(false)}
+                style={{
+                  border: "1px solid #d1d5db",
+                  backgroundColor: "#fff",
+                  color: "#111827",
+                  borderRadius: "8px",
+                  width: "34px",
+                  height: "34px",
+                  lineHeight: "1",
+                  fontSize: "20px",
+                  cursor: "pointer"
+                }}
+              >
+                ×
+              </button>
+            </div>
+            <div
+              style={{
+                border: "1px solid #e5e7eb",
+                borderRadius: "8px",
+                backgroundColor: "#f9fafb",
+                padding: "16px"
+              }}
+            >
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr 1fr",
+                  gap: "8px",
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "8px",
+                  backgroundColor: "#fff",
+                  padding: "10px 12px",
+                  marginBottom: "12px"
+                }}
+              >
+                <div style={{ fontSize: "13px", color: "#374151", textAlign: "center", fontWeight: 600 }}>
+                  Looptijd calculator: {investmentHorizon2} jaar
+                </div>
+                <div style={{ fontSize: "13px", color: "#374151", textAlign: "center", fontWeight: 600 }}>
+                  Portefeuille: {profile2}
+                </div>
+                <div style={{ fontSize: "13px", color: "#374151", textAlign: "center", fontWeight: 600 }}>
+                  Start uitkering: {aowAge} jaar
+                </div>
+              </div>
+
+              <div
+                style={{
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "8px",
+                  backgroundColor: "#fff",
+                  padding: "12px",
+                  marginBottom: "12px"
+                }}
+              >
+                <div style={{ fontSize: "13px", color: "#6B7280", marginBottom: "8px" }}>
+                  Verwacht eindresultaat pensioen (bruto - box1)
+                </div>
+                <div style={{ fontSize: "clamp(30px, 3vw, 44px)", fontWeight: 700, color: "#111827", lineHeight: 1 }}>
+                  {formatCurrency(pensionExpectedEndResult)}
+                </div>
+              </div>
+
+              <div
+                style={{
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "8px",
+                  backgroundColor: "#fff",
+                  padding: "12px",
+                  marginBottom: "12px"
+                }}
+              >
+                <div style={{ fontSize: "13px", color: "#6B7280", marginBottom: "10px", fontWeight: 600 }}>
+                  Inlegoverzicht (bruto/netto)
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr auto", rowGap: "8px", columnGap: "12px" }}>
+                  <div style={{ fontSize: "14px", color: "#111827" }}>Totale bruto inleg</div>
+                  <div style={{ fontSize: "14px", color: "#111827", fontWeight: 700 }}>{formatCurrency(pensionGrossContributionTotal)}</div>
+
+                  <div style={{ fontSize: "14px", color: "#111827" }}>Belastingteruggave (alleen eenmalige inleg)</div>
+                  <div style={{ fontSize: "14px", color: "#0d2a28", fontWeight: 700 }}>
+                    - {formatCurrency(pensionTaxRefundOnOneTimeContributions)}
+                  </div>
+
+                  <div style={{ fontSize: "14px", color: "#111827", fontWeight: 700, paddingTop: "2px", borderTop: "1px solid #e5e7eb" }}>
+                    Netto eigen inleg
+                  </div>
+                  <div style={{ fontSize: "14px", color: "#111827", fontWeight: 700, paddingTop: "2px", borderTop: "1px solid #e5e7eb" }}>
+                    {formatCurrency(pensionNetOwnContributionTotal)}
+                  </div>
+                </div>
+                <div style={{ marginTop: "10px", fontSize: "12px", color: "#6B7280" }}>
+                  Netto voordeel door aftrek: {formatPercentOneDecimal(pensionTaxBenefitPct)}
+                </div>
+              </div>
+
+              <div
+                style={{
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "8px",
+                  backgroundColor: "#fff",
+                  padding: "12px"
+                }}
+              >
+                <div style={{ fontSize: "13px", color: "#6B7280", marginBottom: "10px", fontWeight: 600 }}>
+                  Rendementsoverzicht
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr auto", rowGap: "8px", columnGap: "12px" }}>
+                  <div style={{ fontSize: "14px", color: "#111827" }}>Rendement op netto inleg</div>
+                  <div style={{ fontSize: "14px", color: "#0d2a28", fontWeight: 700 }}>{formatCurrency(pensionReturnOnNetContribution)}</div>
+
+                  <div style={{ fontSize: "14px", color: "#111827" }}>Rendement op netto inleg (%)</div>
+                  <div style={{ fontSize: "14px", color: "#0d2a28", fontWeight: 700 }}>{formatPercentOneDecimal(pensionReturnOnNetContributionPct)}</div>
+
+                  <div style={{ fontSize: "14px", color: "#111827" }}>Jaarlijkse uitkering vanaf AOW</div>
+                  <div style={{ fontSize: "14px", color: "#111827", fontWeight: 700 }}>{formatCurrency(lifeline.pensionAnnualPayout)}</div>
+                </div>
+              </div>
+
+              <div style={{ marginTop: "10px", fontSize: "12px", color: "#6B7280", lineHeight: 1.4 }}>
+                Belastingteruggave is een indicatie voor dit dashboard en wordt hier alleen berekend over eenmalige
+                inlegbedragen (tot € 17.700: 37%, daarboven: 49,5%).
               </div>
             </div>
           </div>
