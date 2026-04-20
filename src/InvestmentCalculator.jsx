@@ -1042,6 +1042,11 @@ const InvestmentCalculator = () => {
     startDepositsInYear2
   ]);
   const freeWealthSavingsReturnAmount = freeWealthSavingsBalance - freeWealthOwnContributionTotal;
+  const freeWealthAnimoReturnPct =
+    freeWealthOwnContributionTotal > 0 ? (freeWealthReturnAmount / freeWealthOwnContributionTotal) * 100 : 0;
+  const freeWealthSavingsReturnPct =
+    freeWealthOwnContributionTotal > 0 ? (freeWealthSavingsReturnAmount / freeWealthOwnContributionTotal) * 100 : 0;
+  const freeWealthExtraVsSavings = finalBalance - freeWealthSavingsBalance;
 
   const calculationData2 = useMemo(() => {
     const data = [];
@@ -4852,120 +4857,99 @@ const InvestmentCalculator = () => {
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  borderBottom: "1px solid #d1d5db",
-                  paddingBottom: "12px",
+                  gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                  gap: "8px",
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "8px",
+                  backgroundColor: "#fff",
+                  padding: "10px 12px",
                   marginBottom: "12px"
                 }}
               >
-                <div style={{ paddingRight: "12px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                  <div style={{ fontSize: "14px", color: "#6B7280", marginBottom: "8px" }}>
-                    Verwacht eindresultaat Animo
-                  </div>
-                  <div style={{ fontSize: "clamp(28px, 3vw, 44px)", fontWeight: 700, color: "#111827", lineHeight: 1 }}>
-                    {formatCurrency(finalBalance)}
-                  </div>
-                </div>
-                <div
-                  style={{
-                    borderLeft: "2px solid #9ca3af",
-                    paddingLeft: "16px",
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "center"
-                  }}
-                >
-                  <div
-                    style={{
-                      textAlign: "center",
-                      fontSize: "clamp(16px, 1.6vw, 20px)",
-                      fontWeight: 700,
-                      color: "#111827",
-                      lineHeight: 1.1,
-                      whiteSpace: "nowrap"
-                    }}
-                  >
-                    Totaal eigen inleg: {formatCurrency(freeWealthOwnContributionTotal)}
-                  </div>
-                  <div
-                    style={{
-                      borderTop: "2px solid #9ca3af",
-                      marginTop: "10px",
-                      paddingTop: "10px",
-                      textAlign: "center",
-                      fontSize: "clamp(16px, 1.6vw, 20px)",
-                      fontWeight: 700,
-                      color: "#111827",
-                      lineHeight: 1.1,
-                      whiteSpace: "nowrap"
-                    }}
-                  >
-                    Rendement: {formatCurrency(freeWealthReturnAmount)}
-                  </div>
-                </div>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "12px" }}>
-                <div style={{ fontSize: "16px", fontWeight: 700, color: "#111827", textAlign: "center" }}>
+                <div style={{ fontSize: "13px", color: "#374151", textAlign: "center", fontWeight: 600 }}>
                   Looptijd: {investmentHorizon} jaar
                 </div>
-                <div style={{ fontSize: "16px", fontWeight: 700, color: "#111827", textAlign: "center" }}>
+                <div style={{ fontSize: "13px", color: "#374151", textAlign: "center", fontWeight: 600 }}>
                   Portefeuille: {profile}
                 </div>
+                <div style={{ fontSize: "13px", color: "#374151", textAlign: "center", fontWeight: 600 }}>
+                  Eigen inleg: {formatCurrency(freeWealthOwnContributionTotal)}
+                </div>
               </div>
+
               <div
                 style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  borderTop: "1px solid #d1d5db",
-                  paddingTop: "12px",
-                  marginTop: "4px"
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "8px",
+                  overflow: "hidden",
+                  backgroundColor: "#fff"
                 }}
               >
-                <div style={{ paddingRight: "12px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                  <div style={{ fontSize: "14px", color: "#6B7280", marginBottom: "8px" }}>
-                    Verwacht eindresultaat spaarrekening (1,5% p/j)
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1.2fr 1fr 1fr",
+                    borderBottom: "1px solid #e5e7eb",
+                    backgroundColor: "#f9fafb"
+                  }}
+                >
+                  <div style={{ padding: "10px 12px", fontSize: "12px", color: "#6b7280", fontWeight: 600 }}>Vergelijking</div>
+                  <div style={{ padding: "10px 12px", fontSize: "12px", color: "#6b7280", fontWeight: 700, textAlign: "right" }}>
+                    Animo
                   </div>
-                  <div style={{ fontSize: "clamp(28px, 3vw, 44px)", fontWeight: 700, color: "#111827", lineHeight: 1 }}>
+                  <div style={{ padding: "10px 12px", fontSize: "12px", color: "#6b7280", fontWeight: 700, textAlign: "right" }}>
+                    Spaarrekening (1,5% p/j)
+                  </div>
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr 1fr", borderBottom: "1px solid #e5e7eb" }}>
+                  <div style={{ padding: "12px", fontSize: "13px", color: "#374151", fontWeight: 600 }}>Verwacht eindresultaat</div>
+                  <div style={{ padding: "10px 12px", fontSize: "clamp(24px,2.6vw,36px)", color: "#111827", fontWeight: 700, textAlign: "right", lineHeight: 1 }}>
+                    {formatCurrency(finalBalance)}
+                  </div>
+                  <div style={{ padding: "10px 12px", fontSize: "clamp(24px,2.6vw,36px)", color: "#111827", fontWeight: 700, textAlign: "right", lineHeight: 1 }}>
                     {formatCurrency(freeWealthSavingsBalance)}
                   </div>
                 </div>
-                <div
-                  style={{
-                    borderLeft: "2px solid #9ca3af",
-                    paddingLeft: "16px",
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "center"
-                  }}
-                >
-                  <div
-                    style={{
-                      textAlign: "center",
-                      fontSize: "clamp(16px, 1.6vw, 20px)",
-                      fontWeight: 700,
-                      color: "#111827",
-                      lineHeight: 1.1,
-                      whiteSpace: "nowrap"
-                    }}
-                  >
-                    Totaal eigen inleg: {formatCurrency(freeWealthOwnContributionTotal)}
+
+                <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr 1fr", borderBottom: "1px solid #e5e7eb" }}>
+                  <div style={{ padding: "10px 12px", fontSize: "13px", color: "#374151", fontWeight: 600 }}>Rendement in €</div>
+                  <div style={{ padding: "10px 12px", fontSize: "18px", color: "#0d2a28", fontWeight: 700, textAlign: "right" }}>
+                    {formatCurrency(freeWealthReturnAmount)}
                   </div>
-                  <div
-                    style={{
-                      borderTop: "2px solid #9ca3af",
-                      marginTop: "10px",
-                      paddingTop: "10px",
-                      textAlign: "center",
-                      fontSize: "clamp(16px, 1.6vw, 20px)",
-                      fontWeight: 700,
-                      color: "#111827",
-                      lineHeight: 1.1,
-                      whiteSpace: "nowrap"
-                    }}
-                  >
-                    Rendement: {formatCurrency(freeWealthSavingsReturnAmount)}
+                  <div style={{ padding: "10px 12px", fontSize: "18px", color: "#111827", fontWeight: 700, textAlign: "right" }}>
+                    {formatCurrency(freeWealthSavingsReturnAmount)}
                   </div>
                 </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr 1fr" }}>
+                  <div style={{ padding: "10px 12px", fontSize: "13px", color: "#374151", fontWeight: 600 }}>
+                    Rendement in % van eigen inleg
+                  </div>
+                  <div style={{ padding: "10px 12px", fontSize: "16px", color: "#0d2a28", fontWeight: 700, textAlign: "right" }}>
+                    {freeWealthAnimoReturnPct.toFixed(1).replace(".", ",")}%
+                  </div>
+                  <div style={{ padding: "10px 12px", fontSize: "16px", color: "#111827", fontWeight: 700, textAlign: "right" }}>
+                    {freeWealthSavingsReturnPct.toFixed(1).replace(".", ",")}%
+                  </div>
+                </div>
+              </div>
+
+              <div
+                style={{
+                  marginTop: "12px",
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "8px",
+                  backgroundColor: "#fff",
+                  padding: "12px",
+                  textAlign: "center",
+                  fontSize: "16px",
+                  fontWeight: 700,
+                  color: freeWealthExtraVsSavings >= 0 ? "#0d2a28" : "#991b1b"
+                }}
+              >
+                Extra resultaat met Animo: {freeWealthExtraVsSavings >= 0 ? "+" : "-"}
+                {formatCurrency(Math.abs(freeWealthExtraVsSavings))}
               </div>
             </div>
           </div>
