@@ -4897,7 +4897,10 @@ const InvestmentCalculator = () => {
             }}
           >
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
-              <div style={{ fontSize: "20px", fontWeight: 700, color: "#111827" }}>Vrij Vermogen Animo</div>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", fontSize: "20px", fontWeight: 700, color: "#111827" }}>
+                <span>Vrij Vermogen Animo</span>
+                <span style={{ width: "14px", height: "3px", backgroundColor: "#d2bb5d", borderRadius: "2px" }} />
+              </div>
               <button
                 type="button"
                 onClick={() => setIsFreeWealthInfoModalOpen(false)}
@@ -5080,7 +5083,10 @@ const InvestmentCalculator = () => {
             }}
           >
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
-              <div style={{ fontSize: "20px", fontWeight: 700, color: "#111827" }}>Pensioen Animo</div>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", fontSize: "20px", fontWeight: 700, color: "#111827" }}>
+                <span>Pensioen Animo</span>
+                <span style={{ width: "14px", height: "3px", backgroundColor: "#6672a8", borderRadius: "2px" }} />
+              </div>
               <button
                 type="button"
                 onClick={() => setIsPensionInfoModalOpen(false)}
