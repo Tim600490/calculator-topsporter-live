@@ -5172,7 +5172,7 @@ const InvestmentCalculator = () => {
                   <div style={{ fontSize: "14px", color: "#0d2a28", fontWeight: 700 }}>{formatPercentOneDecimal(pensionReturnOnNetContributionPct)}</div>
 
                   <div style={{ fontSize: "14px", color: "#111827" }}>
-                    Indicatieve jaarlijkse uitkering vanaf AOW gedurende de looptijd in jaren
+                    Indicatieve jaarlijkse uitkering vanaf AOW gedurende {lifeline.pensionPayoutYears} jaar
                   </div>
                   <div style={{ fontSize: "14px", color: "#111827", fontWeight: 700 }}>{formatCurrency(lifeline.pensionAnnualPayout)}</div>
                 </div>
