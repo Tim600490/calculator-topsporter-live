@@ -4964,31 +4964,33 @@ const InvestmentCalculator = () => {
                     backgroundColor: "#f9fafb"
                   }}
                 >
-                  <div style={{ padding: "10px 12px", fontSize: "12px", color: "#6b7280", fontWeight: 600 }}>Vergelijking</div>
-                  <div style={{ padding: "10px 12px", fontSize: "12px", color: "#6b7280", fontWeight: 700, textAlign: "right" }}>
-                    Animo
+                  <div style={{ padding: "10px 12px", fontSize: "12px", color: "#6b7280", fontWeight: 600 }}>
+                    Vergelijking
                   </div>
-                  <div style={{ padding: "10px 12px", fontSize: "12px", color: "#6b7280", fontWeight: 700, textAlign: "right" }}>
+                  <div style={{ padding: "10px 12px", fontSize: "12px", color: "#6b7280", fontWeight: 700, textAlign: "center" }}>
+                    Animo beleggen
+                  </div>
+                  <div style={{ padding: "10px 12px", fontSize: "12px", color: "#6b7280", fontWeight: 700, textAlign: "center" }}>
                     Spaarrekening (1,5% p/j)
                   </div>
                 </div>
 
                 <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr 1fr", borderBottom: "1px solid #e5e7eb" }}>
                   <div style={{ padding: "12px", fontSize: "13px", color: "#374151", fontWeight: 600 }}>Verwacht eindresultaat</div>
-                  <div style={{ padding: "10px 12px", fontSize: "clamp(24px,2.6vw,36px)", color: "#111827", fontWeight: 700, textAlign: "right", lineHeight: 1 }}>
+                  <div style={{ padding: "10px 12px", fontSize: "clamp(22px,2.2vw,34px)", color: "#111827", fontWeight: 700, textAlign: "center", lineHeight: 1 }}>
                     {formatCurrency(finalBalance)}
                   </div>
-                  <div style={{ padding: "10px 12px", fontSize: "clamp(24px,2.6vw,36px)", color: "#111827", fontWeight: 700, textAlign: "right", lineHeight: 1 }}>
+                  <div style={{ padding: "10px 12px", fontSize: "clamp(22px,2.2vw,34px)", color: "#111827", fontWeight: 700, textAlign: "center", lineHeight: 1 }}>
                     {formatCurrency(freeWealthSavingsBalance)}
                   </div>
                 </div>
 
                 <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr 1fr", borderBottom: "1px solid #e5e7eb" }}>
                   <div style={{ padding: "10px 12px", fontSize: "13px", color: "#374151", fontWeight: 600 }}>Rendement in €</div>
-                  <div style={{ padding: "10px 12px", fontSize: "18px", color: "#0d2a28", fontWeight: 700, textAlign: "right" }}>
+                  <div style={{ padding: "10px 12px", fontSize: "17px", color: "#0d2a28", fontWeight: 700, textAlign: "center" }}>
                     {formatCurrency(freeWealthReturnAmount)}
                   </div>
-                  <div style={{ padding: "10px 12px", fontSize: "18px", color: "#111827", fontWeight: 700, textAlign: "right" }}>
+                  <div style={{ padding: "10px 12px", fontSize: "17px", color: "#111827", fontWeight: 700, textAlign: "center" }}>
                     {formatCurrency(freeWealthSavingsReturnAmount)}
                   </div>
                 </div>
@@ -4997,10 +4999,10 @@ const InvestmentCalculator = () => {
                   <div style={{ padding: "10px 12px", fontSize: "13px", color: "#374151", fontWeight: 600 }}>
                     Rendement in % van eigen inleg
                   </div>
-                  <div style={{ padding: "10px 12px", fontSize: "16px", color: "#0d2a28", fontWeight: 700, textAlign: "right" }}>
+                  <div style={{ padding: "10px 12px", fontSize: "15px", color: "#0d2a28", fontWeight: 700, textAlign: "center" }}>
                     {freeWealthAnimoReturnPct.toFixed(1).replace(".", ",")}%
                   </div>
-                  <div style={{ padding: "10px 12px", fontSize: "16px", color: "#111827", fontWeight: 700, textAlign: "right" }}>
+                  <div style={{ padding: "10px 12px", fontSize: "15px", color: "#111827", fontWeight: 700, textAlign: "center" }}>
                     {freeWealthSavingsReturnPct.toFixed(1).replace(".", ",")}%
                   </div>
                 </div>
