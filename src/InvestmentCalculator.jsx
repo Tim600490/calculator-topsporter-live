@@ -5116,7 +5116,7 @@ const InvestmentCalculator = () => {
                 }}
               >
                 <div style={{ fontSize: "13px", color: "#6B7280", marginBottom: "8px" }}>
-                  Verwacht eindresultaat pensioen (bruto - box1)
+                  Verwacht eindresultaat pensioen
                 </div>
                 <div style={{ fontSize: "clamp(30px, 3vw, 44px)", fontWeight: 700, color: "#111827", lineHeight: 1 }}>
                   {formatCurrency(pensionExpectedEndResult)}
@@ -5133,13 +5133,13 @@ const InvestmentCalculator = () => {
                 }}
               >
                 <div style={{ fontSize: "13px", color: "#6B7280", marginBottom: "10px", fontWeight: 600 }}>
-                  Inlegoverzicht (bruto/netto)
+                  Inlegoverzicht
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr auto", rowGap: "8px", columnGap: "12px" }}>
-                  <div style={{ fontSize: "14px", color: "#111827" }}>Totale bruto inleg</div>
+                  <div style={{ fontSize: "14px", color: "#111827" }}>Totale inleg</div>
                   <div style={{ fontSize: "14px", color: "#111827", fontWeight: 700 }}>{formatCurrency(pensionGrossContributionTotal)}</div>
 
-                  <div style={{ fontSize: "14px", color: "#111827" }}>Belastingteruggave (alleen eenmalige inleg)</div>
+                  <div style={{ fontSize: "14px", color: "#111827" }}>Indicatieve belastingteruggave</div>
                   <div style={{ fontSize: "14px", color: "#0d2a28", fontWeight: 700 }}>
                     - {formatCurrency(pensionTaxRefundOnOneTimeContributions)}
                   </div>
@@ -5150,9 +5150,6 @@ const InvestmentCalculator = () => {
                   <div style={{ fontSize: "14px", color: "#111827", fontWeight: 700, paddingTop: "2px", borderTop: "1px solid #e5e7eb" }}>
                     {formatCurrency(pensionNetOwnContributionTotal)}
                   </div>
-                </div>
-                <div style={{ marginTop: "10px", fontSize: "12px", color: "#6B7280" }}>
-                  Netto voordeel door aftrek: {formatPercentOneDecimal(pensionTaxBenefitPct)}
                 </div>
               </div>
 
@@ -5174,14 +5171,11 @@ const InvestmentCalculator = () => {
                   <div style={{ fontSize: "14px", color: "#111827" }}>Rendement op netto inleg (%)</div>
                   <div style={{ fontSize: "14px", color: "#0d2a28", fontWeight: 700 }}>{formatPercentOneDecimal(pensionReturnOnNetContributionPct)}</div>
 
-                  <div style={{ fontSize: "14px", color: "#111827" }}>Jaarlijkse uitkering vanaf AOW</div>
+                  <div style={{ fontSize: "14px", color: "#111827" }}>
+                    Indicatieve jaarlijkse uitkering vanaf AOW gedurende de looptijd in jaren
+                  </div>
                   <div style={{ fontSize: "14px", color: "#111827", fontWeight: 700 }}>{formatCurrency(lifeline.pensionAnnualPayout)}</div>
                 </div>
-              </div>
-
-              <div style={{ marginTop: "10px", fontSize: "12px", color: "#6B7280", lineHeight: 1.4 }}>
-                Belastingteruggave is een indicatie voor dit dashboard en wordt hier alleen berekend over eenmalige
-                inlegbedragen (tot € 17.700: 37%, daarboven: 49,5%).
               </div>
             </div>
           </div>
