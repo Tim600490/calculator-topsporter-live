@@ -5022,6 +5022,28 @@ const InvestmentCalculator = () => {
                 Extra resultaat met Animo: {freeWealthExtraVsSavings >= 0 ? "+" : "-"}
                 {formatCurrency(Math.abs(freeWealthExtraVsSavings))}
               </div>
+
+              <div
+                style={{
+                  marginTop: "12px",
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "8px",
+                  backgroundColor: "#fff",
+                  padding: "12px",
+                  fontSize: "13px",
+                  color: "#4b5563",
+                  lineHeight: 1.5
+                }}
+              >
+                <div>
+                  Dit vermogen biedt volledige flexibiliteit, ook wel vrij vermogen genoemd. Je kunt er altijd bij,
+                  al is het uiteraard de bedoeling om voor de lange termijn te investeren, want dat geeft de beste
+                  eindresultaten.
+                </div>
+                <div style={{ marginTop: "8px" }}>
+                  Dit vermogen kan mooi dienen als inkomstenaanvulling bijvoorbeeld na de CFK-uitkering.
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -5141,7 +5163,7 @@ const InvestmentCalculator = () => {
 
                   <div style={{ fontSize: "14px", color: "#111827" }}>Indicatieve belastingteruggave</div>
                   <div style={{ fontSize: "14px", color: "#0d2a28", fontWeight: 700 }}>
-                    - {formatCurrency(pensionTaxRefundOnOneTimeContributions)}
+                    {formatCurrency(pensionTaxRefundOnOneTimeContributions)}
                   </div>
 
                   <div style={{ fontSize: "14px", color: "#111827", fontWeight: 700, paddingTop: "2px", borderTop: "1px solid #e5e7eb" }}>
@@ -5176,6 +5198,28 @@ const InvestmentCalculator = () => {
                   </div>
                   <div style={{ fontSize: "14px", color: "#111827", fontWeight: 700 }}>{formatCurrency(lifeline.pensionAnnualPayout)}</div>
                 </div>
+              </div>
+
+              <div
+                style={{
+                  marginTop: "12px",
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "8px",
+                  backgroundColor: "#fff",
+                  padding: "12px",
+                  fontSize: "13px",
+                  color: "#4b5563",
+                  lineHeight: 1.5
+                }}
+              >
+                <div>
+                  Dit vermogen bouw je op als pensioen voorziening. Het is echt bedoeld voor je oude dag en biedt
+                  mooie voordelen tijdens de opbouwfase, zoals:
+                </div>
+                <ul style={{ marginTop: "8px", paddingLeft: "18px" }}>
+                  <li>De inleg krijg je deels terug van de belastingdienst.</li>
+                  <li>Over dit vermogen wordt geen vermogensbelasting gerekend.</li>
+                </ul>
               </div>
             </div>
           </div>
