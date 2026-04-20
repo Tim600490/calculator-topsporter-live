@@ -4980,10 +4980,10 @@ const InvestmentCalculator = () => {
 
                 <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr 1fr", borderBottom: "1px solid #e5e7eb" }}>
                   <div style={{ padding: "12px", fontSize: "13px", color: "#374151", fontWeight: 600 }}>Verwacht eindresultaat</div>
-                  <div style={{ padding: "10px 12px", fontSize: "clamp(22px,2.2vw,34px)", color: "#111827", fontWeight: 700, textAlign: "center", lineHeight: 1 }}>
+                  <div style={{ padding: "10px 12px", fontSize: "clamp(20px,2vw,30px)", color: "#111827", fontWeight: 700, textAlign: "center", lineHeight: 1 }}>
                     {formatCurrency(finalBalance)}
                   </div>
-                  <div style={{ padding: "10px 12px", fontSize: "clamp(22px,2.2vw,34px)", color: "#111827", fontWeight: 700, textAlign: "center", lineHeight: 1 }}>
+                  <div style={{ padding: "10px 12px", fontSize: "clamp(20px,2vw,30px)", color: "#111827", fontWeight: 700, textAlign: "center", lineHeight: 1 }}>
                     {formatCurrency(freeWealthSavingsBalance)}
                   </div>
                 </div>
@@ -5148,7 +5148,7 @@ const InvestmentCalculator = () => {
                 <div style={{ fontSize: "13px", color: "#6B7280", marginBottom: "8px" }}>
                   Verwacht eindresultaat pensioen
                 </div>
-                <div style={{ fontSize: "clamp(30px, 3vw, 44px)", fontWeight: 700, color: "#111827", lineHeight: 1 }}>
+                <div style={{ fontSize: "clamp(24px, 2.4vw, 36px)", fontWeight: 700, color: "#111827", lineHeight: 1 }}>
                   {formatCurrency(pensionExpectedEndResult)}
                 </div>
               </div>
