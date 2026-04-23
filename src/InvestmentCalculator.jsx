@@ -263,6 +263,12 @@ const InvestmentCalculator = () => {
   const [phase2EndYear, setPhase2EndYear] = useState(0);
   const [phase3MonthlyDeposit, setPhase3MonthlyDeposit] = useState(0);
   const [phase3EndYear, setPhase3EndYear] = useState(0);
+  const [phase4MonthlyDeposit, setPhase4MonthlyDeposit] = useState(0);
+  const [phase4EndYear, setPhase4EndYear] = useState(0);
+  const [phase5MonthlyDeposit, setPhase5MonthlyDeposit] = useState(0);
+  const [phase5EndYear, setPhase5EndYear] = useState(0);
+  const [phase6MonthlyDeposit, setPhase6MonthlyDeposit] = useState(0);
+  const [phase6EndYear, setPhase6EndYear] = useState(0);
   const [investmentHorizon, setInvestmentHorizon] = useState(20);
   const [startAge, setStartAge] = useState(18);
   const [startAmount2, setStartAmount2] = useState(0);
@@ -286,6 +292,9 @@ const InvestmentCalculator = () => {
   const [childAge3, setChildAge3] = useState(1);
   const aowAge = 68;
   const [oneTimeExtras, setOneTimeExtras] = useState([
+    { amount: 0, year: 5, month: 6 },
+    { amount: 0, year: 5, month: 6 },
+    { amount: 0, year: 5, month: 6 },
     { amount: 0, year: 5, month: 6 },
     { amount: 0, year: 5, month: 6 },
     { amount: 0, year: 5, month: 6 }
@@ -425,28 +434,38 @@ const InvestmentCalculator = () => {
   }, [cfkDurationRange.max, cfkDurationRange.min]);
 
   useEffect(() => {
-    if (phase1Years > investmentHorizon) {
-      setPhase1Years(investmentHorizon);
+    const clampYear = (value) => Math.max(0, Math.min(investmentHorizon, Math.round(Number(value) || 0)));
+    const nextPhase1 = clampYear(phase1Years);
+    const nextPhase2 = Math.max(nextPhase1, clampYear(phase2EndYear));
+    const nextPhase3 = Math.max(nextPhase2, clampYear(phase3EndYear));
+    const nextPhase4 = Math.max(nextPhase3, clampYear(phase4EndYear));
+    const nextPhase5 = Math.max(nextPhase4, clampYear(phase5EndYear));
+    const nextPhase6 = Math.max(nextPhase5, clampYear(phase6EndYear));
+
+    if (nextPhase1 !== phase1Years) {
+      setPhase1Years(nextPhase1);
       return;
     }
-    if (phase2EndYear > investmentHorizon) {
-      setPhase2EndYear(investmentHorizon);
+    if (nextPhase2 !== phase2EndYear) {
+      setPhase2EndYear(nextPhase2);
       return;
     }
-    if (phase3EndYear > investmentHorizon) {
-      setPhase3EndYear(investmentHorizon);
+    if (nextPhase3 !== phase3EndYear) {
+      setPhase3EndYear(nextPhase3);
       return;
     }
-    const minPhase2End = phase2MonthlyDeposit > 0 || phase3MonthlyDeposit > 0 ? phase1Years : 0;
-    if (phase2EndYear < minPhase2End) {
-      setPhase2EndYear(minPhase2End);
+    if (nextPhase4 !== phase4EndYear) {
+      setPhase4EndYear(nextPhase4);
       return;
     }
-    const minPhase3End = phase3MonthlyDeposit > 0 ? phase2EndYear : 0;
-    if (phase3EndYear < minPhase3End) {
-      setPhase3EndYear(minPhase3End);
+    if (nextPhase5 !== phase5EndYear) {
+      setPhase5EndYear(nextPhase5);
+      return;
     }
-  }, [phase1Years, phase2EndYear, phase3EndYear, phase2MonthlyDeposit, phase3MonthlyDeposit, investmentHorizon]);
+    if (nextPhase6 !== phase6EndYear) {
+      setPhase6EndYear(nextPhase6);
+    }
+  }, [phase1Years, phase2EndYear, phase3EndYear, phase4EndYear, phase5EndYear, phase6EndYear, investmentHorizon]);
 
   useEffect(() => {
     if (phase1Years2 > investmentHorizon2) {
@@ -621,6 +640,9 @@ const InvestmentCalculator = () => {
     const phase1Months = phase1Years * 12;
     const phase2Months = phase2EndYear * 12;
     const phase3Months = phase3EndYear * 12;
+    const phase4Months = phase4EndYear * 12;
+    const phase5Months = phase5EndYear * 12;
+    const phase6Months = phase6EndYear * 12;
 
     if (monthInDepositTimeline <= phase1Months) {
       return phase1MonthlyDeposit;
@@ -630,6 +652,15 @@ const InvestmentCalculator = () => {
     }
     if (monthInDepositTimeline <= phase3Months) {
       return phase3MonthlyDeposit;
+    }
+    if (monthInDepositTimeline <= phase4Months) {
+      return phase4MonthlyDeposit;
+    }
+    if (monthInDepositTimeline <= phase5Months) {
+      return phase5MonthlyDeposit;
+    }
+    if (monthInDepositTimeline <= phase6Months) {
+      return phase6MonthlyDeposit;
     }
     return 0;
   };
@@ -790,10 +821,19 @@ const InvestmentCalculator = () => {
     setPhase2EndYear(0);
     setPhase3MonthlyDeposit(0);
     setPhase3EndYear(0);
+    setPhase4MonthlyDeposit(0);
+    setPhase4EndYear(0);
+    setPhase5MonthlyDeposit(0);
+    setPhase5EndYear(0);
+    setPhase6MonthlyDeposit(0);
+    setPhase6EndYear(0);
     setInvestmentHorizon(20);
     setProfile("Gedreven");
     setStartDepositsInYear2(false);
     setOneTimeExtras([
+      { amount: 0, year: 5, month: 6 },
+      { amount: 0, year: 5, month: 6 },
+      { amount: 0, year: 5, month: 6 },
       { amount: 0, year: 5, month: 6 },
       { amount: 0, year: 5, month: 6 },
       { amount: 0, year: 5, month: 6 }
@@ -862,10 +902,19 @@ const InvestmentCalculator = () => {
     setPhase2EndYear(0);
     setPhase3MonthlyDeposit(0);
     setPhase3EndYear(0);
+    setPhase4MonthlyDeposit(0);
+    setPhase4EndYear(0);
+    setPhase5MonthlyDeposit(0);
+    setPhase5EndYear(0);
+    setPhase6MonthlyDeposit(0);
+    setPhase6EndYear(0);
     setInvestmentHorizon(40);
     setProfile("Behouden");
     setStartDepositsInYear2(false);
     setOneTimeExtras([
+      { amount: 0, year: 5, month: 6 },
+      { amount: 0, year: 5, month: 6 },
+      { amount: 0, year: 5, month: 6 },
       { amount: 0, year: 5, month: 6 },
       { amount: 0, year: 5, month: 6 },
       { amount: 0, year: 5, month: 6 }
@@ -979,6 +1028,12 @@ const InvestmentCalculator = () => {
     phase2EndYear,
     phase3MonthlyDeposit,
     phase3EndYear,
+    phase4MonthlyDeposit,
+    phase4EndYear,
+    phase5MonthlyDeposit,
+    phase5EndYear,
+    phase6MonthlyDeposit,
+    phase6EndYear,
     oneTimeExtras,
     startDepositsInYear2,
     investmentHorizon,
@@ -1001,6 +1056,12 @@ const InvestmentCalculator = () => {
     phase2EndYear,
     phase3MonthlyDeposit,
     phase3EndYear,
+    phase4MonthlyDeposit,
+    phase4EndYear,
+    phase5MonthlyDeposit,
+    phase5EndYear,
+    phase6MonthlyDeposit,
+    phase6EndYear,
     startDepositsInYear2
   ]);
   const freeWealthOneTimeContributionTotal = useMemo(() => {
@@ -1039,6 +1100,12 @@ const InvestmentCalculator = () => {
     phase2EndYear,
     phase3MonthlyDeposit,
     phase3EndYear,
+    phase4MonthlyDeposit,
+    phase4EndYear,
+    phase5MonthlyDeposit,
+    phase5EndYear,
+    phase6MonthlyDeposit,
+    phase6EndYear,
     oneTimeExtras,
     startDepositsInYear2
   ]);
@@ -1571,28 +1638,8 @@ const InvestmentCalculator = () => {
     const checkpointSet = new Set(halfYearMonths);
 
     for (let month = 1; month <= 96; month++) {
-      const monthInDepositTimeline = startDepositsInYear2 ? month - 12 : month;
-      let monthlyDeposit = 0;
-      if (monthInDepositTimeline > 0) {
-        const phase1Months = phase1Years * 12;
-        const phase2Months = phase2EndYear * 12;
-        const phase3Months = phase3EndYear * 12;
-        if (monthInDepositTimeline <= phase1Months) {
-          monthlyDeposit = phase1MonthlyDeposit;
-        } else if (monthInDepositTimeline <= phase2Months) {
-          monthlyDeposit = phase2MonthlyDeposit;
-        } else if (monthInDepositTimeline <= phase3Months) {
-          monthlyDeposit = phase3MonthlyDeposit;
-        }
-      }
-
-      const oneTimeExtraThisMonth = oneTimeExtras.reduce((sum, entry) => {
-        if (entry.amount <= 0) {
-          return sum;
-        }
-        const targetMonth = (entry.year - 1) * 12 + entry.month;
-        return sum + (month === targetMonth ? entry.amount : 0);
-      }, 0);
+      const monthlyDeposit = getMonthlyDepositForMonth(month);
+      const oneTimeExtraThisMonth = getOneTimeExtraForMonth(month);
 
       balance = balance * (1 + monthlyReturn);
       balance += monthlyDeposit + oneTimeExtraThisMonth;
@@ -1637,6 +1684,12 @@ const InvestmentCalculator = () => {
     phase2EndYear,
     phase3MonthlyDeposit,
     phase3EndYear,
+    phase4MonthlyDeposit,
+    phase4EndYear,
+    phase5MonthlyDeposit,
+    phase5EndYear,
+    phase6MonthlyDeposit,
+    phase6EndYear,
     startAmount,
     startDepositsInYear2
   ]);
@@ -2524,6 +2577,18 @@ const InvestmentCalculator = () => {
         setPhase3MonthlyDeposit,
         phase3EndYear,
         setPhase3EndYear,
+        phase4MonthlyDeposit,
+        setPhase4MonthlyDeposit,
+        phase4EndYear,
+        setPhase4EndYear,
+        phase5MonthlyDeposit,
+        setPhase5MonthlyDeposit,
+        phase5EndYear,
+        setPhase5EndYear,
+        phase6MonthlyDeposit,
+        setPhase6MonthlyDeposit,
+        phase6EndYear,
+        setPhase6EndYear,
         startDepositsInYear2,
         setStartDepositsInYear2,
         oneTimeExtras,
@@ -2566,6 +2631,18 @@ const InvestmentCalculator = () => {
         setPhase3MonthlyDeposit: setPhase3MonthlyDeposit2,
         phase3EndYear: phase3EndYear2,
         setPhase3EndYear: setPhase3EndYear2,
+        phase4MonthlyDeposit: 0,
+        setPhase4MonthlyDeposit: () => {},
+        phase4EndYear: 0,
+        setPhase4EndYear: () => {},
+        phase5MonthlyDeposit: 0,
+        setPhase5MonthlyDeposit: () => {},
+        phase5EndYear: 0,
+        setPhase5EndYear: () => {},
+        phase6MonthlyDeposit: 0,
+        setPhase6MonthlyDeposit: () => {},
+        phase6EndYear: 0,
+        setPhase6EndYear: () => {},
         startDepositsInYear2: startDepositsInYear22,
         setStartDepositsInYear2: setStartDepositsInYear22,
         oneTimeExtras: oneTimeExtras2,
@@ -2607,6 +2684,18 @@ const InvestmentCalculator = () => {
       setPhase3MonthlyDeposit: setPhase3MonthlyDeposit3,
       phase3EndYear: phase3EndYear3,
       setPhase3EndYear: setPhase3EndYear3,
+      phase4MonthlyDeposit: 0,
+      setPhase4MonthlyDeposit: () => {},
+      phase4EndYear: 0,
+      setPhase4EndYear: () => {},
+      phase5MonthlyDeposit: 0,
+      setPhase5MonthlyDeposit: () => {},
+      phase5EndYear: 0,
+      setPhase5EndYear: () => {},
+      phase6MonthlyDeposit: 0,
+      setPhase6MonthlyDeposit: () => {},
+      phase6EndYear: 0,
+      setPhase6EndYear: () => {},
       startDepositsInYear2: startDepositsInYear23,
       setStartDepositsInYear2: setStartDepositsInYear23,
       oneTimeExtras: oneTimeExtras3,
@@ -2675,6 +2764,18 @@ const InvestmentCalculator = () => {
           setPhase3MonthlyDeposit,
           phase3EndYear,
           setPhase3EndYear,
+          phase4MonthlyDeposit,
+          setPhase4MonthlyDeposit,
+          phase4EndYear,
+          setPhase4EndYear,
+          phase5MonthlyDeposit,
+          setPhase5MonthlyDeposit,
+          phase5EndYear,
+          setPhase5EndYear,
+          phase6MonthlyDeposit,
+          setPhase6MonthlyDeposit,
+          phase6EndYear,
+          setPhase6EndYear,
           startDepositsInYear2,
           setStartDepositsInYear2,
           oneTimeExtras,
@@ -2694,16 +2795,31 @@ const InvestmentCalculator = () => {
         const isNextGeneration = calculatorIndex === 2;
         const startAmountMax = isNextGeneration ? 6500 : 1000000;
         const startAmountFill = startAmountMax === 0 ? 0 : (startAmount / startAmountMax) * 100;
-        const phase2MinYear = phase2MonthlyDeposit > 0 || phase3MonthlyDeposit > 0 ? phase1Years : 0;
+        const phase2MinYear = phase1Years;
         const phase2FillPercentage =
           investmentHorizon - phase2MinYear === 0
             ? 0
             : ((phase2EndYear - phase2MinYear) / (investmentHorizon - phase2MinYear)) * 100;
-        const phase3MinYear = phase3MonthlyDeposit > 0 ? phase2EndYear : 0;
+        const phase3MinYear = phase2EndYear;
         const phase3FillPercentage =
           investmentHorizon - phase3MinYear === 0
             ? 0
             : ((phase3EndYear - phase3MinYear) / (investmentHorizon - phase3MinYear)) * 100;
+        const phase4MinYear = phase3EndYear;
+        const phase4FillPercentage =
+          investmentHorizon - phase4MinYear === 0
+            ? 0
+            : ((phase4EndYear - phase4MinYear) / (investmentHorizon - phase4MinYear)) * 100;
+        const phase5MinYear = phase4EndYear;
+        const phase5FillPercentage =
+          investmentHorizon - phase5MinYear === 0
+            ? 0
+            : ((phase5EndYear - phase5MinYear) / (investmentHorizon - phase5MinYear)) * 100;
+        const phase6MinYear = phase5EndYear;
+        const phase6FillPercentage =
+          investmentHorizon - phase6MinYear === 0
+            ? 0
+            : ((phase6EndYear - phase6MinYear) / (investmentHorizon - phase6MinYear)) * 100;
 
         return (
       <div
@@ -3346,6 +3462,373 @@ const InvestmentCalculator = () => {
               </div>
             </div>
           </div>
+
+          {isPrimary && (
+            <>
+              {/* Monthly Deposit - Phase 4 */}
+              <div style={{ marginBottom: "32px" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: "16px"
+                  }}
+                >
+                  <label style={{ fontSize: "18px", fontWeight: "500", color: "#111827" }}>
+                    Inleg p/m fase 4
+                  </label>
+                  <span style={{ fontSize: "20px", fontWeight: "bold" }}>
+                    {formatCurrency(phase4MonthlyDeposit)}
+                  </span>
+                </div>
+                <div style={{ position: "relative" }}>
+                  <input
+                    type="range"
+                    min="0"
+                    max="10000"
+                    step="100"
+                    value={phase4MonthlyDeposit}
+                    onChange={(e) => setPhase4MonthlyDeposit(Number(e.target.value))}
+                    style={{
+                      width: "100%",
+                      height: "8px",
+                      borderRadius: "4px",
+                      background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${(phase4MonthlyDeposit / 10000) * 100}%, #E5E7EB ${(phase4MonthlyDeposit / 10000) * 100}%, #E5E7EB 100%)`,
+                      outline: "none",
+                      appearance: "none",
+                      cursor: "pointer"
+                    }}
+                  />
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      fontSize: "14px",
+                      color: "#6B7280",
+                      marginTop: "8px"
+                    }}
+                  >
+                    <span>€0</span>
+                    <span>€10.000</span>
+                  </div>
+                  <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "8px" }}>
+                    <span style={{ fontSize: "14px", color: "#6B7280" }}>Exact p/m:</span>
+                    <span style={{ fontSize: "14px", color: "#111827" }}>€</span>
+                    <input
+                      type="number"
+                      min="0"
+                      max="10000"
+                      step="1"
+                      value={phase4MonthlyDeposit}
+                      onChange={(e) => setPhase4MonthlyDeposit(clampEuro(e.target.value))}
+                      style={{
+                        width: "120px",
+                        padding: "6px 8px",
+                        border: "1px solid #D2BB5D",
+                        borderRadius: "6px",
+                        fontSize: "14px",
+                        outline: "none",
+                        backgroundColor: "#fff"
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Phase 4 End Year */}
+              <div style={{ marginBottom: "32px" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: "16px"
+                  }}
+                >
+                  <label style={{ fontSize: "18px", fontWeight: "500", color: "#111827" }}>
+                    Fase 4 tot jaar
+                  </label>
+                  <span style={{ fontSize: "20px", fontWeight: "bold" }}>
+                    {phase4EndYear} jaar
+                  </span>
+                </div>
+                <div style={{ position: "relative" }}>
+                  <input
+                    type="range"
+                    min={phase4MinYear}
+                    max={investmentHorizon}
+                    step="1"
+                    value={phase4EndYear}
+                    onChange={(e) => setPhase4EndYear(Number(e.target.value))}
+                    style={{
+                      width: "100%",
+                      height: "8px",
+                      borderRadius: "4px",
+                      background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${phase4FillPercentage}%, #E5E7EB ${phase4FillPercentage}%, #E5E7EB 100%)`,
+                      outline: "none",
+                      appearance: "none",
+                      cursor: "pointer"
+                    }}
+                  />
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      fontSize: "14px",
+                      color: "#6B7280",
+                      marginTop: "8px"
+                    }}
+                  >
+                    <span>{phase4MinYear} jaar</span>
+                    <span>{investmentHorizon} jaar</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Monthly Deposit - Phase 5 */}
+              <div style={{ marginBottom: "32px" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: "16px"
+                  }}
+                >
+                  <label style={{ fontSize: "18px", fontWeight: "500", color: "#111827" }}>
+                    Inleg p/m fase 5
+                  </label>
+                  <span style={{ fontSize: "20px", fontWeight: "bold" }}>
+                    {formatCurrency(phase5MonthlyDeposit)}
+                  </span>
+                </div>
+                <div style={{ position: "relative" }}>
+                  <input
+                    type="range"
+                    min="0"
+                    max="10000"
+                    step="100"
+                    value={phase5MonthlyDeposit}
+                    onChange={(e) => setPhase5MonthlyDeposit(Number(e.target.value))}
+                    style={{
+                      width: "100%",
+                      height: "8px",
+                      borderRadius: "4px",
+                      background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${(phase5MonthlyDeposit / 10000) * 100}%, #E5E7EB ${(phase5MonthlyDeposit / 10000) * 100}%, #E5E7EB 100%)`,
+                      outline: "none",
+                      appearance: "none",
+                      cursor: "pointer"
+                    }}
+                  />
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      fontSize: "14px",
+                      color: "#6B7280",
+                      marginTop: "8px"
+                    }}
+                  >
+                    <span>€0</span>
+                    <span>€10.000</span>
+                  </div>
+                  <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "8px" }}>
+                    <span style={{ fontSize: "14px", color: "#6B7280" }}>Exact p/m:</span>
+                    <span style={{ fontSize: "14px", color: "#111827" }}>€</span>
+                    <input
+                      type="number"
+                      min="0"
+                      max="10000"
+                      step="1"
+                      value={phase5MonthlyDeposit}
+                      onChange={(e) => setPhase5MonthlyDeposit(clampEuro(e.target.value))}
+                      style={{
+                        width: "120px",
+                        padding: "6px 8px",
+                        border: "1px solid #D2BB5D",
+                        borderRadius: "6px",
+                        fontSize: "14px",
+                        outline: "none",
+                        backgroundColor: "#fff"
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Phase 5 End Year */}
+              <div style={{ marginBottom: "32px" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: "16px"
+                  }}
+                >
+                  <label style={{ fontSize: "18px", fontWeight: "500", color: "#111827" }}>
+                    Fase 5 tot jaar
+                  </label>
+                  <span style={{ fontSize: "20px", fontWeight: "bold" }}>
+                    {phase5EndYear} jaar
+                  </span>
+                </div>
+                <div style={{ position: "relative" }}>
+                  <input
+                    type="range"
+                    min={phase5MinYear}
+                    max={investmentHorizon}
+                    step="1"
+                    value={phase5EndYear}
+                    onChange={(e) => setPhase5EndYear(Number(e.target.value))}
+                    style={{
+                      width: "100%",
+                      height: "8px",
+                      borderRadius: "4px",
+                      background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${phase5FillPercentage}%, #E5E7EB ${phase5FillPercentage}%, #E5E7EB 100%)`,
+                      outline: "none",
+                      appearance: "none",
+                      cursor: "pointer"
+                    }}
+                  />
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      fontSize: "14px",
+                      color: "#6B7280",
+                      marginTop: "8px"
+                    }}
+                  >
+                    <span>{phase5MinYear} jaar</span>
+                    <span>{investmentHorizon} jaar</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Monthly Deposit - Phase 6 */}
+              <div style={{ marginBottom: "32px" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: "16px"
+                  }}
+                >
+                  <label style={{ fontSize: "18px", fontWeight: "500", color: "#111827" }}>
+                    Inleg p/m fase 6
+                  </label>
+                  <span style={{ fontSize: "20px", fontWeight: "bold" }}>
+                    {formatCurrency(phase6MonthlyDeposit)}
+                  </span>
+                </div>
+                <div style={{ position: "relative" }}>
+                  <input
+                    type="range"
+                    min="0"
+                    max="10000"
+                    step="100"
+                    value={phase6MonthlyDeposit}
+                    onChange={(e) => setPhase6MonthlyDeposit(Number(e.target.value))}
+                    style={{
+                      width: "100%",
+                      height: "8px",
+                      borderRadius: "4px",
+                      background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${(phase6MonthlyDeposit / 10000) * 100}%, #E5E7EB ${(phase6MonthlyDeposit / 10000) * 100}%, #E5E7EB 100%)`,
+                      outline: "none",
+                      appearance: "none",
+                      cursor: "pointer"
+                    }}
+                  />
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      fontSize: "14px",
+                      color: "#6B7280",
+                      marginTop: "8px"
+                    }}
+                  >
+                    <span>€0</span>
+                    <span>€10.000</span>
+                  </div>
+                  <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "8px" }}>
+                    <span style={{ fontSize: "14px", color: "#6B7280" }}>Exact p/m:</span>
+                    <span style={{ fontSize: "14px", color: "#111827" }}>€</span>
+                    <input
+                      type="number"
+                      min="0"
+                      max="10000"
+                      step="1"
+                      value={phase6MonthlyDeposit}
+                      onChange={(e) => setPhase6MonthlyDeposit(clampEuro(e.target.value))}
+                      style={{
+                        width: "120px",
+                        padding: "6px 8px",
+                        border: "1px solid #D2BB5D",
+                        borderRadius: "6px",
+                        fontSize: "14px",
+                        outline: "none",
+                        backgroundColor: "#fff"
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Phase 6 End Year */}
+              <div style={{ marginBottom: "32px" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: "16px"
+                  }}
+                >
+                  <label style={{ fontSize: "18px", fontWeight: "500", color: "#111827" }}>
+                    Fase 6 tot jaar
+                  </label>
+                  <span style={{ fontSize: "20px", fontWeight: "bold" }}>
+                    {phase6EndYear} jaar
+                  </span>
+                </div>
+                <div style={{ position: "relative" }}>
+                  <input
+                    type="range"
+                    min={phase6MinYear}
+                    max={investmentHorizon}
+                    step="1"
+                    value={phase6EndYear}
+                    onChange={(e) => setPhase6EndYear(Number(e.target.value))}
+                    style={{
+                      width: "100%",
+                      height: "8px",
+                      borderRadius: "4px",
+                      background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${phase6FillPercentage}%, #E5E7EB ${phase6FillPercentage}%, #E5E7EB 100%)`,
+                      outline: "none",
+                      appearance: "none",
+                      cursor: "pointer"
+                    }}
+                  />
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      fontSize: "14px",
+                      color: "#6B7280",
+                      marginTop: "8px"
+                    }}
+                  >
+                    <span>{phase6MinYear} jaar</span>
+                    <span>{investmentHorizon} jaar</span>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
           </div>
 
           </div>
