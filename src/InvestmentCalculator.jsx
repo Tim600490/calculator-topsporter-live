@@ -303,7 +303,9 @@ const InvestmentCalculator = () => {
     { amount: 0, year: 1, month: 12 },
     { amount: 0, year: 2, month: 12 },
     { amount: 0, year: 3, month: 12 },
-    { amount: 0, year: 4, month: 12 }
+    { amount: 0, year: 4, month: 12 },
+    { amount: 0, year: 5, month: 12 },
+    { amount: 0, year: 6, month: 12 }
   ]);
   const [oneTimeExtras3, setOneTimeExtras3] = useState([
     { amount: 0, year: 5, month: 6 },
@@ -319,6 +321,8 @@ const InvestmentCalculator = () => {
   const [isCalculatorExpanded, setIsCalculatorExpanded] = useState(false);
   const [isCalculatorExpanded2, setIsCalculatorExpanded2] = useState(false);
   const [isCalculatorExpanded3, setIsCalculatorExpanded3] = useState(false);
+  const [isOneTimeExtrasExpanded, setIsOneTimeExtrasExpanded] = useState(false);
+  const [isOneTimeExtrasExpanded2, setIsOneTimeExtrasExpanded2] = useState(false);
   const [lifelineZoomMode, setLifelineZoomMode] = useState("week");
   const [activeScenarioBandKey, setActiveScenarioBandKey] = useState(null);
   const [hoveredLifelineSeriesKey, setHoveredLifelineSeriesKey] = useState(null);
@@ -830,6 +834,7 @@ const InvestmentCalculator = () => {
     setInvestmentHorizon(20);
     setProfile("Gedreven");
     setStartDepositsInYear2(false);
+    setIsOneTimeExtrasExpanded(false);
     setOneTimeExtras([
       { amount: 0, year: 5, month: 6 },
       { amount: 0, year: 5, month: 6 },
@@ -857,11 +862,14 @@ const InvestmentCalculator = () => {
     setInvestmentHorizon2(20);
     setProfile2("Gedreven");
     setStartDepositsInYear22(false);
+    setIsOneTimeExtrasExpanded2(false);
     setOneTimeExtras2([
       { amount: 0, year: 1, month: 12 },
       { amount: 0, year: 2, month: 12 },
       { amount: 0, year: 3, month: 12 },
-      { amount: 0, year: 4, month: 12 }
+      { amount: 0, year: 4, month: 12 },
+      { amount: 0, year: 5, month: 12 },
+      { amount: 0, year: 6, month: 12 }
     ]);
     setPensionReturnRate(2.5);
     setPensionAowEnabled(false);
@@ -911,6 +919,7 @@ const InvestmentCalculator = () => {
     setInvestmentHorizon(40);
     setProfile("Behouden");
     setStartDepositsInYear2(false);
+    setIsOneTimeExtrasExpanded(false);
     setOneTimeExtras([
       { amount: 0, year: 5, month: 6 },
       { amount: 0, year: 5, month: 6 },
@@ -939,11 +948,14 @@ const InvestmentCalculator = () => {
     setInvestmentHorizon2(20);
     setProfile2("Gedreven");
     setStartDepositsInYear22(false);
+    setIsOneTimeExtrasExpanded2(false);
     setOneTimeExtras2([
       { amount: 25000, year: 2, month: 12 },
       { amount: 0, year: 2, month: 12 },
       { amount: 0, year: 3, month: 12 },
-      { amount: 0, year: 4, month: 12 }
+      { amount: 0, year: 4, month: 12 },
+      { amount: 0, year: 5, month: 12 },
+      { amount: 0, year: 6, month: 12 }
     ]);
     setPensionReturnRate(2.5);
     setPensionAowEnabled(true);
@@ -2591,6 +2603,8 @@ const InvestmentCalculator = () => {
         setPhase6EndYear,
         startDepositsInYear2,
         setStartDepositsInYear2,
+        isOneTimeExtrasExpanded,
+        setIsOneTimeExtrasExpanded,
         oneTimeExtras,
         updateOneTimeExtra,
         profile,
@@ -2645,6 +2659,8 @@ const InvestmentCalculator = () => {
         setPhase6EndYear: () => {},
         startDepositsInYear2: startDepositsInYear22,
         setStartDepositsInYear2: setStartDepositsInYear22,
+        isOneTimeExtrasExpanded: isOneTimeExtrasExpanded2,
+        setIsOneTimeExtrasExpanded: setIsOneTimeExtrasExpanded2,
         oneTimeExtras: oneTimeExtras2,
         updateOneTimeExtra: updateOneTimeExtra2,
         profile: profile2,
@@ -2698,6 +2714,8 @@ const InvestmentCalculator = () => {
       setPhase6EndYear: () => {},
       startDepositsInYear2: startDepositsInYear23,
       setStartDepositsInYear2: setStartDepositsInYear23,
+      isOneTimeExtrasExpanded: false,
+      setIsOneTimeExtrasExpanded: () => {},
       oneTimeExtras: oneTimeExtras3,
       updateOneTimeExtra: updateOneTimeExtra3,
       profile: profile3,
@@ -2778,6 +2796,8 @@ const InvestmentCalculator = () => {
           setPhase6EndYear,
           startDepositsInYear2,
           setStartDepositsInYear2,
+          isOneTimeExtrasExpanded,
+          setIsOneTimeExtrasExpanded,
           oneTimeExtras,
           updateOneTimeExtra,
           profile,
@@ -3936,83 +3956,127 @@ const InvestmentCalculator = () => {
 
           {/* One-time extra deposit */}
           {!isNextGeneration && <div style={{ marginBottom: "28px", padding: "12px", border: "1px solid #D2BB5D", borderRadius: "8px" }}>
-            <div style={{ fontSize: "16px", fontWeight: "600", color: "#111827", marginBottom: "12px" }}>
-              Eenmalige extra inleg
-            </div>
-            {oneTimeExtras.map((entry, index) => (
-              <div key={`extra-${index}`} style={{ marginBottom: index === oneTimeExtras.length - 1 ? 0 : "14px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
-                  <span style={{ fontSize: "14px", color: "#6B7280", minWidth: "74px" }}>Bedrag {index + 1}</span>
-                  <span style={{ fontSize: "14px", color: "#111827" }}>€</span>
-                  <input
-                    type="number"
-                    min="0"
-                    max="5000000"
-                    step="1"
-                    value={entry.amount}
-                    onChange={(e) => updateOneTimeExtra(index, "amount", e.target.value)}
-                    style={{
-                      flex: 1,
-                      padding: "6px 8px",
-                      border: "1px solid #D2BB5D",
-                      borderRadius: "6px",
-                      fontSize: "14px",
-                      outline: "none",
-                      backgroundColor: "#fff",
-                      boxSizing: "border-box"
-                    }}
-                  />
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", columnGap: "16px" }}>
-                  <div style={{ minWidth: 0 }}>
-                    <div style={{ fontSize: "14px", color: "#6B7280", marginBottom: "6px" }}>
-                      Bedrag {index + 1} - Jaar
-                    </div>
-                    <input
-                      type="number"
-                      min="1"
-                      max={investmentHorizon}
-                      step="1"
-                      value={entry.year}
-                      onChange={(e) => updateOneTimeExtra(index, "year", e.target.value)}
-                      style={{
-                        width: "100%",
-                        padding: "6px 8px",
-                        border: "1px solid #D2BB5D",
-                        borderRadius: "6px",
-                        fontSize: "14px",
-                        outline: "none",
-                        backgroundColor: "#fff",
-                        boxSizing: "border-box"
-                      }}
-                    />
-                  </div>
-                  <div style={{ minWidth: 0 }}>
-                    <div style={{ fontSize: "14px", color: "#6B7280", marginBottom: "6px" }}>
-                      Bedrag {index + 1} - Maand
-                    </div>
-                    <input
-                      type="number"
-                      min="1"
-                      max="12"
-                      step="1"
-                      value={entry.month}
-                      onChange={(e) => updateOneTimeExtra(index, "month", e.target.value)}
-                      style={{
-                        width: "100%",
-                        padding: "6px 8px",
-                        border: "1px solid #D2BB5D",
-                        borderRadius: "6px",
-                        fontSize: "14px",
-                        outline: "none",
-                        backgroundColor: "#fff",
-                        boxSizing: "border-box"
-                      }}
-                    />
-                  </div>
-                </div>
+            <div
+              role="button"
+              tabIndex={0}
+              aria-expanded={isOneTimeExtrasExpanded}
+              onClick={() => setIsOneTimeExtrasExpanded((prev) => !prev)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setIsOneTimeExtrasExpanded((prev) => !prev);
+                }
+              }}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                cursor: "pointer",
+                userSelect: "none",
+                marginBottom: "12px"
+              }}
+            >
+              <div style={{ fontSize: "16px", fontWeight: "600", color: "#111827" }}>
+                Eenmalige extra inleg
               </div>
-            ))}
+              <span
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: "24px",
+                  height: "24px",
+                  borderRadius: "999px",
+                  border: "1px solid #d8d2bf",
+                  backgroundColor: "#ffffff",
+                  transform: isOneTimeExtrasExpanded ? "rotate(180deg)" : "rotate(0deg)",
+                  transition: "transform 200ms ease"
+                }}
+              >
+                <svg width="12" height="8" viewBox="0 0 12 8" aria-hidden="true">
+                  <path d="M1 1l5 5 5-5" fill="none" stroke="#111827" strokeWidth="1.7" strokeLinecap="round" />
+                </svg>
+              </span>
+            </div>
+            {oneTimeExtras.map((entry, index) => {
+              if (!isOneTimeExtrasExpanded && index > 0) {
+                return null;
+              }
+              return (
+                <div key={`extra-${index}`} style={{ marginBottom: index === oneTimeExtras.length - 1 ? 0 : "14px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
+                    <span style={{ fontSize: "14px", color: "#6B7280", minWidth: "74px" }}>Bedrag {index + 1}</span>
+                    <span style={{ fontSize: "14px", color: "#111827" }}>€</span>
+                    <input
+                      type="number"
+                      min="0"
+                      max="5000000"
+                      step="1"
+                      value={entry.amount}
+                      onChange={(e) => updateOneTimeExtra(index, "amount", e.target.value)}
+                      style={{
+                        flex: 1,
+                        padding: "6px 8px",
+                        border: "1px solid #D2BB5D",
+                        borderRadius: "6px",
+                        fontSize: "14px",
+                        outline: "none",
+                        backgroundColor: "#fff",
+                        boxSizing: "border-box"
+                      }}
+                    />
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", columnGap: "16px" }}>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: "14px", color: "#6B7280", marginBottom: "6px" }}>
+                        Bedrag {index + 1} - Jaar
+                      </div>
+                      <input
+                        type="number"
+                        min="1"
+                        max={investmentHorizon}
+                        step="1"
+                        value={entry.year}
+                        onChange={(e) => updateOneTimeExtra(index, "year", e.target.value)}
+                        style={{
+                          width: "100%",
+                          padding: "6px 8px",
+                          border: "1px solid #D2BB5D",
+                          borderRadius: "6px",
+                          fontSize: "14px",
+                          outline: "none",
+                          backgroundColor: "#fff",
+                          boxSizing: "border-box"
+                        }}
+                      />
+                    </div>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: "14px", color: "#6B7280", marginBottom: "6px" }}>
+                        Bedrag {index + 1} - Maand
+                      </div>
+                      <input
+                        type="number"
+                        min="1"
+                        max="12"
+                        step="1"
+                        value={entry.month}
+                        onChange={(e) => updateOneTimeExtra(index, "month", e.target.value)}
+                        style={{
+                          width: "100%",
+                          padding: "6px 8px",
+                          border: "1px solid #D2BB5D",
+                          borderRadius: "6px",
+                          fontSize: "14px",
+                          outline: "none",
+                          backgroundColor: "#fff",
+                          boxSizing: "border-box"
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>}
 
           {/* Profile */}
