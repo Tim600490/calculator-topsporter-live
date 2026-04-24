@@ -2960,6 +2960,27 @@ const InvestmentCalculator = () => {
                 <span>€0</span>
                 <span>{isNextGeneration ? "€6.500" : "€1.000.000"}</span>
               </div>
+              <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "8px" }}>
+                <span style={{ fontSize: "14px", color: "#6B7280" }}>Exact:</span>
+                <span style={{ fontSize: "14px", color: "#111827" }}>€</span>
+                <input
+                  type="number"
+                  min="0"
+                  max={startAmountMax}
+                  step="1"
+                  value={startAmount}
+                  onChange={(e) => setStartAmount(clampEuro(e.target.value, 0, startAmountMax))}
+                  style={{
+                    width: "120px",
+                    padding: "6px 8px",
+                    border: "1px solid #D2BB5D",
+                    borderRadius: "6px",
+                    fontSize: "14px",
+                    outline: "none",
+                    backgroundColor: "#fff"
+                  }}
+                />
+              </div>
             </div>
           </div>
 
