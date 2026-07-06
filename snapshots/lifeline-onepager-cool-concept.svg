@@ -1,0 +1,116 @@
+<svg width="1400" height="840" viewBox="0 0 1400 840" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="1400" y2="840" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#082421"/>
+      <stop offset="1" stop-color="#0d2a28"/>
+    </linearGradient>
+    <linearGradient id="panelGrad" x1="70" y1="110" x2="1330" y2="730" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0f2f2b"/>
+      <stop offset="1" stop-color="#123732"/>
+    </linearGradient>
+    <filter id="softGlow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="3.2" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <style>
+      .title { font: 700 56px "Segoe UI", Arial, sans-serif; fill: #f3f6f4; }
+      .sub { font: 500 24px "Segoe UI", Arial, sans-serif; fill: #b7c9c2; }
+      .kpiLabel { font: 600 14px "Segoe UI", Arial, sans-serif; fill: #a9beb5; letter-spacing: 1px; }
+      .kpiValue { font: 700 36px "Segoe UI", Arial, sans-serif; fill: #f5f8f6; }
+      .axis { font: 500 16px "Segoe UI", Arial, sans-serif; fill: #c2d0cb; }
+      .phase { font: 700 24px "Segoe UI", Arial, sans-serif; }
+      .legend { font: 600 17px "Segoe UI", Arial, sans-serif; fill: #dbe7e2; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1400" height="840" fill="url(#bgGrad)"/>
+  <circle cx="1180" cy="130" r="260" fill="#1f4e46" opacity="0.22"/>
+  <circle cx="210" cy="760" r="320" fill="#173d37" opacity="0.25"/>
+
+  <text x="78" y="86" class="title">Vermogensplanning profvoetballer</text>
+  <text x="78" y="122" class="sub">Levensloop in een oogopslag: opbouw, uitkering en lange termijn zekerheid</text>
+
+  <rect x="1088" y="58" width="244" height="96" rx="14" fill="#072f2a" stroke="#d2bb5d" stroke-width="2"/>
+  <text x="1112" y="88" class="kpiLabel">STARTLEEFTIJD / AOW</text>
+  <text x="1112" y="128" class="kpiValue">28  -  68</text>
+
+  <rect x="70" y="156" width="1260" height="572" rx="18" fill="url(#panelGrad)" stroke="#34554f"/>
+
+  <!-- Chart frame -->
+  <rect x="120" y="196" width="1140" height="364" rx="8" fill="#f5f3ea" stroke="#d9d2bf"/>
+
+  <!-- Phase backgrounds -->
+  <rect x="120" y="196" width="133" height="364" fill="#65c368" opacity="0.17"/>
+  <rect x="310" y="196" width="209" height="364" fill="#0d2a28" opacity="0.09"/>
+  <rect x="880" y="196" width="380" height="364" fill="#6672a8" opacity="0.12"/>
+
+  <!-- Horizontal grid -->
+  <line x1="120" y1="560" x2="1260" y2="560" stroke="#dad4c3"/>
+  <line x1="120" y1="470" x2="1260" y2="470" stroke="#e4dfd0"/>
+  <line x1="120" y1="380" x2="1260" y2="380" stroke="#e4dfd0"/>
+  <line x1="120" y1="290" x2="1260" y2="290" stroke="#e4dfd0"/>
+  <line x1="120" y1="200" x2="1260" y2="200" stroke="#e4dfd0"/>
+
+  <!-- Boundary markers -->
+  <line x1="253" y1="196" x2="253" y2="560" stroke="#8a8a8a" stroke-dasharray="5 6"/>
+  <line x1="310" y1="196" x2="310" y2="560" stroke="#8a8a8a" stroke-dasharray="5 6"/>
+  <line x1="519" y1="196" x2="519" y2="560" stroke="#8a8a8a" stroke-dasharray="5 6"/>
+  <line x1="880" y1="196" x2="880" y2="560" stroke="#8a8a8a" stroke-dasharray="5 6"/>
+  <line x1="1260" y1="196" x2="1260" y2="560" stroke="#8a8a8a" stroke-dasharray="5 6"/>
+
+  <!-- Y labels -->
+  <text x="82" y="565" class="axis">€ 0</text>
+  <text x="64" y="475" class="axis">€ 200K</text>
+  <text x="64" y="385" class="axis">€ 400K</text>
+  <text x="64" y="295" class="axis">€ 600K</text>
+  <text x="64" y="205" class="axis">€ 800K</text>
+
+  <!-- X labels -->
+  <text x="114" y="584" class="axis">28</text>
+  <text x="248" y="584" class="axis">35</text>
+  <text x="304" y="584" class="axis">38</text>
+  <text x="513" y="584" class="axis">49</text>
+  <text x="874" y="584" class="axis">68</text>
+  <text x="1248" y="584" class="axis">88</text>
+
+  <!-- Data lines -->
+  <polyline points="120,335 253,281 310,263 481,461 519,560"
+    fill="none" stroke="#0d2a28" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" filter="url(#softGlow)"/>
+  <polyline points="120,492 215,412 253,358 291,384 519,263 880,551 899,560"
+    fill="none" stroke="#d2bb5d" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" filter="url(#softGlow)"/>
+  <polyline points="120,560 158,538 310,519 500,492 690,443 785,398 880,353 1260,560"
+    fill="none" stroke="#6672a8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" filter="url(#softGlow)"/>
+  <polyline points="120,560 215,542 310,519 405,492"
+    fill="none" stroke="#ffa07a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" filter="url(#softGlow)"/>
+
+  <!-- Phase labels -->
+  <text x="186" y="632" class="phase" fill="#65c368" text-anchor="middle">Carriere (28-35)</text>
+  <text x="186" y="662" class="phase" fill="#65c368" text-anchor="middle" font-size="20">Opbouwfase</text>
+
+  <text x="414" y="632" class="phase" fill="#0d2a28" text-anchor="middle">CFK uitkering</text>
+  <text x="414" y="662" class="phase" fill="#0d2a28" text-anchor="middle" font-size="20">(38-49)</text>
+
+  <text x="1070" y="632" class="phase" fill="#6672a8" text-anchor="middle">Pensioen uitkering</text>
+  <text x="1070" y="662" class="phase" fill="#6672a8" text-anchor="middle" font-size="20">(68-88)</text>
+
+  <!-- Legend pills -->
+  <rect x="120" y="682" width="186" height="36" rx="8" fill="#f5f3ea" stroke="#d7d0bc"/>
+  <rect x="314" y="682" width="212" height="36" rx="8" fill="#f5f3ea" stroke="#d7d0bc"/>
+  <rect x="534" y="682" width="190" height="36" rx="8" fill="#f5f3ea" stroke="#d7d0bc"/>
+  <rect x="732" y="682" width="236" height="36" rx="8" fill="#f5f3ea" stroke="#d7d0bc"/>
+
+  <line x1="136" y1="700" x2="148" y2="700" stroke="#0d2a28" stroke-width="4" stroke-linecap="round"/>
+  <text x="156" y="706" class="legend" fill="#0f2d2a">CFK vermogen</text>
+
+  <line x1="330" y1="700" x2="342" y2="700" stroke="#d2bb5d" stroke-width="4" stroke-linecap="round"/>
+  <text x="350" y="706" class="legend" fill="#7a6a2c">Vrij Vermogen Animo</text>
+
+  <line x1="550" y1="700" x2="562" y2="700" stroke="#6672a8" stroke-width="4" stroke-linecap="round"/>
+  <text x="570" y="706" class="legend" fill="#4e5b8b">Pensioen Animo</text>
+
+  <line x1="748" y1="700" x2="760" y2="700" stroke="#ffa07a" stroke-width="4" stroke-linecap="round"/>
+  <text x="768" y="706" class="legend" fill="#b86a4c">Next Generation</text>
+</svg>

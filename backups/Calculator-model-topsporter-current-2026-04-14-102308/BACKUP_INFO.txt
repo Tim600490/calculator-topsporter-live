@@ -1,0 +1,8 @@
+Backup timestamp: 2026-04-14-102308
+Git commit at backup creation: 3447f79
+Project path: /Users/tamar/Documents/New project
+
+Restore commands:
+cp "backups/Calculator-model-topsporter-current-2026-04-14-102308/InvestmentCalculator.jsx" "src/InvestmentCalculator.jsx"
+cp "backups/Calculator-model-topsporter-current-2026-04-14-102308/InvestmentCalculator.css" "src/InvestmentCalculator.css"
+cp "backups/Calculator-model-topsporter-current-2026-04-14-102308/main.jsx" "src/main.jsx"

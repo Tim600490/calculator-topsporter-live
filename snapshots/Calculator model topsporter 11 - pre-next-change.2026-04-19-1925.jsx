@@ -263,12 +263,6 @@ const InvestmentCalculator = () => {
   const [phase2EndYear, setPhase2EndYear] = useState(0);
   const [phase3MonthlyDeposit, setPhase3MonthlyDeposit] = useState(0);
   const [phase3EndYear, setPhase3EndYear] = useState(0);
-  const [phase4MonthlyDeposit, setPhase4MonthlyDeposit] = useState(0);
-  const [phase4EndYear, setPhase4EndYear] = useState(0);
-  const [phase5MonthlyDeposit, setPhase5MonthlyDeposit] = useState(0);
-  const [phase5EndYear, setPhase5EndYear] = useState(0);
-  const [phase6MonthlyDeposit, setPhase6MonthlyDeposit] = useState(0);
-  const [phase6EndYear, setPhase6EndYear] = useState(0);
   const [investmentHorizon, setInvestmentHorizon] = useState(20);
   const [startAge, setStartAge] = useState(18);
   const [startAmount2, setStartAmount2] = useState(0);
@@ -294,18 +288,13 @@ const InvestmentCalculator = () => {
   const [oneTimeExtras, setOneTimeExtras] = useState([
     { amount: 0, year: 5, month: 6 },
     { amount: 0, year: 5, month: 6 },
-    { amount: 0, year: 5, month: 6 },
-    { amount: 0, year: 5, month: 6 },
-    { amount: 0, year: 5, month: 6 },
     { amount: 0, year: 5, month: 6 }
   ]);
   const [oneTimeExtras2, setOneTimeExtras2] = useState([
     { amount: 0, year: 1, month: 12 },
     { amount: 0, year: 2, month: 12 },
     { amount: 0, year: 3, month: 12 },
-    { amount: 0, year: 4, month: 12 },
-    { amount: 0, year: 5, month: 12 },
-    { amount: 0, year: 6, month: 12 }
+    { amount: 0, year: 4, month: 12 }
   ]);
   const [oneTimeExtras3, setOneTimeExtras3] = useState([
     { amount: 0, year: 5, month: 6 },
@@ -321,9 +310,6 @@ const InvestmentCalculator = () => {
   const [isCalculatorExpanded, setIsCalculatorExpanded] = useState(false);
   const [isCalculatorExpanded2, setIsCalculatorExpanded2] = useState(false);
   const [isCalculatorExpanded3, setIsCalculatorExpanded3] = useState(false);
-  const [isOneTimeExtrasExpanded, setIsOneTimeExtrasExpanded] = useState(false);
-  const [isOneTimeExtrasExpanded2, setIsOneTimeExtrasExpanded2] = useState(false);
-  const [lifelineViewMode, setLifelineViewMode] = useState("future");
   const [lifelineZoomMode, setLifelineZoomMode] = useState("week");
   const [activeScenarioBandKey, setActiveScenarioBandKey] = useState(null);
   const [hoveredLifelineSeriesKey, setHoveredLifelineSeriesKey] = useState(null);
@@ -345,8 +331,6 @@ const InvestmentCalculator = () => {
   ]);
   const [freeWealthSwitchToConservative, setFreeWealthSwitchToConservative] = useState(false);
   const [freeWealthConservativeFromYear, setFreeWealthConservativeFromYear] = useState(1);
-  const [isFreeWealthInfoModalOpen, setIsFreeWealthInfoModalOpen] = useState(false);
-  const [isPensionInfoModalOpen, setIsPensionInfoModalOpen] = useState(false);
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const [hoveredIndex2, setHoveredIndex2] = useState(null);
   const [hoveredIndex3, setHoveredIndex3] = useState(null);
@@ -439,38 +423,28 @@ const InvestmentCalculator = () => {
   }, [cfkDurationRange.max, cfkDurationRange.min]);
 
   useEffect(() => {
-    const clampYear = (value) => Math.max(0, Math.min(investmentHorizon, Math.round(Number(value) || 0)));
-    const nextPhase1 = clampYear(phase1Years);
-    const nextPhase2 = Math.max(nextPhase1, clampYear(phase2EndYear));
-    const nextPhase3 = Math.max(nextPhase2, clampYear(phase3EndYear));
-    const nextPhase4 = Math.max(nextPhase3, clampYear(phase4EndYear));
-    const nextPhase5 = Math.max(nextPhase4, clampYear(phase5EndYear));
-    const nextPhase6 = Math.max(nextPhase5, clampYear(phase6EndYear));
-
-    if (nextPhase1 !== phase1Years) {
-      setPhase1Years(nextPhase1);
+    if (phase1Years > investmentHorizon) {
+      setPhase1Years(investmentHorizon);
       return;
     }
-    if (nextPhase2 !== phase2EndYear) {
-      setPhase2EndYear(nextPhase2);
+    if (phase2EndYear > investmentHorizon) {
+      setPhase2EndYear(investmentHorizon);
       return;
     }
-    if (nextPhase3 !== phase3EndYear) {
-      setPhase3EndYear(nextPhase3);
+    if (phase3EndYear > investmentHorizon) {
+      setPhase3EndYear(investmentHorizon);
       return;
     }
-    if (nextPhase4 !== phase4EndYear) {
-      setPhase4EndYear(nextPhase4);
+    const minPhase2End = phase2MonthlyDeposit > 0 || phase3MonthlyDeposit > 0 ? phase1Years : 0;
+    if (phase2EndYear < minPhase2End) {
+      setPhase2EndYear(minPhase2End);
       return;
     }
-    if (nextPhase5 !== phase5EndYear) {
-      setPhase5EndYear(nextPhase5);
-      return;
+    const minPhase3End = phase3MonthlyDeposit > 0 ? phase2EndYear : 0;
+    if (phase3EndYear < minPhase3End) {
+      setPhase3EndYear(minPhase3End);
     }
-    if (nextPhase6 !== phase6EndYear) {
-      setPhase6EndYear(nextPhase6);
-    }
-  }, [phase1Years, phase2EndYear, phase3EndYear, phase4EndYear, phase5EndYear, phase6EndYear, investmentHorizon]);
+  }, [phase1Years, phase2EndYear, phase3EndYear, phase2MonthlyDeposit, phase3MonthlyDeposit, investmentHorizon]);
 
   useEffect(() => {
     if (phase1Years2 > investmentHorizon2) {
@@ -645,9 +619,6 @@ const InvestmentCalculator = () => {
     const phase1Months = phase1Years * 12;
     const phase2Months = phase2EndYear * 12;
     const phase3Months = phase3EndYear * 12;
-    const phase4Months = phase4EndYear * 12;
-    const phase5Months = phase5EndYear * 12;
-    const phase6Months = phase6EndYear * 12;
 
     if (monthInDepositTimeline <= phase1Months) {
       return phase1MonthlyDeposit;
@@ -657,15 +628,6 @@ const InvestmentCalculator = () => {
     }
     if (monthInDepositTimeline <= phase3Months) {
       return phase3MonthlyDeposit;
-    }
-    if (monthInDepositTimeline <= phase4Months) {
-      return phase4MonthlyDeposit;
-    }
-    if (monthInDepositTimeline <= phase5Months) {
-      return phase5MonthlyDeposit;
-    }
-    if (monthInDepositTimeline <= phase6Months) {
-      return phase6MonthlyDeposit;
     }
     return 0;
   };
@@ -826,20 +788,10 @@ const InvestmentCalculator = () => {
     setPhase2EndYear(0);
     setPhase3MonthlyDeposit(0);
     setPhase3EndYear(0);
-    setPhase4MonthlyDeposit(0);
-    setPhase4EndYear(0);
-    setPhase5MonthlyDeposit(0);
-    setPhase5EndYear(0);
-    setPhase6MonthlyDeposit(0);
-    setPhase6EndYear(0);
     setInvestmentHorizon(20);
     setProfile("Gedreven");
     setStartDepositsInYear2(false);
-    setIsOneTimeExtrasExpanded(false);
     setOneTimeExtras([
-      { amount: 0, year: 5, month: 6 },
-      { amount: 0, year: 5, month: 6 },
-      { amount: 0, year: 5, month: 6 },
       { amount: 0, year: 5, month: 6 },
       { amount: 0, year: 5, month: 6 },
       { amount: 0, year: 5, month: 6 }
@@ -863,14 +815,11 @@ const InvestmentCalculator = () => {
     setInvestmentHorizon2(20);
     setProfile2("Gedreven");
     setStartDepositsInYear22(false);
-    setIsOneTimeExtrasExpanded2(false);
     setOneTimeExtras2([
       { amount: 0, year: 1, month: 12 },
       { amount: 0, year: 2, month: 12 },
       { amount: 0, year: 3, month: 12 },
-      { amount: 0, year: 4, month: 12 },
-      { amount: 0, year: 5, month: 12 },
-      { amount: 0, year: 6, month: 12 }
+      { amount: 0, year: 4, month: 12 }
     ]);
     setPensionReturnRate(2.5);
     setPensionAowEnabled(false);
@@ -911,20 +860,10 @@ const InvestmentCalculator = () => {
     setPhase2EndYear(0);
     setPhase3MonthlyDeposit(0);
     setPhase3EndYear(0);
-    setPhase4MonthlyDeposit(0);
-    setPhase4EndYear(0);
-    setPhase5MonthlyDeposit(0);
-    setPhase5EndYear(0);
-    setPhase6MonthlyDeposit(0);
-    setPhase6EndYear(0);
     setInvestmentHorizon(40);
     setProfile("Behouden");
     setStartDepositsInYear2(false);
-    setIsOneTimeExtrasExpanded(false);
     setOneTimeExtras([
-      { amount: 0, year: 5, month: 6 },
-      { amount: 0, year: 5, month: 6 },
-      { amount: 0, year: 5, month: 6 },
       { amount: 0, year: 5, month: 6 },
       { amount: 0, year: 5, month: 6 },
       { amount: 0, year: 5, month: 6 }
@@ -949,14 +888,11 @@ const InvestmentCalculator = () => {
     setInvestmentHorizon2(20);
     setProfile2("Gedreven");
     setStartDepositsInYear22(false);
-    setIsOneTimeExtrasExpanded2(false);
     setOneTimeExtras2([
       { amount: 25000, year: 2, month: 12 },
       { amount: 0, year: 2, month: 12 },
       { amount: 0, year: 3, month: 12 },
-      { amount: 0, year: 4, month: 12 },
-      { amount: 0, year: 5, month: 12 },
-      { amount: 0, year: 6, month: 12 }
+      { amount: 0, year: 4, month: 12 }
     ]);
     setPensionReturnRate(2.5);
     setPensionAowEnabled(true);
@@ -1041,12 +977,6 @@ const InvestmentCalculator = () => {
     phase2EndYear,
     phase3MonthlyDeposit,
     phase3EndYear,
-    phase4MonthlyDeposit,
-    phase4EndYear,
-    phase5MonthlyDeposit,
-    phase5EndYear,
-    phase6MonthlyDeposit,
-    phase6EndYear,
     oneTimeExtras,
     startDepositsInYear2,
     investmentHorizon,
@@ -1054,80 +984,6 @@ const InvestmentCalculator = () => {
   ]);
 
   const finalBalance = calculationData[calculationData.length - 1]?.balance || 0;
-  const freeWealthPeriodicContributionTotal = useMemo(() => {
-    let total = 0;
-    const totalMonths = investmentHorizon * 12;
-    for (let month = 1; month <= totalMonths; month++) {
-      total += getMonthlyDepositForMonth(month);
-    }
-    return total;
-  }, [
-    investmentHorizon,
-    phase1MonthlyDeposit,
-    phase1Years,
-    phase2MonthlyDeposit,
-    phase2EndYear,
-    phase3MonthlyDeposit,
-    phase3EndYear,
-    phase4MonthlyDeposit,
-    phase4EndYear,
-    phase5MonthlyDeposit,
-    phase5EndYear,
-    phase6MonthlyDeposit,
-    phase6EndYear,
-    startDepositsInYear2
-  ]);
-  const freeWealthOneTimeContributionTotal = useMemo(() => {
-    const totalMonths = investmentHorizon * 12;
-    return oneTimeExtras.reduce((sum, entry) => {
-      if ((entry.amount || 0) <= 0) {
-        return sum;
-      }
-      const targetMonth = (entry.year - 1) * 12 + entry.month;
-      return targetMonth >= 1 && targetMonth <= totalMonths ? sum + entry.amount : sum;
-    }, 0);
-  }, [investmentHorizon, oneTimeExtras]);
-  const freeWealthOwnContributionTotal =
-    startAmount + freeWealthPeriodicContributionTotal + freeWealthOneTimeContributionTotal;
-  const freeWealthReturnAmount = finalBalance - freeWealthOwnContributionTotal;
-  const freeWealthSavingsBalance = useMemo(() => {
-    const annualSavingsRate = 0.015;
-    const monthlySavingsRate = annualSavingsRate / 12;
-    const totalMonths = investmentHorizon * 12;
-    let balance = startAmount;
-
-    for (let month = 1; month <= totalMonths; month++) {
-      const activeDeposit = getMonthlyDepositForMonth(month);
-      const oneTimeExtra = getOneTimeExtraForMonth(month);
-      balance = balance * (1 + monthlySavingsRate);
-      balance += activeDeposit + oneTimeExtra;
-    }
-
-    return balance;
-  }, [
-    investmentHorizon,
-    startAmount,
-    phase1MonthlyDeposit,
-    phase1Years,
-    phase2MonthlyDeposit,
-    phase2EndYear,
-    phase3MonthlyDeposit,
-    phase3EndYear,
-    phase4MonthlyDeposit,
-    phase4EndYear,
-    phase5MonthlyDeposit,
-    phase5EndYear,
-    phase6MonthlyDeposit,
-    phase6EndYear,
-    oneTimeExtras,
-    startDepositsInYear2
-  ]);
-  const freeWealthSavingsReturnAmount = freeWealthSavingsBalance - freeWealthOwnContributionTotal;
-  const freeWealthAnimoReturnPct =
-    freeWealthOwnContributionTotal > 0 ? (freeWealthReturnAmount / freeWealthOwnContributionTotal) * 100 : 0;
-  const freeWealthSavingsReturnPct =
-    freeWealthOwnContributionTotal > 0 ? (freeWealthSavingsReturnAmount / freeWealthOwnContributionTotal) * 100 : 0;
-  const freeWealthExtraVsSavings = finalBalance - freeWealthSavingsBalance;
 
   const calculationData2 = useMemo(() => {
     const data = [];
@@ -1179,50 +1035,6 @@ const InvestmentCalculator = () => {
   ]);
 
   const finalBalance2 = calculationData2[calculationData2.length - 1]?.balance || 0;
-  const pensionPeriodicContributionTotal = useMemo(() => {
-    let total = 0;
-    const totalMonths = investmentHorizon2 * 12;
-    for (let month = 1; month <= totalMonths; month++) {
-      total += getMonthlyDepositForMonth2(month);
-    }
-    return total;
-  }, [
-    investmentHorizon2,
-    phase1MonthlyDeposit2,
-    phase1Years2,
-    phase2MonthlyDeposit2,
-    phase2EndYear2,
-    phase3MonthlyDeposit2,
-    phase3EndYear2,
-    startDepositsInYear22
-  ]);
-  const pensionOneTimeContributionTotal = useMemo(() => {
-    const totalMonths = investmentHorizon2 * 12;
-    return oneTimeExtras2.reduce((sum, entry) => {
-      if ((entry.amount || 0) <= 0) {
-        return sum;
-      }
-      const targetMonth = (entry.year - 1) * 12 + entry.month;
-      return targetMonth >= 1 && targetMonth <= totalMonths ? sum + entry.amount : sum;
-    }, 0);
-  }, [investmentHorizon2, oneTimeExtras2]);
-  const pensionTaxRefundOnOneTimeContributions = useMemo(() => {
-    const totalMonths = investmentHorizon2 * 12;
-    return oneTimeExtras2.reduce((sum, entry) => {
-      const amount = entry.amount || 0;
-      if (amount <= 0) {
-        return sum;
-      }
-      const targetMonth = (entry.year - 1) * 12 + entry.month;
-      if (targetMonth < 1 || targetMonth > totalMonths) {
-        return sum;
-      }
-      const refundRate = amount > 17700 ? 0.495 : 0.37;
-      return sum + amount * refundRate;
-    }, 0);
-  }, [investmentHorizon2, oneTimeExtras2]);
-  const pensionGrossContributionTotal = startAmount2 + pensionPeriodicContributionTotal + pensionOneTimeContributionTotal;
-  const pensionNetOwnContributionTotal = pensionGrossContributionTotal - pensionTaxRefundOnOneTimeContributions;
 
   const calculationData3 = useMemo(() => {
     const data = [];
@@ -1499,7 +1311,6 @@ const InvestmentCalculator = () => {
     }
     return formatCurrency(amount);
   };
-  const formatPercentOneDecimal = (value) => `${(Number(value) || 0).toFixed(1).replace(".", ",")}%`;
 
   const isDesktop = window.innerWidth >= 1024;
   const hoveredPoint = hoveredIndex != null ? calculationData[hoveredIndex] : null;
@@ -1651,8 +1462,28 @@ const InvestmentCalculator = () => {
     const checkpointSet = new Set(halfYearMonths);
 
     for (let month = 1; month <= 96; month++) {
-      const monthlyDeposit = getMonthlyDepositForMonth(month);
-      const oneTimeExtraThisMonth = getOneTimeExtraForMonth(month);
+      const monthInDepositTimeline = startDepositsInYear2 ? month - 12 : month;
+      let monthlyDeposit = 0;
+      if (monthInDepositTimeline > 0) {
+        const phase1Months = phase1Years * 12;
+        const phase2Months = phase2EndYear * 12;
+        const phase3Months = phase3EndYear * 12;
+        if (monthInDepositTimeline <= phase1Months) {
+          monthlyDeposit = phase1MonthlyDeposit;
+        } else if (monthInDepositTimeline <= phase2Months) {
+          monthlyDeposit = phase2MonthlyDeposit;
+        } else if (monthInDepositTimeline <= phase3Months) {
+          monthlyDeposit = phase3MonthlyDeposit;
+        }
+      }
+
+      const oneTimeExtraThisMonth = oneTimeExtras.reduce((sum, entry) => {
+        if (entry.amount <= 0) {
+          return sum;
+        }
+        const targetMonth = (entry.year - 1) * 12 + entry.month;
+        return sum + (month === targetMonth ? entry.amount : 0);
+      }, 0);
 
       balance = balance * (1 + monthlyReturn);
       balance += monthlyDeposit + oneTimeExtraThisMonth;
@@ -1697,12 +1528,6 @@ const InvestmentCalculator = () => {
     phase2EndYear,
     phase3MonthlyDeposit,
     phase3EndYear,
-    phase4MonthlyDeposit,
-    phase4EndYear,
-    phase5MonthlyDeposit,
-    phase5EndYear,
-    phase6MonthlyDeposit,
-    phase6EndYear,
     startAmount,
     startDepositsInYear2
   ]);
@@ -2517,15 +2342,6 @@ const InvestmentCalculator = () => {
   }, 0);
   const hasFreeWealth = lifeline.potData.some((row) => (row.vrij || 0) > 0);
   const pensionExpectedEndResult = lifeline.pensionCapitalAtAow ?? 0;
-  const pensionReturnOnNetContribution = pensionExpectedEndResult - pensionNetOwnContributionTotal;
-  const pensionTaxBenefitPct =
-    pensionGrossContributionTotal > 0
-      ? (pensionTaxRefundOnOneTimeContributions / pensionGrossContributionTotal) * 100
-      : 0;
-  const pensionReturnOnNetContributionPct =
-    pensionNetOwnContributionTotal > 0
-      ? (pensionReturnOnNetContribution / pensionNetOwnContributionTotal) * 100
-      : 0;
   const nextGenerationExpectedEndResult = finalBalance3;
   const isLifelineFocusMode = Boolean(activeScenarioBandKey);
   const showLifelineCfkLine = hasCfk && (!isLifelineFocusMode || activeScenarioBandKey === "cfk");
@@ -2590,22 +2406,8 @@ const InvestmentCalculator = () => {
         setPhase3MonthlyDeposit,
         phase3EndYear,
         setPhase3EndYear,
-        phase4MonthlyDeposit,
-        setPhase4MonthlyDeposit,
-        phase4EndYear,
-        setPhase4EndYear,
-        phase5MonthlyDeposit,
-        setPhase5MonthlyDeposit,
-        phase5EndYear,
-        setPhase5EndYear,
-        phase6MonthlyDeposit,
-        setPhase6MonthlyDeposit,
-        phase6EndYear,
-        setPhase6EndYear,
         startDepositsInYear2,
         setStartDepositsInYear2,
-        isOneTimeExtrasExpanded,
-        setIsOneTimeExtrasExpanded,
         oneTimeExtras,
         updateOneTimeExtra,
         profile,
@@ -2646,22 +2448,8 @@ const InvestmentCalculator = () => {
         setPhase3MonthlyDeposit: setPhase3MonthlyDeposit2,
         phase3EndYear: phase3EndYear2,
         setPhase3EndYear: setPhase3EndYear2,
-        phase4MonthlyDeposit: 0,
-        setPhase4MonthlyDeposit: () => {},
-        phase4EndYear: 0,
-        setPhase4EndYear: () => {},
-        phase5MonthlyDeposit: 0,
-        setPhase5MonthlyDeposit: () => {},
-        phase5EndYear: 0,
-        setPhase5EndYear: () => {},
-        phase6MonthlyDeposit: 0,
-        setPhase6MonthlyDeposit: () => {},
-        phase6EndYear: 0,
-        setPhase6EndYear: () => {},
         startDepositsInYear2: startDepositsInYear22,
         setStartDepositsInYear2: setStartDepositsInYear22,
-        isOneTimeExtrasExpanded: isOneTimeExtrasExpanded2,
-        setIsOneTimeExtrasExpanded: setIsOneTimeExtrasExpanded2,
         oneTimeExtras: oneTimeExtras2,
         updateOneTimeExtra: updateOneTimeExtra2,
         profile: profile2,
@@ -2701,22 +2489,8 @@ const InvestmentCalculator = () => {
       setPhase3MonthlyDeposit: setPhase3MonthlyDeposit3,
       phase3EndYear: phase3EndYear3,
       setPhase3EndYear: setPhase3EndYear3,
-      phase4MonthlyDeposit: 0,
-      setPhase4MonthlyDeposit: () => {},
-      phase4EndYear: 0,
-      setPhase4EndYear: () => {},
-      phase5MonthlyDeposit: 0,
-      setPhase5MonthlyDeposit: () => {},
-      phase5EndYear: 0,
-      setPhase5EndYear: () => {},
-      phase6MonthlyDeposit: 0,
-      setPhase6MonthlyDeposit: () => {},
-      phase6EndYear: 0,
-      setPhase6EndYear: () => {},
       startDepositsInYear2: startDepositsInYear23,
       setStartDepositsInYear2: setStartDepositsInYear23,
-      isOneTimeExtrasExpanded: false,
-      setIsOneTimeExtrasExpanded: () => {},
       oneTimeExtras: oneTimeExtras3,
       updateOneTimeExtra: updateOneTimeExtra3,
       profile: profile3,
@@ -2783,22 +2557,8 @@ const InvestmentCalculator = () => {
           setPhase3MonthlyDeposit,
           phase3EndYear,
           setPhase3EndYear,
-          phase4MonthlyDeposit,
-          setPhase4MonthlyDeposit,
-          phase4EndYear,
-          setPhase4EndYear,
-          phase5MonthlyDeposit,
-          setPhase5MonthlyDeposit,
-          phase5EndYear,
-          setPhase5EndYear,
-          phase6MonthlyDeposit,
-          setPhase6MonthlyDeposit,
-          phase6EndYear,
-          setPhase6EndYear,
           startDepositsInYear2,
           setStartDepositsInYear2,
-          isOneTimeExtrasExpanded,
-          setIsOneTimeExtrasExpanded,
           oneTimeExtras,
           updateOneTimeExtra,
           profile,
@@ -2816,31 +2576,16 @@ const InvestmentCalculator = () => {
         const isNextGeneration = calculatorIndex === 2;
         const startAmountMax = isNextGeneration ? 6500 : 1000000;
         const startAmountFill = startAmountMax === 0 ? 0 : (startAmount / startAmountMax) * 100;
-        const phase2MinYear = phase1Years;
+        const phase2MinYear = phase2MonthlyDeposit > 0 || phase3MonthlyDeposit > 0 ? phase1Years : 0;
         const phase2FillPercentage =
           investmentHorizon - phase2MinYear === 0
             ? 0
             : ((phase2EndYear - phase2MinYear) / (investmentHorizon - phase2MinYear)) * 100;
-        const phase3MinYear = phase2EndYear;
+        const phase3MinYear = phase3MonthlyDeposit > 0 ? phase2EndYear : 0;
         const phase3FillPercentage =
           investmentHorizon - phase3MinYear === 0
             ? 0
             : ((phase3EndYear - phase3MinYear) / (investmentHorizon - phase3MinYear)) * 100;
-        const phase4MinYear = phase3EndYear;
-        const phase4FillPercentage =
-          investmentHorizon - phase4MinYear === 0
-            ? 0
-            : ((phase4EndYear - phase4MinYear) / (investmentHorizon - phase4MinYear)) * 100;
-        const phase5MinYear = phase4EndYear;
-        const phase5FillPercentage =
-          investmentHorizon - phase5MinYear === 0
-            ? 0
-            : ((phase5EndYear - phase5MinYear) / (investmentHorizon - phase5MinYear)) * 100;
-        const phase6MinYear = phase5EndYear;
-        const phase6FillPercentage =
-          investmentHorizon - phase6MinYear === 0
-            ? 0
-            : ((phase6EndYear - phase6MinYear) / (investmentHorizon - phase6MinYear)) * 100;
 
         return (
       <div
@@ -2980,27 +2725,6 @@ const InvestmentCalculator = () => {
               >
                 <span>€0</span>
                 <span>{isNextGeneration ? "€6.500" : "€1.000.000"}</span>
-              </div>
-              <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "8px" }}>
-                <span style={{ fontSize: "14px", color: "#6B7280" }}>Exact:</span>
-                <span style={{ fontSize: "14px", color: "#111827" }}>€</span>
-                <input
-                  type="number"
-                  min="0"
-                  max={startAmountMax}
-                  step="1"
-                  value={startAmount}
-                  onChange={(e) => setStartAmount(clampEuro(e.target.value, 0, startAmountMax))}
-                  style={{
-                    width: "120px",
-                    padding: "6px 8px",
-                    border: "1px solid #D2BB5D",
-                    borderRadius: "6px",
-                    fontSize: "14px",
-                    outline: "none",
-                    backgroundColor: "#fff"
-                  }}
-                />
               </div>
             </div>
           </div>
@@ -3504,373 +3228,6 @@ const InvestmentCalculator = () => {
               </div>
             </div>
           </div>
-
-          {isPrimary && (
-            <>
-              {/* Monthly Deposit - Phase 4 */}
-              <div style={{ marginBottom: "32px" }}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginBottom: "16px"
-                  }}
-                >
-                  <label style={{ fontSize: "18px", fontWeight: "500", color: "#111827" }}>
-                    Inleg p/m fase 4
-                  </label>
-                  <span style={{ fontSize: "20px", fontWeight: "bold" }}>
-                    {formatCurrency(phase4MonthlyDeposit)}
-                  </span>
-                </div>
-                <div style={{ position: "relative" }}>
-                  <input
-                    type="range"
-                    min="0"
-                    max="10000"
-                    step="100"
-                    value={phase4MonthlyDeposit}
-                    onChange={(e) => setPhase4MonthlyDeposit(Number(e.target.value))}
-                    style={{
-                      width: "100%",
-                      height: "8px",
-                      borderRadius: "4px",
-                      background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${(phase4MonthlyDeposit / 10000) * 100}%, #E5E7EB ${(phase4MonthlyDeposit / 10000) * 100}%, #E5E7EB 100%)`,
-                      outline: "none",
-                      appearance: "none",
-                      cursor: "pointer"
-                    }}
-                  />
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      fontSize: "14px",
-                      color: "#6B7280",
-                      marginTop: "8px"
-                    }}
-                  >
-                    <span>€0</span>
-                    <span>€10.000</span>
-                  </div>
-                  <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "8px" }}>
-                    <span style={{ fontSize: "14px", color: "#6B7280" }}>Exact p/m:</span>
-                    <span style={{ fontSize: "14px", color: "#111827" }}>€</span>
-                    <input
-                      type="number"
-                      min="0"
-                      max="10000"
-                      step="1"
-                      value={phase4MonthlyDeposit}
-                      onChange={(e) => setPhase4MonthlyDeposit(clampEuro(e.target.value))}
-                      style={{
-                        width: "120px",
-                        padding: "6px 8px",
-                        border: "1px solid #D2BB5D",
-                        borderRadius: "6px",
-                        fontSize: "14px",
-                        outline: "none",
-                        backgroundColor: "#fff"
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Phase 4 End Year */}
-              <div style={{ marginBottom: "32px" }}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginBottom: "16px"
-                  }}
-                >
-                  <label style={{ fontSize: "18px", fontWeight: "500", color: "#111827" }}>
-                    Fase 4 tot jaar
-                  </label>
-                  <span style={{ fontSize: "20px", fontWeight: "bold" }}>
-                    {phase4EndYear} jaar
-                  </span>
-                </div>
-                <div style={{ position: "relative" }}>
-                  <input
-                    type="range"
-                    min={phase4MinYear}
-                    max={investmentHorizon}
-                    step="1"
-                    value={phase4EndYear}
-                    onChange={(e) => setPhase4EndYear(Number(e.target.value))}
-                    style={{
-                      width: "100%",
-                      height: "8px",
-                      borderRadius: "4px",
-                      background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${phase4FillPercentage}%, #E5E7EB ${phase4FillPercentage}%, #E5E7EB 100%)`,
-                      outline: "none",
-                      appearance: "none",
-                      cursor: "pointer"
-                    }}
-                  />
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      fontSize: "14px",
-                      color: "#6B7280",
-                      marginTop: "8px"
-                    }}
-                  >
-                    <span>{phase4MinYear} jaar</span>
-                    <span>{investmentHorizon} jaar</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Monthly Deposit - Phase 5 */}
-              <div style={{ marginBottom: "32px" }}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginBottom: "16px"
-                  }}
-                >
-                  <label style={{ fontSize: "18px", fontWeight: "500", color: "#111827" }}>
-                    Inleg p/m fase 5
-                  </label>
-                  <span style={{ fontSize: "20px", fontWeight: "bold" }}>
-                    {formatCurrency(phase5MonthlyDeposit)}
-                  </span>
-                </div>
-                <div style={{ position: "relative" }}>
-                  <input
-                    type="range"
-                    min="0"
-                    max="10000"
-                    step="100"
-                    value={phase5MonthlyDeposit}
-                    onChange={(e) => setPhase5MonthlyDeposit(Number(e.target.value))}
-                    style={{
-                      width: "100%",
-                      height: "8px",
-                      borderRadius: "4px",
-                      background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${(phase5MonthlyDeposit / 10000) * 100}%, #E5E7EB ${(phase5MonthlyDeposit / 10000) * 100}%, #E5E7EB 100%)`,
-                      outline: "none",
-                      appearance: "none",
-                      cursor: "pointer"
-                    }}
-                  />
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      fontSize: "14px",
-                      color: "#6B7280",
-                      marginTop: "8px"
-                    }}
-                  >
-                    <span>€0</span>
-                    <span>€10.000</span>
-                  </div>
-                  <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "8px" }}>
-                    <span style={{ fontSize: "14px", color: "#6B7280" }}>Exact p/m:</span>
-                    <span style={{ fontSize: "14px", color: "#111827" }}>€</span>
-                    <input
-                      type="number"
-                      min="0"
-                      max="10000"
-                      step="1"
-                      value={phase5MonthlyDeposit}
-                      onChange={(e) => setPhase5MonthlyDeposit(clampEuro(e.target.value))}
-                      style={{
-                        width: "120px",
-                        padding: "6px 8px",
-                        border: "1px solid #D2BB5D",
-                        borderRadius: "6px",
-                        fontSize: "14px",
-                        outline: "none",
-                        backgroundColor: "#fff"
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Phase 5 End Year */}
-              <div style={{ marginBottom: "32px" }}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginBottom: "16px"
-                  }}
-                >
-                  <label style={{ fontSize: "18px", fontWeight: "500", color: "#111827" }}>
-                    Fase 5 tot jaar
-                  </label>
-                  <span style={{ fontSize: "20px", fontWeight: "bold" }}>
-                    {phase5EndYear} jaar
-                  </span>
-                </div>
-                <div style={{ position: "relative" }}>
-                  <input
-                    type="range"
-                    min={phase5MinYear}
-                    max={investmentHorizon}
-                    step="1"
-                    value={phase5EndYear}
-                    onChange={(e) => setPhase5EndYear(Number(e.target.value))}
-                    style={{
-                      width: "100%",
-                      height: "8px",
-                      borderRadius: "4px",
-                      background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${phase5FillPercentage}%, #E5E7EB ${phase5FillPercentage}%, #E5E7EB 100%)`,
-                      outline: "none",
-                      appearance: "none",
-                      cursor: "pointer"
-                    }}
-                  />
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      fontSize: "14px",
-                      color: "#6B7280",
-                      marginTop: "8px"
-                    }}
-                  >
-                    <span>{phase5MinYear} jaar</span>
-                    <span>{investmentHorizon} jaar</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Monthly Deposit - Phase 6 */}
-              <div style={{ marginBottom: "32px" }}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginBottom: "16px"
-                  }}
-                >
-                  <label style={{ fontSize: "18px", fontWeight: "500", color: "#111827" }}>
-                    Inleg p/m fase 6
-                  </label>
-                  <span style={{ fontSize: "20px", fontWeight: "bold" }}>
-                    {formatCurrency(phase6MonthlyDeposit)}
-                  </span>
-                </div>
-                <div style={{ position: "relative" }}>
-                  <input
-                    type="range"
-                    min="0"
-                    max="10000"
-                    step="100"
-                    value={phase6MonthlyDeposit}
-                    onChange={(e) => setPhase6MonthlyDeposit(Number(e.target.value))}
-                    style={{
-                      width: "100%",
-                      height: "8px",
-                      borderRadius: "4px",
-                      background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${(phase6MonthlyDeposit / 10000) * 100}%, #E5E7EB ${(phase6MonthlyDeposit / 10000) * 100}%, #E5E7EB 100%)`,
-                      outline: "none",
-                      appearance: "none",
-                      cursor: "pointer"
-                    }}
-                  />
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      fontSize: "14px",
-                      color: "#6B7280",
-                      marginTop: "8px"
-                    }}
-                  >
-                    <span>€0</span>
-                    <span>€10.000</span>
-                  </div>
-                  <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "8px" }}>
-                    <span style={{ fontSize: "14px", color: "#6B7280" }}>Exact p/m:</span>
-                    <span style={{ fontSize: "14px", color: "#111827" }}>€</span>
-                    <input
-                      type="number"
-                      min="0"
-                      max="10000"
-                      step="1"
-                      value={phase6MonthlyDeposit}
-                      onChange={(e) => setPhase6MonthlyDeposit(clampEuro(e.target.value))}
-                      style={{
-                        width: "120px",
-                        padding: "6px 8px",
-                        border: "1px solid #D2BB5D",
-                        borderRadius: "6px",
-                        fontSize: "14px",
-                        outline: "none",
-                        backgroundColor: "#fff"
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Phase 6 End Year */}
-              <div style={{ marginBottom: "32px" }}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginBottom: "16px"
-                  }}
-                >
-                  <label style={{ fontSize: "18px", fontWeight: "500", color: "#111827" }}>
-                    Fase 6 tot jaar
-                  </label>
-                  <span style={{ fontSize: "20px", fontWeight: "bold" }}>
-                    {phase6EndYear} jaar
-                  </span>
-                </div>
-                <div style={{ position: "relative" }}>
-                  <input
-                    type="range"
-                    min={phase6MinYear}
-                    max={investmentHorizon}
-                    step="1"
-                    value={phase6EndYear}
-                    onChange={(e) => setPhase6EndYear(Number(e.target.value))}
-                    style={{
-                      width: "100%",
-                      height: "8px",
-                      borderRadius: "4px",
-                      background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${phase6FillPercentage}%, #E5E7EB ${phase6FillPercentage}%, #E5E7EB 100%)`,
-                      outline: "none",
-                      appearance: "none",
-                      cursor: "pointer"
-                    }}
-                  />
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      fontSize: "14px",
-                      color: "#6B7280",
-                      marginTop: "8px"
-                    }}
-                  >
-                    <span>{phase6MinYear} jaar</span>
-                    <span>{investmentHorizon} jaar</span>
-                  </div>
-                </div>
-              </div>
-            </>
-          )}
           </div>
 
           </div>
@@ -3957,66 +3314,47 @@ const InvestmentCalculator = () => {
 
           {/* One-time extra deposit */}
           {!isNextGeneration && <div style={{ marginBottom: "28px", padding: "12px", border: "1px solid #D2BB5D", borderRadius: "8px" }}>
-            <div
-              role="button"
-              tabIndex={0}
-              aria-expanded={isOneTimeExtrasExpanded}
-              onClick={() => setIsOneTimeExtrasExpanded((prev) => !prev)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  setIsOneTimeExtrasExpanded((prev) => !prev);
-                }
-              }}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                cursor: "pointer",
-                userSelect: "none",
-                marginBottom: "12px"
-              }}
-            >
-              <div style={{ fontSize: "16px", fontWeight: "600", color: "#111827" }}>
-                Eenmalige extra inleg
-              </div>
-              <span
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: "24px",
-                  height: "24px",
-                  borderRadius: "999px",
-                  border: "1px solid #d8d2bf",
-                  backgroundColor: "#ffffff",
-                  transform: isOneTimeExtrasExpanded ? "rotate(180deg)" : "rotate(0deg)",
-                  transition: "transform 200ms ease"
-                }}
-              >
-                <svg width="12" height="8" viewBox="0 0 12 8" aria-hidden="true">
-                  <path d="M1 1l5 5 5-5" fill="none" stroke="#111827" strokeWidth="1.7" strokeLinecap="round" />
-                </svg>
-              </span>
+            <div style={{ fontSize: "16px", fontWeight: "600", color: "#111827", marginBottom: "12px" }}>
+              Eenmalige extra inleg
             </div>
-            {oneTimeExtras.map((entry, index) => {
-              if (!isOneTimeExtrasExpanded && index > 0) {
-                return null;
-              }
-              return (
-                <div key={`extra-${index}`} style={{ marginBottom: index === oneTimeExtras.length - 1 ? 0 : "14px" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
-                    <span style={{ fontSize: "14px", color: "#6B7280", minWidth: "74px" }}>Bedrag {index + 1}</span>
-                    <span style={{ fontSize: "14px", color: "#111827" }}>€</span>
+            {oneTimeExtras.map((entry, index) => (
+              <div key={`extra-${index}`} style={{ marginBottom: index === oneTimeExtras.length - 1 ? 0 : "14px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
+                  <span style={{ fontSize: "14px", color: "#6B7280", minWidth: "74px" }}>Bedrag {index + 1}</span>
+                  <span style={{ fontSize: "14px", color: "#111827" }}>€</span>
+                  <input
+                    type="number"
+                    min="0"
+                    max="5000000"
+                    step="1"
+                    value={entry.amount}
+                    onChange={(e) => updateOneTimeExtra(index, "amount", e.target.value)}
+                    style={{
+                      flex: 1,
+                      padding: "6px 8px",
+                      border: "1px solid #D2BB5D",
+                      borderRadius: "6px",
+                      fontSize: "14px",
+                      outline: "none",
+                      backgroundColor: "#fff",
+                      boxSizing: "border-box"
+                    }}
+                  />
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", columnGap: "16px" }}>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: "14px", color: "#6B7280", marginBottom: "6px" }}>
+                      Bedrag {index + 1} - Jaar
+                    </div>
                     <input
                       type="number"
-                      min="0"
-                      max="5000000"
+                      min="1"
+                      max={investmentHorizon}
                       step="1"
-                      value={entry.amount}
-                      onChange={(e) => updateOneTimeExtra(index, "amount", e.target.value)}
+                      value={entry.year}
+                      onChange={(e) => updateOneTimeExtra(index, "year", e.target.value)}
                       style={{
-                        flex: 1,
+                        width: "100%",
                         padding: "6px 8px",
                         border: "1px solid #D2BB5D",
                         borderRadius: "6px",
@@ -4027,57 +3365,32 @@ const InvestmentCalculator = () => {
                       }}
                     />
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", columnGap: "16px" }}>
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: "14px", color: "#6B7280", marginBottom: "6px" }}>
-                        Bedrag {index + 1} - Jaar
-                      </div>
-                      <input
-                        type="number"
-                        min="1"
-                        max={investmentHorizon}
-                        step="1"
-                        value={entry.year}
-                        onChange={(e) => updateOneTimeExtra(index, "year", e.target.value)}
-                        style={{
-                          width: "100%",
-                          padding: "6px 8px",
-                          border: "1px solid #D2BB5D",
-                          borderRadius: "6px",
-                          fontSize: "14px",
-                          outline: "none",
-                          backgroundColor: "#fff",
-                          boxSizing: "border-box"
-                        }}
-                      />
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: "14px", color: "#6B7280", marginBottom: "6px" }}>
+                      Bedrag {index + 1} - Maand
                     </div>
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: "14px", color: "#6B7280", marginBottom: "6px" }}>
-                        Bedrag {index + 1} - Maand
-                      </div>
-                      <input
-                        type="number"
-                        min="1"
-                        max="12"
-                        step="1"
-                        value={entry.month}
-                        onChange={(e) => updateOneTimeExtra(index, "month", e.target.value)}
-                        style={{
-                          width: "100%",
-                          padding: "6px 8px",
-                          border: "1px solid #D2BB5D",
-                          borderRadius: "6px",
-                          fontSize: "14px",
-                          outline: "none",
-                          backgroundColor: "#fff",
-                          boxSizing: "border-box"
-                        }}
-                      />
-                    </div>
+                    <input
+                      type="number"
+                      min="1"
+                      max="12"
+                      step="1"
+                      value={entry.month}
+                      onChange={(e) => updateOneTimeExtra(index, "month", e.target.value)}
+                      style={{
+                        width: "100%",
+                        padding: "6px 8px",
+                        border: "1px solid #D2BB5D",
+                        borderRadius: "6px",
+                        fontSize: "14px",
+                        outline: "none",
+                        backgroundColor: "#fff",
+                        boxSizing: "border-box"
+                      }}
+                    />
                   </div>
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>}
 
           {/* Profile */}
@@ -4362,30 +3675,8 @@ const InvestmentCalculator = () => {
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: "16px" }}>
           <h2 style={{ margin: 0, fontSize: "28px" }}>Levensloop profvoetballer</h2>
-          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-            {[
-              { key: "future", label: "Toekomst" },
-              { key: "actual", label: "Werkelijk" }
-            ].map((mode) => (
-              <button
-                key={mode.key}
-                type="button"
-                onClick={() => setLifelineViewMode(mode.key)}
-                style={{
-                  border: `1px solid ${subtleOverlayTextColor}`,
-                  color: lifelineViewMode === mode.key ? "#0d2a28" : subtleOverlayTextColor,
-                  backgroundColor: lifelineViewMode === mode.key ? "rgba(13,42,40,0.08)" : "transparent",
-                  borderRadius: "4px",
-                  padding: "5px 12px",
-                  fontSize: "12px",
-                  fontWeight: 700,
-                  lineHeight: 1.2,
-                  cursor: "pointer"
-                }}
-              >
-                {mode.label}
-              </button>
-            ))}
+          <div style={{ fontSize: "14px", color: "#6B7280" }}>
+            Startleeftijd {startAge} · AOW {aowAge}
           </div>
         </div>
 
@@ -4959,26 +4250,10 @@ const InvestmentCalculator = () => {
           </div>
 
           <div style={{ background: "#fff", borderRadius: "8px", padding: "12px", border: "1px solid #e1dccb" }}>
-            <button
-              type="button"
-              onClick={() => setIsFreeWealthInfoModalOpen(true)}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                fontSize: "14px",
-                fontWeight: 700,
-                marginBottom: "10px",
-                border: "none",
-                background: "transparent",
-                padding: 0,
-                cursor: "pointer",
-                color: "#111827"
-              }}
-            >
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "14px", fontWeight: 700, marginBottom: "10px" }}>
               <span>Vrij Vermogen Animo</span>
               <span style={{ width: "14px", height: "3px", backgroundColor: "#d2bb5d", borderRadius: "2px" }} />
-            </button>
+            </div>
             <div style={{ fontSize: "12px", color: "#6B7280" }}>Verwacht eindresultaat (box 2 / 3)</div>
             <div style={{ fontSize: "16px", fontWeight: 700, marginTop: "6px" }}>
               {formatCurrency(freeWealthExpectedEndResult)}
@@ -5152,26 +4427,10 @@ const InvestmentCalculator = () => {
           </div>
 
           <div style={{ background: "#fff", borderRadius: "8px", padding: "12px", border: "1px solid #e1dccb" }}>
-            <button
-              type="button"
-              onClick={() => setIsPensionInfoModalOpen(true)}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                fontSize: "14px",
-                fontWeight: 700,
-                marginBottom: "10px",
-                border: "none",
-                background: "transparent",
-                padding: 0,
-                cursor: "pointer",
-                color: "#111827"
-              }}
-            >
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "14px", fontWeight: 700, marginBottom: "10px" }}>
               <span>Pensioen Animo</span>
               <span style={{ width: "14px", height: "3px", backgroundColor: "#6672a8", borderRadius: "2px" }} />
-            </button>
+            </div>
             <div style={{ fontSize: "12px", color: "#6B7280" }}>Verwacht eindresultaat (bruto - box1)</div>
             <div style={{ fontSize: "16px", fontWeight: 700, marginTop: "6px" }}>{formatCurrency(pensionExpectedEndResult)}</div>
             <label style={{ fontSize: "12px", color: "#6B7280", marginTop: "10px", display: "block" }}>
@@ -5457,373 +4716,6 @@ const InvestmentCalculator = () => {
           background: #0d2a28 !important;
         }
       `}</style>
-      {isFreeWealthInfoModalOpen && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Vrij Vermogen Animo overzicht"
-          onClick={() => setIsFreeWealthInfoModalOpen(false)}
-          style={{
-            position: "fixed",
-            inset: 0,
-            backgroundColor: "rgba(13,42,40,0.45)",
-            zIndex: 1000,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "20px"
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              width: "100%",
-              maxWidth: "640px",
-              minHeight: "360px",
-              backgroundColor: "#ffffff",
-              border: "1px solid #e1dccb",
-              borderRadius: "12px",
-              boxShadow: "0 12px 40px rgba(0,0,0,0.2)",
-              padding: "20px"
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
-              <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", fontSize: "20px", fontWeight: 700, color: "#111827" }}>
-                <span>Vrij Vermogen Animo</span>
-                <span style={{ width: "14px", height: "3px", backgroundColor: "#d2bb5d", borderRadius: "2px" }} />
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsFreeWealthInfoModalOpen(false)}
-                style={{
-                  border: "1px solid #d1d5db",
-                  backgroundColor: "#fff",
-                  color: "#111827",
-                  borderRadius: "8px",
-                  width: "34px",
-                  height: "34px",
-                  lineHeight: "1",
-                  fontSize: "20px",
-                  cursor: "pointer"
-                }}
-              >
-                ×
-              </button>
-            </div>
-            <div
-              style={{
-                minHeight: "270px",
-                border: "1px solid #e5e7eb",
-                borderRadius: "8px",
-                backgroundColor: "#f9fafb",
-                padding: "16px"
-              }}
-            >
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-                  gap: "8px",
-                  border: "1px solid #e5e7eb",
-                  borderRadius: "8px",
-                  backgroundColor: "#fff",
-                  padding: "10px 12px",
-                  marginBottom: "12px"
-                }}
-              >
-                <div style={{ fontSize: "13px", color: "#374151", textAlign: "center", fontWeight: 600 }}>
-                  Looptijd: {investmentHorizon} jaar
-                </div>
-                <div style={{ fontSize: "13px", color: "#374151", textAlign: "center", fontWeight: 600 }}>
-                  Portefeuille: {profile}
-                </div>
-                <div style={{ fontSize: "13px", color: "#374151", textAlign: "center", fontWeight: 600 }}>
-                  Eigen inleg: {formatCurrency(freeWealthOwnContributionTotal)}
-                </div>
-              </div>
-
-              <div
-                style={{
-                  border: "1px solid #e5e7eb",
-                  borderRadius: "8px",
-                  overflow: "hidden",
-                  backgroundColor: "#fff"
-                }}
-              >
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "1.2fr 1fr 1fr",
-                    borderBottom: "1px solid #e5e7eb",
-                    backgroundColor: "#f9fafb"
-                  }}
-                >
-                  <div style={{ padding: "10px 12px", fontSize: "12px", color: "#6b7280", fontWeight: 600 }}>
-                    Vergelijking
-                  </div>
-                  <div style={{ padding: "10px 12px", fontSize: "12px", color: "#6b7280", fontWeight: 700, textAlign: "center" }}>
-                    Animo beleggen
-                  </div>
-                  <div style={{ padding: "10px 12px", fontSize: "12px", color: "#6b7280", fontWeight: 700, textAlign: "center" }}>
-                    Spaarrekening (1,5% p/j)
-                  </div>
-                </div>
-
-                <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr 1fr", borderBottom: "1px solid #e5e7eb" }}>
-                  <div style={{ padding: "12px", fontSize: "13px", color: "#374151", fontWeight: 600 }}>Verwacht eindresultaat</div>
-                  <div style={{ padding: "10px 12px", fontSize: "clamp(20px,2vw,30px)", color: "#111827", fontWeight: 700, textAlign: "center", lineHeight: 1 }}>
-                    {formatCurrency(finalBalance)}
-                  </div>
-                  <div style={{ padding: "10px 12px", fontSize: "clamp(20px,2vw,30px)", color: "#111827", fontWeight: 700, textAlign: "center", lineHeight: 1 }}>
-                    {formatCurrency(freeWealthSavingsBalance)}
-                  </div>
-                </div>
-
-                <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr 1fr", borderBottom: "1px solid #e5e7eb" }}>
-                  <div style={{ padding: "10px 12px", fontSize: "13px", color: "#374151", fontWeight: 600 }}>Rendement in €</div>
-                  <div style={{ padding: "10px 12px", fontSize: "17px", color: "#0d2a28", fontWeight: 700, textAlign: "center" }}>
-                    {formatCurrency(freeWealthReturnAmount)}
-                  </div>
-                  <div style={{ padding: "10px 12px", fontSize: "17px", color: "#111827", fontWeight: 700, textAlign: "center" }}>
-                    {formatCurrency(freeWealthSavingsReturnAmount)}
-                  </div>
-                </div>
-
-                <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr 1fr" }}>
-                  <div style={{ padding: "10px 12px", fontSize: "13px", color: "#374151", fontWeight: 600 }}>
-                    Rendement in % van eigen inleg
-                  </div>
-                  <div style={{ padding: "10px 12px", fontSize: "15px", color: "#0d2a28", fontWeight: 700, textAlign: "center" }}>
-                    {freeWealthAnimoReturnPct.toFixed(1).replace(".", ",")}%
-                  </div>
-                  <div style={{ padding: "10px 12px", fontSize: "15px", color: "#111827", fontWeight: 700, textAlign: "center" }}>
-                    {freeWealthSavingsReturnPct.toFixed(1).replace(".", ",")}%
-                  </div>
-                </div>
-              </div>
-
-              <div
-                style={{
-                  marginTop: "12px",
-                  border: "1px solid #e5e7eb",
-                  borderRadius: "8px",
-                  backgroundColor: "#fff",
-                  padding: "12px",
-                  textAlign: "center",
-                  fontSize: "16px",
-                  fontWeight: 700,
-                  color: freeWealthExtraVsSavings >= 0 ? "#0d2a28" : "#991b1b"
-                }}
-              >
-                Extra resultaat met Animo: {freeWealthExtraVsSavings >= 0 ? "+" : "-"}
-                {formatCurrency(Math.abs(freeWealthExtraVsSavings))}
-              </div>
-
-              <div
-                style={{
-                  marginTop: "12px",
-                  border: "1px solid #e5e7eb",
-                  borderRadius: "8px",
-                  backgroundColor: "#fff",
-                  padding: "12px",
-                  fontSize: "13px",
-                  color: "#4b5563",
-                  lineHeight: 1.5
-                }}
-              >
-                <div>
-                  Dit vermogen biedt volledige flexibiliteit, ook wel vrij vermogen genoemd. Je kunt er altijd bij,
-                  al is het uiteraard de bedoeling om voor de lange termijn te investeren, want dat geeft de beste
-                  eindresultaten.
-                </div>
-                <div style={{ marginTop: "8px" }}>
-                  Dit vermogen kan mooi dienen als inkomstenaanvulling bijvoorbeeld na de CFK-uitkering.
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-      {isPensionInfoModalOpen && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Pensioen Animo overzicht"
-          onClick={() => setIsPensionInfoModalOpen(false)}
-          style={{
-            position: "fixed",
-            inset: 0,
-            backgroundColor: "rgba(13,42,40,0.45)",
-            zIndex: 1000,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "20px"
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              width: "100%",
-              maxWidth: "760px",
-              backgroundColor: "#ffffff",
-              border: "1px solid #e1dccb",
-              borderRadius: "12px",
-              boxShadow: "0 12px 40px rgba(0,0,0,0.2)",
-              padding: "20px"
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
-              <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", fontSize: "20px", fontWeight: 700, color: "#111827" }}>
-                <span>Pensioen Animo</span>
-                <span style={{ width: "14px", height: "3px", backgroundColor: "#6672a8", borderRadius: "2px" }} />
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsPensionInfoModalOpen(false)}
-                style={{
-                  border: "1px solid #d1d5db",
-                  backgroundColor: "#fff",
-                  color: "#111827",
-                  borderRadius: "8px",
-                  width: "34px",
-                  height: "34px",
-                  lineHeight: "1",
-                  fontSize: "20px",
-                  cursor: "pointer"
-                }}
-              >
-                ×
-              </button>
-            </div>
-            <div
-              style={{
-                border: "1px solid #e5e7eb",
-                borderRadius: "8px",
-                backgroundColor: "#f9fafb",
-                padding: "16px"
-              }}
-            >
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr 1fr",
-                  gap: "8px",
-                  border: "1px solid #e5e7eb",
-                  borderRadius: "8px",
-                  backgroundColor: "#fff",
-                  padding: "10px 12px",
-                  marginBottom: "12px"
-                }}
-              >
-                <div style={{ fontSize: "13px", color: "#374151", textAlign: "center", fontWeight: 600 }}>
-                  Looptijd calculator: {investmentHorizon2} jaar
-                </div>
-                <div style={{ fontSize: "13px", color: "#374151", textAlign: "center", fontWeight: 600 }}>
-                  Portefeuille: {profile2}
-                </div>
-                <div style={{ fontSize: "13px", color: "#374151", textAlign: "center", fontWeight: 600 }}>
-                  Start uitkering: {aowAge} jaar
-                </div>
-              </div>
-
-              <div
-                style={{
-                  border: "1px solid #e5e7eb",
-                  borderRadius: "8px",
-                  backgroundColor: "#fff",
-                  padding: "12px",
-                  marginBottom: "12px"
-                }}
-              >
-                <div style={{ fontSize: "13px", color: "#6B7280", marginBottom: "8px" }}>
-                  Verwacht eindresultaat pensioen
-                </div>
-                <div style={{ fontSize: "clamp(24px, 2.4vw, 36px)", fontWeight: 700, color: "#111827", lineHeight: 1 }}>
-                  {formatCurrency(pensionExpectedEndResult)}
-                </div>
-              </div>
-
-              <div
-                style={{
-                  border: "1px solid #e5e7eb",
-                  borderRadius: "8px",
-                  backgroundColor: "#fff",
-                  padding: "12px",
-                  marginBottom: "12px"
-                }}
-              >
-                <div style={{ fontSize: "13px", color: "#6B7280", marginBottom: "10px", fontWeight: 600 }}>
-                  Inlegoverzicht
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr auto", rowGap: "8px", columnGap: "12px" }}>
-                  <div style={{ fontSize: "14px", color: "#111827" }}>Totale inleg</div>
-                  <div style={{ fontSize: "14px", color: "#111827", fontWeight: 700 }}>{formatCurrency(pensionGrossContributionTotal)}</div>
-
-                  <div style={{ fontSize: "14px", color: "#111827" }}>Indicatieve belastingteruggave</div>
-                  <div style={{ fontSize: "14px", color: "#0d2a28", fontWeight: 700 }}>
-                    {formatCurrency(pensionTaxRefundOnOneTimeContributions)}
-                  </div>
-
-                  <div style={{ fontSize: "14px", color: "#111827", fontWeight: 700, paddingTop: "2px", borderTop: "1px solid #e5e7eb" }}>
-                    Netto eigen inleg
-                  </div>
-                  <div style={{ fontSize: "14px", color: "#111827", fontWeight: 700, paddingTop: "2px", borderTop: "1px solid #e5e7eb" }}>
-                    {formatCurrency(pensionNetOwnContributionTotal)}
-                  </div>
-                </div>
-              </div>
-
-              <div
-                style={{
-                  border: "1px solid #e5e7eb",
-                  borderRadius: "8px",
-                  backgroundColor: "#fff",
-                  padding: "12px"
-                }}
-              >
-                <div style={{ fontSize: "13px", color: "#6B7280", marginBottom: "10px", fontWeight: 600 }}>
-                  Rendementsoverzicht
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr auto", rowGap: "8px", columnGap: "12px" }}>
-                  <div style={{ fontSize: "14px", color: "#111827" }}>Rendement op netto inleg</div>
-                  <div style={{ fontSize: "14px", color: "#0d2a28", fontWeight: 700 }}>{formatCurrency(pensionReturnOnNetContribution)}</div>
-
-                  <div style={{ fontSize: "14px", color: "#111827" }}>Rendement op netto inleg (%)</div>
-                  <div style={{ fontSize: "14px", color: "#0d2a28", fontWeight: 700 }}>{formatPercentOneDecimal(pensionReturnOnNetContributionPct)}</div>
-
-                  <div style={{ fontSize: "14px", color: "#111827" }}>
-                    Indicatieve jaarlijkse uitkering vanaf AOW gedurende {lifeline.pensionPayoutYears} jaar
-                  </div>
-                  <div style={{ fontSize: "14px", color: "#111827", fontWeight: 700 }}>{formatCurrency(lifeline.pensionAnnualPayout)}</div>
-                </div>
-              </div>
-
-              <div
-                style={{
-                  marginTop: "12px",
-                  border: "1px solid #e5e7eb",
-                  borderRadius: "8px",
-                  backgroundColor: "#fff",
-                  padding: "12px",
-                  fontSize: "13px",
-                  color: "#4b5563",
-                  lineHeight: 1.5
-                }}
-              >
-                <div>
-                  Dit vermogen bouw je op als pensioen voorziening. Het is echt bedoeld voor je oude dag en biedt
-                  mooie voordelen tijdens de opbouwfase, zoals:
-                </div>
-                <ul style={{ marginTop: "8px", paddingLeft: "18px" }}>
-                  <li>De inleg krijg je deels terug van de belastingdienst.</li>
-                  <li>Over dit vermogen wordt geen vermogensbelasting gerekend.</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
       </div>
     </div>
   );

@@ -323,7 +323,6 @@ const InvestmentCalculator = () => {
   const [isCalculatorExpanded3, setIsCalculatorExpanded3] = useState(false);
   const [isOneTimeExtrasExpanded, setIsOneTimeExtrasExpanded] = useState(false);
   const [isOneTimeExtrasExpanded2, setIsOneTimeExtrasExpanded2] = useState(false);
-  const [lifelineViewMode, setLifelineViewMode] = useState("future");
   const [lifelineZoomMode, setLifelineZoomMode] = useState("week");
   const [activeScenarioBandKey, setActiveScenarioBandKey] = useState(null);
   const [hoveredLifelineSeriesKey, setHoveredLifelineSeriesKey] = useState(null);
@@ -4362,30 +4361,8 @@ const InvestmentCalculator = () => {
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: "16px" }}>
           <h2 style={{ margin: 0, fontSize: "28px" }}>Levensloop profvoetballer</h2>
-          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-            {[
-              { key: "future", label: "Toekomst" },
-              { key: "actual", label: "Werkelijk" }
-            ].map((mode) => (
-              <button
-                key={mode.key}
-                type="button"
-                onClick={() => setLifelineViewMode(mode.key)}
-                style={{
-                  border: `1px solid ${subtleOverlayTextColor}`,
-                  color: lifelineViewMode === mode.key ? "#0d2a28" : subtleOverlayTextColor,
-                  backgroundColor: lifelineViewMode === mode.key ? "rgba(13,42,40,0.08)" : "transparent",
-                  borderRadius: "4px",
-                  padding: "5px 12px",
-                  fontSize: "12px",
-                  fontWeight: 700,
-                  lineHeight: 1.2,
-                  cursor: "pointer"
-                }}
-              >
-                {mode.label}
-              </button>
-            ))}
+          <div style={{ fontSize: "14px", color: "#6B7280" }}>
+            Startleeftijd {startAge} · AOW {aowAge}
           </div>
         </div>
 

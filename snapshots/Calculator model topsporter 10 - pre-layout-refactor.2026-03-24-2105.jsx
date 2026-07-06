@@ -62,9 +62,7 @@ const AnchoredIncomeTooltip = ({ point, label, left, top, formatCurrency }) => {
   const rows = [
     { key: "vrij", color: "#d2bb5d", label: "Vrij Vermogen Animo", value: point.vrij || 0, bruto: false, netto: true },
     { key: "cfk", color: "#0d2a28", label: "CFK", value: point.cfk || 0, bruto: true },
-    { key: "pensioen", color: "#6672a8", label: "Pensioen Animo", value: point.pensioen || 0, bruto: true },
-    { key: "aow", color: "#c0c0c0", label: "AOW", value: point.aow || 0, bruto: true },
-    { key: "nextgen", color: "#ffa07a", label: "Next Generation Animo", value: point.nextgen || 0, netto: true }
+    { key: "pensioen", color: "#6672a8", label: "Pensioen Animo", value: point.pensioen || 0, bruto: true }
   ].filter((row) => row.value > 0);
 
   return (
@@ -161,10 +159,9 @@ const LifelineHoverTooltip = ({ active, payload, label, formatCurrency, zoomMode
   const seriesConfig = {
     vva: { color: "#d2bb5d", label: "Vrij Vermogen Animo", lowKey: "vvaLow", highKey: "vvaHigh", netto: true },
     cfk: { color: "#0d2a28", label: "CFK", bruto: true },
-    pensioen: { color: "#6672a8", label: "Pensioen Animo", lowKey: "pensioenLow", highKey: "pensioenHigh", bruto: true },
-    nextgen: { color: "#ffa07a", label: "Next Generation Animo", netto: true }
+    pensioen: { color: "#6672a8", label: "Pensioen Animo", lowKey: "pensioenLow", highKey: "pensioenHigh", bruto: true }
   };
-  const availableSeriesKeys = ["vva", "cfk", "pensioen", "nextgen"].filter((key) => (rawPoint[key] || 0) > 0);
+  const availableSeriesKeys = ["vva", "cfk", "pensioen"].filter((key) => (rawPoint[key] || 0) > 0);
   const selectedSeriesKey = availableSeriesKeys.includes(activeSeriesKey) ? activeSeriesKey : null;
   if (!selectedSeriesKey) {
     return null;
@@ -263,12 +260,6 @@ const InvestmentCalculator = () => {
   const [phase2EndYear, setPhase2EndYear] = useState(0);
   const [phase3MonthlyDeposit, setPhase3MonthlyDeposit] = useState(0);
   const [phase3EndYear, setPhase3EndYear] = useState(0);
-  const [phase4MonthlyDeposit, setPhase4MonthlyDeposit] = useState(0);
-  const [phase4EndYear, setPhase4EndYear] = useState(0);
-  const [phase5MonthlyDeposit, setPhase5MonthlyDeposit] = useState(0);
-  const [phase5EndYear, setPhase5EndYear] = useState(0);
-  const [phase6MonthlyDeposit, setPhase6MonthlyDeposit] = useState(0);
-  const [phase6EndYear, setPhase6EndYear] = useState(0);
   const [investmentHorizon, setInvestmentHorizon] = useState(20);
   const [startAge, setStartAge] = useState(18);
   const [startAmount2, setStartAmount2] = useState(0);
@@ -280,21 +271,8 @@ const InvestmentCalculator = () => {
   const [phase3EndYear2, setPhase3EndYear2] = useState(0);
   const [investmentHorizon2, setInvestmentHorizon2] = useState(20);
   const [startAge2, setStartAge2] = useState(18);
-  const [startAmount3, setStartAmount3] = useState(0);
-  const [phase1MonthlyDeposit3, setPhase1MonthlyDeposit3] = useState(0);
-  const [phase1Years3, setPhase1Years3] = useState(0);
-  const [phase2MonthlyDeposit3, setPhase2MonthlyDeposit3] = useState(0);
-  const [phase2EndYear3, setPhase2EndYear3] = useState(0);
-  const [phase3MonthlyDeposit3, setPhase3MonthlyDeposit3] = useState(0);
-  const [phase3EndYear3, setPhase3EndYear3] = useState(0);
-  const [investmentHorizon3, setInvestmentHorizon3] = useState(20);
-  const [startAge3, setStartAge3] = useState(18);
-  const [childAge3, setChildAge3] = useState(1);
   const aowAge = 68;
   const [oneTimeExtras, setOneTimeExtras] = useState([
-    { amount: 0, year: 5, month: 6 },
-    { amount: 0, year: 5, month: 6 },
-    { amount: 0, year: 5, month: 6 },
     { amount: 0, year: 5, month: 6 },
     { amount: 0, year: 5, month: 6 },
     { amount: 0, year: 5, month: 6 }
@@ -302,32 +280,17 @@ const InvestmentCalculator = () => {
   const [oneTimeExtras2, setOneTimeExtras2] = useState([
     { amount: 0, year: 1, month: 12 },
     { amount: 0, year: 2, month: 12 },
-    { amount: 0, year: 3, month: 12 },
-    { amount: 0, year: 4, month: 12 },
-    { amount: 0, year: 5, month: 12 },
-    { amount: 0, year: 6, month: 12 }
-  ]);
-  const [oneTimeExtras3, setOneTimeExtras3] = useState([
-    { amount: 0, year: 5, month: 6 },
-    { amount: 0, year: 5, month: 6 },
-    { amount: 0, year: 5, month: 6 }
+    { amount: 0, year: 3, month: 12 }
   ]);
   const [startDepositsInYear2, setStartDepositsInYear2] = useState(false);
   const [startDepositsInYear22, setStartDepositsInYear22] = useState(false);
-  const [startDepositsInYear23, setStartDepositsInYear23] = useState(false);
   const [profile, setProfile] = useState("Gedreven");
   const [profile2, setProfile2] = useState("Gedreven");
-  const [profile3, setProfile3] = useState("Gedreven");
   const [isCalculatorExpanded, setIsCalculatorExpanded] = useState(false);
   const [isCalculatorExpanded2, setIsCalculatorExpanded2] = useState(false);
-  const [isCalculatorExpanded3, setIsCalculatorExpanded3] = useState(false);
-  const [isOneTimeExtrasExpanded, setIsOneTimeExtrasExpanded] = useState(false);
-  const [isOneTimeExtrasExpanded2, setIsOneTimeExtrasExpanded2] = useState(false);
-  const [lifelineViewMode, setLifelineViewMode] = useState("future");
   const [lifelineZoomMode, setLifelineZoomMode] = useState("week");
   const [activeScenarioBandKey, setActiveScenarioBandKey] = useState(null);
   const [hoveredLifelineSeriesKey, setHoveredLifelineSeriesKey] = useState(null);
-  const [isExamplePresetActive, setIsExamplePresetActive] = useState(false);
   const [careerPhaseStartAge, setCareerPhaseStartAge] = useState(18);
   const [careerEndAge, setCareerEndAge] = useState(35);
   const [isDraggingCareerStartAge, setIsDraggingCareerStartAge] = useState(false);
@@ -335,37 +298,29 @@ const InvestmentCalculator = () => {
   const [cfkPot, setCfkPot] = useState(0);
   const [cfkReturnRate, setCfkReturnRate] = useState(2.5);
   const [cfkDurationMonths, setCfkDurationMonths] = useState(120);
-  const [pensionReturnRate, setPensionReturnRate] = useState(2.5);
-  const [pensionAowEnabled, setPensionAowEnabled] = useState(false);
-  const [pensionYearsAbroad, setPensionYearsAbroad] = useState("");
   const [freeWealthPayouts, setFreeWealthPayouts] = useState([
+    { amount: 0, fromAge: 35, toAge: 36 },
     { amount: 0, fromAge: 35, toAge: 36 },
     { amount: 0, fromAge: 35, toAge: 36 },
     { amount: 0, fromAge: 35, toAge: 36 }
   ]);
-  const [freeWealthSwitchToConservative, setFreeWealthSwitchToConservative] = useState(false);
-  const [freeWealthConservativeFromYear, setFreeWealthConservativeFromYear] = useState(1);
-  const [isFreeWealthInfoModalOpen, setIsFreeWealthInfoModalOpen] = useState(false);
-  const [isPensionInfoModalOpen, setIsPensionInfoModalOpen] = useState(false);
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const [hoveredIndex2, setHoveredIndex2] = useState(null);
-  const [hoveredIndex3, setHoveredIndex3] = useState(null);
   const [hoveredIncomeIndex, setHoveredIncomeIndex] = useState(null);
   const [hoveredPotIndex, setHoveredPotIndex] = useState(null);
   const chartContainerRef = useRef(null);
   const chartContainerRef2 = useRef(null);
-  const chartContainerRef3 = useRef(null);
   const lifelineChartContainerRef = useRef(null);
   const incomeChartContainerRef = useRef(null);
   const potChartContainerRef = useRef(null);
   const [chartSize, setChartSize] = useState({ width: 0, height: 0 });
   const [chartSize2, setChartSize2] = useState({ width: 0, height: 0 });
-  const [chartSize3, setChartSize3] = useState({ width: 0, height: 0 });
   const [lifelineChartSize, setLifelineChartSize] = useState({ width: 0, height: 0 });
   const [incomeChartSize, setIncomeChartSize] = useState({ width: 0, height: 0 });
   const [potChartSize, setPotChartSize] = useState({ width: 0, height: 0 });
   const subtleOverlayTextColor = "rgba(0,0,0,0.45)";
   const hasCfk = cfkPot > 0;
+  const freeWealthHorizonAge = startAge + investmentHorizon;
 
   // Risk profile returns (exact net annual returns)
   const riskProfiles = {
@@ -389,17 +344,9 @@ const InvestmentCalculator = () => {
 
   const annualReturn = riskProfiles[profile];
   const annualReturn2 = riskProfiles[profile2];
-  const annualReturn3 = riskProfiles[profile3];
-  const annualReturnBehouden = riskProfiles.Behouden;
   const careerStartAge = careerPhaseStartAge;
-  const cfkStartAge = careerEndAge;
-  const freeWealthHorizonAge = startAge + investmentHorizon;
-  const freeWealthLastPayoutAge = freeWealthPayouts.reduce(
-    (max, row) => (row.amount > 0 ? Math.max(max, row.toAge) : max),
-    freeWealthHorizonAge
-  );
-  const freeWealthVisibleEndAge = Math.max(freeWealthHorizonAge, freeWealthLastPayoutAge);
-  const timelineStartAge = Math.min(startAge, startAge2, startAge3);
+  const cfkStartAge = careerEndAge + 3;
+  const timelineStartAge = Math.min(startAge, startAge2);
   const cfkExpectedValueAtPayoutStart = useMemo(() => {
     const cfkGrowthRate = cfkReturnRate / 100;
     const yearsToPayoutStart = Math.max(0, cfkStartAge - careerStartAge);
@@ -439,38 +386,28 @@ const InvestmentCalculator = () => {
   }, [cfkDurationRange.max, cfkDurationRange.min]);
 
   useEffect(() => {
-    const clampYear = (value) => Math.max(0, Math.min(investmentHorizon, Math.round(Number(value) || 0)));
-    const nextPhase1 = clampYear(phase1Years);
-    const nextPhase2 = Math.max(nextPhase1, clampYear(phase2EndYear));
-    const nextPhase3 = Math.max(nextPhase2, clampYear(phase3EndYear));
-    const nextPhase4 = Math.max(nextPhase3, clampYear(phase4EndYear));
-    const nextPhase5 = Math.max(nextPhase4, clampYear(phase5EndYear));
-    const nextPhase6 = Math.max(nextPhase5, clampYear(phase6EndYear));
-
-    if (nextPhase1 !== phase1Years) {
-      setPhase1Years(nextPhase1);
+    if (phase1Years > investmentHorizon) {
+      setPhase1Years(investmentHorizon);
       return;
     }
-    if (nextPhase2 !== phase2EndYear) {
-      setPhase2EndYear(nextPhase2);
+    if (phase2EndYear > investmentHorizon) {
+      setPhase2EndYear(investmentHorizon);
       return;
     }
-    if (nextPhase3 !== phase3EndYear) {
-      setPhase3EndYear(nextPhase3);
+    if (phase3EndYear > investmentHorizon) {
+      setPhase3EndYear(investmentHorizon);
       return;
     }
-    if (nextPhase4 !== phase4EndYear) {
-      setPhase4EndYear(nextPhase4);
+    const minPhase2End = phase2MonthlyDeposit > 0 || phase3MonthlyDeposit > 0 ? phase1Years : 0;
+    if (phase2EndYear < minPhase2End) {
+      setPhase2EndYear(minPhase2End);
       return;
     }
-    if (nextPhase5 !== phase5EndYear) {
-      setPhase5EndYear(nextPhase5);
-      return;
+    const minPhase3End = phase3MonthlyDeposit > 0 ? phase2EndYear : 0;
+    if (phase3EndYear < minPhase3End) {
+      setPhase3EndYear(minPhase3End);
     }
-    if (nextPhase6 !== phase6EndYear) {
-      setPhase6EndYear(nextPhase6);
-    }
-  }, [phase1Years, phase2EndYear, phase3EndYear, phase4EndYear, phase5EndYear, phase6EndYear, investmentHorizon]);
+  }, [phase1Years, phase2EndYear, phase3EndYear, phase2MonthlyDeposit, phase3MonthlyDeposit, investmentHorizon]);
 
   useEffect(() => {
     if (phase1Years2 > investmentHorizon2) {
@@ -497,76 +434,16 @@ const InvestmentCalculator = () => {
   }, [phase1Years2, phase2EndYear2, phase3EndYear2, phase2MonthlyDeposit2, phase3MonthlyDeposit2, investmentHorizon2]);
 
   useEffect(() => {
-    if (phase1Years3 > investmentHorizon3) {
-      setPhase1Years3(investmentHorizon3);
-      return;
-    }
-    if (phase2EndYear3 > investmentHorizon3) {
-      setPhase2EndYear3(investmentHorizon3);
-      return;
-    }
-    if (phase3EndYear3 > investmentHorizon3) {
-      setPhase3EndYear3(investmentHorizon3);
-      return;
-    }
-    const minPhase2End = phase2MonthlyDeposit3 > 0 || phase3MonthlyDeposit3 > 0 ? phase1Years3 : 0;
-    if (phase2EndYear3 < minPhase2End) {
-      setPhase2EndYear3(minPhase2End);
-      return;
-    }
-    const minPhase3End = phase3MonthlyDeposit3 > 0 ? phase2EndYear3 : 0;
-    if (phase3EndYear3 < minPhase3End) {
-      setPhase3EndYear3(minPhase3End);
-    }
-  }, [phase1Years3, phase2EndYear3, phase3EndYear3, phase2MonthlyDeposit3, phase3MonthlyDeposit3, investmentHorizon3]);
-
-  useEffect(() => {
     if (startAge < 18) {
       setStartAge(18);
-      return;
-    }
-    if (startAge > 50) {
-      setStartAge(50);
     }
   }, [startAge]);
 
   useEffect(() => {
     if (startAge2 < 18) {
       setStartAge2(18);
-      return;
-    }
-    if (startAge2 > 50) {
-      setStartAge2(50);
     }
   }, [startAge2]);
-
-  useEffect(() => {
-    if (startAge3 < 18) {
-      setStartAge3(18);
-      return;
-    }
-    if (startAge3 > 50) {
-      setStartAge3(50);
-    }
-  }, [startAge3]);
-
-  useEffect(() => {
-    if (startAmount3 > 6500) {
-      setStartAmount3(6500);
-    }
-    if (startAmount3 < 0) {
-      setStartAmount3(0);
-    }
-  }, [startAmount3]);
-
-  useEffect(() => {
-    setChildAge3((prev) => Math.max(1, Math.min(15, prev)));
-  }, []);
-
-  useEffect(() => {
-    const derivedHorizon = Math.max(1, 18 - childAge3);
-    setInvestmentHorizon3(derivedHorizon);
-  }, [childAge3]);
 
   useEffect(() => {
     setFreeWealthPayouts((prev) => {
@@ -583,13 +460,6 @@ const InvestmentCalculator = () => {
       return changed ? next : prev;
     });
   }, [startAge]);
-  useEffect(() => {
-    const maxYear = Math.max(1, investmentHorizon);
-    setFreeWealthConservativeFromYear((prev) => {
-      const normalized = Math.min(maxYear, Math.max(1, Math.round(Number(prev) || 1)));
-      return normalized === prev ? prev : normalized;
-    });
-  }, [investmentHorizon]);
 
   useEffect(() => {
     setOneTimeExtras((prev) => {
@@ -621,21 +491,6 @@ const InvestmentCalculator = () => {
     });
   }, [investmentHorizon2]);
 
-  useEffect(() => {
-    setOneTimeExtras3((prev) => {
-      const next = prev.map((entry) => ({
-        amount: clampEuro(entry.amount, 0, 5000000),
-        year: normalizeYear(entry.year, investmentHorizon3),
-        month: normalizeMonth(entry.month)
-      }));
-      const changed = next.some(
-        (entry, idx) =>
-          entry.amount !== prev[idx].amount || entry.year !== prev[idx].year || entry.month !== prev[idx].month
-      );
-      return changed ? next : prev;
-    });
-  }, [investmentHorizon3]);
-
   const getMonthlyDepositForMonth = (absoluteMonth) => {
     const monthInDepositTimeline = startDepositsInYear2 ? absoluteMonth - 12 : absoluteMonth;
     if (monthInDepositTimeline <= 0) {
@@ -645,9 +500,6 @@ const InvestmentCalculator = () => {
     const phase1Months = phase1Years * 12;
     const phase2Months = phase2EndYear * 12;
     const phase3Months = phase3EndYear * 12;
-    const phase4Months = phase4EndYear * 12;
-    const phase5Months = phase5EndYear * 12;
-    const phase6Months = phase6EndYear * 12;
 
     if (monthInDepositTimeline <= phase1Months) {
       return phase1MonthlyDeposit;
@@ -657,15 +509,6 @@ const InvestmentCalculator = () => {
     }
     if (monthInDepositTimeline <= phase3Months) {
       return phase3MonthlyDeposit;
-    }
-    if (monthInDepositTimeline <= phase4Months) {
-      return phase4MonthlyDeposit;
-    }
-    if (monthInDepositTimeline <= phase5Months) {
-      return phase5MonthlyDeposit;
-    }
-    if (monthInDepositTimeline <= phase6Months) {
-      return phase6MonthlyDeposit;
     }
     return 0;
   };
@@ -710,37 +553,6 @@ const InvestmentCalculator = () => {
       return sum + (absoluteMonth === targetMonth ? entry.amount : 0);
     }, 0);
 
-  const getMonthlyDepositForMonth3 = (absoluteMonth) => {
-    const monthInDepositTimeline = startDepositsInYear23 ? absoluteMonth - 12 : absoluteMonth;
-    if (monthInDepositTimeline <= 0) {
-      return 0;
-    }
-
-    const phase1Months = phase1Years3 * 12;
-    const phase2Months = phase2EndYear3 * 12;
-    const phase3Months = phase3EndYear3 * 12;
-
-    if (monthInDepositTimeline <= phase1Months) {
-      return phase1MonthlyDeposit3;
-    }
-    if (monthInDepositTimeline <= phase2Months) {
-      return phase2MonthlyDeposit3;
-    }
-    if (monthInDepositTimeline <= phase3Months) {
-      return phase3MonthlyDeposit3;
-    }
-    return 0;
-  };
-
-  const getOneTimeExtraForMonth3 = (absoluteMonth) =>
-    oneTimeExtras3.reduce((sum, entry) => {
-      if (entry.amount <= 0) {
-        return sum;
-      }
-      const targetMonth = (entry.year - 1) * 12 + entry.month;
-      return sum + (absoluteMonth === targetMonth ? entry.amount : 0);
-    }, 0);
-
   const updateOneTimeExtra = (index, key, rawValue) => {
     setOneTimeExtras((prev) =>
       prev.map((entry, idx) => {
@@ -775,23 +587,6 @@ const InvestmentCalculator = () => {
     );
   };
 
-  const updateOneTimeExtra3 = (index, key, rawValue) => {
-    setOneTimeExtras3((prev) =>
-      prev.map((entry, idx) => {
-        if (idx !== index) {
-          return entry;
-        }
-        if (key === "amount") {
-          return { ...entry, amount: clampEuro(rawValue, 0, 5000000) };
-        }
-        if (key === "year") {
-          return { ...entry, year: normalizeYear(rawValue, investmentHorizon3) };
-        }
-        return { ...entry, month: normalizeMonth(rawValue) };
-      })
-    );
-  };
-
   const updateFreeWealthPayout = (index, key, rawValue) => {
     setFreeWealthPayouts((prev) =>
       prev.map((row, idx) => {
@@ -809,188 +604,6 @@ const InvestmentCalculator = () => {
         return { ...row, toAge };
       })
     );
-  };
-
-  const applyDefaultPreset = () => {
-    setCfkPot(0);
-    setCfkReturnRate(2.5);
-    setCfkDurationMonths(12);
-    setCareerPhaseStartAge(18);
-    setCareerEndAge(35);
-
-    setStartAmount(0);
-    setStartAge(18);
-    setPhase1MonthlyDeposit(0);
-    setPhase1Years(0);
-    setPhase2MonthlyDeposit(0);
-    setPhase2EndYear(0);
-    setPhase3MonthlyDeposit(0);
-    setPhase3EndYear(0);
-    setPhase4MonthlyDeposit(0);
-    setPhase4EndYear(0);
-    setPhase5MonthlyDeposit(0);
-    setPhase5EndYear(0);
-    setPhase6MonthlyDeposit(0);
-    setPhase6EndYear(0);
-    setInvestmentHorizon(20);
-    setProfile("Gedreven");
-    setStartDepositsInYear2(false);
-    setIsOneTimeExtrasExpanded(false);
-    setOneTimeExtras([
-      { amount: 0, year: 5, month: 6 },
-      { amount: 0, year: 5, month: 6 },
-      { amount: 0, year: 5, month: 6 },
-      { amount: 0, year: 5, month: 6 },
-      { amount: 0, year: 5, month: 6 },
-      { amount: 0, year: 5, month: 6 }
-    ]);
-    setFreeWealthPayouts([
-      { amount: 0, fromAge: 35, toAge: 36 },
-      { amount: 0, fromAge: 35, toAge: 36 },
-      { amount: 0, fromAge: 35, toAge: 36 }
-    ]);
-    setFreeWealthSwitchToConservative(false);
-    setFreeWealthConservativeFromYear(1);
-
-    setStartAmount2(0);
-    setStartAge2(18);
-    setPhase1MonthlyDeposit2(0);
-    setPhase1Years2(0);
-    setPhase2MonthlyDeposit2(0);
-    setPhase2EndYear2(0);
-    setPhase3MonthlyDeposit2(0);
-    setPhase3EndYear2(0);
-    setInvestmentHorizon2(20);
-    setProfile2("Gedreven");
-    setStartDepositsInYear22(false);
-    setIsOneTimeExtrasExpanded2(false);
-    setOneTimeExtras2([
-      { amount: 0, year: 1, month: 12 },
-      { amount: 0, year: 2, month: 12 },
-      { amount: 0, year: 3, month: 12 },
-      { amount: 0, year: 4, month: 12 },
-      { amount: 0, year: 5, month: 12 },
-      { amount: 0, year: 6, month: 12 }
-    ]);
-    setPensionReturnRate(2.5);
-    setPensionAowEnabled(false);
-    setPensionYearsAbroad("");
-
-    setStartAmount3(0);
-    setStartAge3(18);
-    setChildAge3(1);
-    setPhase1MonthlyDeposit3(0);
-    setPhase1Years3(0);
-    setPhase2MonthlyDeposit3(0);
-    setPhase2EndYear3(0);
-    setPhase3MonthlyDeposit3(0);
-    setPhase3EndYear3(0);
-    setInvestmentHorizon3(17);
-    setProfile3("Gedreven");
-    setStartDepositsInYear23(false);
-    setOneTimeExtras3([
-      { amount: 0, year: 5, month: 6 },
-      { amount: 0, year: 5, month: 6 },
-      { amount: 0, year: 5, month: 6 }
-    ]);
-  };
-
-  const applyExamplePreset = () => {
-    setCareerPhaseStartAge(18);
-    setCareerEndAge(35);
-
-    setCfkPot(400000);
-    setCfkReturnRate(2.5);
-    setCfkDurationMonths(132);
-
-    setStartAmount(150000);
-    setStartAge(28);
-    setPhase1MonthlyDeposit(2500);
-    setPhase1Years(7);
-    setPhase2MonthlyDeposit(0);
-    setPhase2EndYear(0);
-    setPhase3MonthlyDeposit(0);
-    setPhase3EndYear(0);
-    setPhase4MonthlyDeposit(0);
-    setPhase4EndYear(0);
-    setPhase5MonthlyDeposit(0);
-    setPhase5EndYear(0);
-    setPhase6MonthlyDeposit(0);
-    setPhase6EndYear(0);
-    setInvestmentHorizon(40);
-    setProfile("Behouden");
-    setStartDepositsInYear2(false);
-    setIsOneTimeExtrasExpanded(false);
-    setOneTimeExtras([
-      { amount: 0, year: 5, month: 6 },
-      { amount: 0, year: 5, month: 6 },
-      { amount: 0, year: 5, month: 6 },
-      { amount: 0, year: 5, month: 6 },
-      { amount: 0, year: 5, month: 6 },
-      { amount: 0, year: 5, month: 6 }
-    ]);
-
-    setFreeWealthPayouts([
-      { amount: 50000, fromAge: 36, toAge: 37 },
-      { amount: 55000, fromAge: 50, toAge: 66 },
-      { amount: 29859, fromAge: 67, toAge: 67 }
-    ]);
-    setFreeWealthSwitchToConservative(false);
-    setFreeWealthConservativeFromYear(1);
-
-    setStartAmount2(25000);
-    setStartAge2(28);
-    setPhase1MonthlyDeposit2(0);
-    setPhase1Years2(0);
-    setPhase2MonthlyDeposit2(0);
-    setPhase2EndYear2(0);
-    setPhase3MonthlyDeposit2(0);
-    setPhase3EndYear2(0);
-    setInvestmentHorizon2(20);
-    setProfile2("Gedreven");
-    setStartDepositsInYear22(false);
-    setIsOneTimeExtrasExpanded2(false);
-    setOneTimeExtras2([
-      { amount: 25000, year: 2, month: 12 },
-      { amount: 0, year: 2, month: 12 },
-      { amount: 0, year: 3, month: 12 },
-      { amount: 0, year: 4, month: 12 },
-      { amount: 0, year: 5, month: 12 },
-      { amount: 0, year: 6, month: 12 }
-    ]);
-    setPensionReturnRate(2.5);
-    setPensionAowEnabled(true);
-    setPensionYearsAbroad("2");
-
-    setStartAmount3(6500);
-    setStartAge3(28);
-    setChildAge3(3);
-    setPhase1MonthlyDeposit3(0);
-    setPhase1Years3(0);
-    setPhase2MonthlyDeposit3(0);
-    setPhase2EndYear3(0);
-    setPhase3MonthlyDeposit3(0);
-    setPhase3EndYear3(0);
-    setInvestmentHorizon3(15);
-    setProfile3("Gedreven");
-    setStartDepositsInYear23(false);
-    setOneTimeExtras3([
-      { amount: 0, year: 5, month: 6 },
-      { amount: 0, year: 5, month: 6 },
-      { amount: 0, year: 5, month: 6 }
-    ]);
-  };
-
-  const toggleExamplePreset = () => {
-    if (isExamplePresetActive) {
-      applyDefaultPreset();
-      setActiveScenarioBandKey(null);
-      setIsExamplePresetActive(false);
-      return;
-    }
-    applyExamplePreset();
-    setActiveScenarioBandKey(null);
-    setIsExamplePresetActive(true);
   };
 
   const calculationData = useMemo(() => {
@@ -1041,12 +654,6 @@ const InvestmentCalculator = () => {
     phase2EndYear,
     phase3MonthlyDeposit,
     phase3EndYear,
-    phase4MonthlyDeposit,
-    phase4EndYear,
-    phase5MonthlyDeposit,
-    phase5EndYear,
-    phase6MonthlyDeposit,
-    phase6EndYear,
     oneTimeExtras,
     startDepositsInYear2,
     investmentHorizon,
@@ -1054,80 +661,6 @@ const InvestmentCalculator = () => {
   ]);
 
   const finalBalance = calculationData[calculationData.length - 1]?.balance || 0;
-  const freeWealthPeriodicContributionTotal = useMemo(() => {
-    let total = 0;
-    const totalMonths = investmentHorizon * 12;
-    for (let month = 1; month <= totalMonths; month++) {
-      total += getMonthlyDepositForMonth(month);
-    }
-    return total;
-  }, [
-    investmentHorizon,
-    phase1MonthlyDeposit,
-    phase1Years,
-    phase2MonthlyDeposit,
-    phase2EndYear,
-    phase3MonthlyDeposit,
-    phase3EndYear,
-    phase4MonthlyDeposit,
-    phase4EndYear,
-    phase5MonthlyDeposit,
-    phase5EndYear,
-    phase6MonthlyDeposit,
-    phase6EndYear,
-    startDepositsInYear2
-  ]);
-  const freeWealthOneTimeContributionTotal = useMemo(() => {
-    const totalMonths = investmentHorizon * 12;
-    return oneTimeExtras.reduce((sum, entry) => {
-      if ((entry.amount || 0) <= 0) {
-        return sum;
-      }
-      const targetMonth = (entry.year - 1) * 12 + entry.month;
-      return targetMonth >= 1 && targetMonth <= totalMonths ? sum + entry.amount : sum;
-    }, 0);
-  }, [investmentHorizon, oneTimeExtras]);
-  const freeWealthOwnContributionTotal =
-    startAmount + freeWealthPeriodicContributionTotal + freeWealthOneTimeContributionTotal;
-  const freeWealthReturnAmount = finalBalance - freeWealthOwnContributionTotal;
-  const freeWealthSavingsBalance = useMemo(() => {
-    const annualSavingsRate = 0.015;
-    const monthlySavingsRate = annualSavingsRate / 12;
-    const totalMonths = investmentHorizon * 12;
-    let balance = startAmount;
-
-    for (let month = 1; month <= totalMonths; month++) {
-      const activeDeposit = getMonthlyDepositForMonth(month);
-      const oneTimeExtra = getOneTimeExtraForMonth(month);
-      balance = balance * (1 + monthlySavingsRate);
-      balance += activeDeposit + oneTimeExtra;
-    }
-
-    return balance;
-  }, [
-    investmentHorizon,
-    startAmount,
-    phase1MonthlyDeposit,
-    phase1Years,
-    phase2MonthlyDeposit,
-    phase2EndYear,
-    phase3MonthlyDeposit,
-    phase3EndYear,
-    phase4MonthlyDeposit,
-    phase4EndYear,
-    phase5MonthlyDeposit,
-    phase5EndYear,
-    phase6MonthlyDeposit,
-    phase6EndYear,
-    oneTimeExtras,
-    startDepositsInYear2
-  ]);
-  const freeWealthSavingsReturnAmount = freeWealthSavingsBalance - freeWealthOwnContributionTotal;
-  const freeWealthAnimoReturnPct =
-    freeWealthOwnContributionTotal > 0 ? (freeWealthReturnAmount / freeWealthOwnContributionTotal) * 100 : 0;
-  const freeWealthSavingsReturnPct =
-    freeWealthOwnContributionTotal > 0 ? (freeWealthSavingsReturnAmount / freeWealthOwnContributionTotal) * 100 : 0;
-  const freeWealthExtraVsSavings = finalBalance - freeWealthSavingsBalance;
 
   const calculationData2 = useMemo(() => {
     const data = [];
@@ -1179,90 +712,6 @@ const InvestmentCalculator = () => {
   ]);
 
   const finalBalance2 = calculationData2[calculationData2.length - 1]?.balance || 0;
-  const pensionPeriodicContributionTotal = useMemo(() => {
-    let total = 0;
-    const totalMonths = investmentHorizon2 * 12;
-    for (let month = 1; month <= totalMonths; month++) {
-      total += getMonthlyDepositForMonth2(month);
-    }
-    return total;
-  }, [
-    investmentHorizon2,
-    phase1MonthlyDeposit2,
-    phase1Years2,
-    phase2MonthlyDeposit2,
-    phase2EndYear2,
-    phase3MonthlyDeposit2,
-    phase3EndYear2,
-    startDepositsInYear22
-  ]);
-  const pensionOneTimeContributionTotal = useMemo(() => {
-    const totalMonths = investmentHorizon2 * 12;
-    return oneTimeExtras2.reduce((sum, entry) => {
-      if ((entry.amount || 0) <= 0) {
-        return sum;
-      }
-      const targetMonth = (entry.year - 1) * 12 + entry.month;
-      return targetMonth >= 1 && targetMonth <= totalMonths ? sum + entry.amount : sum;
-    }, 0);
-  }, [investmentHorizon2, oneTimeExtras2]);
-  const pensionTaxRefundOnOneTimeContributions = useMemo(() => {
-    const totalMonths = investmentHorizon2 * 12;
-    return oneTimeExtras2.reduce((sum, entry) => {
-      const amount = entry.amount || 0;
-      if (amount <= 0) {
-        return sum;
-      }
-      const targetMonth = (entry.year - 1) * 12 + entry.month;
-      if (targetMonth < 1 || targetMonth > totalMonths) {
-        return sum;
-      }
-      const refundRate = amount > 17700 ? 0.495 : 0.37;
-      return sum + amount * refundRate;
-    }, 0);
-  }, [investmentHorizon2, oneTimeExtras2]);
-  const pensionGrossContributionTotal = startAmount2 + pensionPeriodicContributionTotal + pensionOneTimeContributionTotal;
-  const pensionNetOwnContributionTotal = pensionGrossContributionTotal - pensionTaxRefundOnOneTimeContributions;
-
-  const calculationData3 = useMemo(() => {
-    const data = [];
-    let currentBalance = 0;
-    let totalExtraDeposits = 0;
-
-    const monthlyReturn = annualReturn3 / 12;
-
-    for (let year = 1; year <= investmentHorizon3; year++) {
-      const yearStartBalance = currentBalance;
-
-      for (let month = 1; month <= 12; month++) {
-        currentBalance = currentBalance * (1 + monthlyReturn);
-      }
-
-      // Jaarlijkse eenmalige inleg gelijk aan startbedrag.
-      currentBalance += startAmount3;
-      totalExtraDeposits += startAmount3;
-
-      const totalDeposits = totalExtraDeposits;
-      const accruedInterest = currentBalance - totalDeposits;
-
-      data.push({
-        year,
-        balance: currentBalance,
-        deposits: totalExtraDeposits,
-        interest: accruedInterest,
-        initialBalance: 0,
-        yearStartBalance
-      });
-    }
-
-    return data;
-  }, [
-    startAmount3,
-    investmentHorizon3,
-    annualReturn3
-  ]);
-
-  const finalBalance3 = calculationData3[calculationData3.length - 1]?.balance || 0;
 
   useEffect(() => {
     const updateSize = () => {
@@ -1304,22 +753,6 @@ const InvestmentCalculator = () => {
       setChartSize2({
         width: chartContainerRef2.current.clientWidth,
         height: chartContainerRef2.current.clientHeight
-      });
-    };
-
-    updateSize();
-    window.addEventListener("resize", updateSize);
-    return () => window.removeEventListener("resize", updateSize);
-  }, []);
-
-  useEffect(() => {
-    const updateSize = () => {
-      if (!chartContainerRef3.current) {
-        return;
-      }
-      setChartSize3({
-        width: chartContainerRef3.current.clientWidth,
-        height: chartContainerRef3.current.clientHeight
       });
     };
 
@@ -1452,35 +885,6 @@ const InvestmentCalculator = () => {
   const worstCaseBalance2 = calculateWorstCase2();
   const bestCaseBalance2 = calculateBestCase2();
 
-  const calculateWorstCase3 = () => {
-    let currentBalance = 0;
-    const monthlyReturn = worstCaseProfiles[profile3] / 12;
-
-    for (let year = 1; year <= investmentHorizon3; year++) {
-      for (let month = 1; month <= 12; month++) {
-        currentBalance = currentBalance * (1 + monthlyReturn);
-      }
-      currentBalance += startAmount3;
-    }
-    return currentBalance;
-  };
-
-  const calculateBestCase3 = () => {
-    let currentBalance = 0;
-    const monthlyReturn = bestCaseProfiles[profile3] / 12;
-
-    for (let year = 1; year <= investmentHorizon3; year++) {
-      for (let month = 1; month <= 12; month++) {
-        currentBalance = currentBalance * (1 + monthlyReturn);
-      }
-      currentBalance += startAmount3;
-    }
-    return currentBalance;
-  };
-
-  const worstCaseBalance3 = calculateWorstCase3();
-  const bestCaseBalance3 = calculateBestCase3();
-
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("nl-NL", {
       style: "currency",
@@ -1499,12 +903,10 @@ const InvestmentCalculator = () => {
     }
     return formatCurrency(amount);
   };
-  const formatPercentOneDecimal = (value) => `${(Number(value) || 0).toFixed(1).replace(".", ",")}%`;
 
   const isDesktop = window.innerWidth >= 1024;
   const hoveredPoint = hoveredIndex != null ? calculationData[hoveredIndex] : null;
   const hoveredPoint2 = hoveredIndex2 != null ? calculationData2[hoveredIndex2] : null;
-  const hoveredPoint3 = hoveredIndex3 != null ? calculationData3[hoveredIndex3] : null;
 
   const tooltipAnchor = useMemo(() => {
     if (!hoveredPoint || !chartSize.width || !chartSize.height || calculationData.length === 0) {
@@ -1555,31 +957,6 @@ const InvestmentCalculator = () => {
 
     return { left, top };
   }, [calculationData2, chartSize2.height, chartSize2.width, hoveredIndex2, hoveredPoint2]);
-
-  const tooltipAnchor3 = useMemo(() => {
-    if (!hoveredPoint3 || !chartSize3.width || !chartSize3.height || calculationData3.length === 0) {
-      return null;
-    }
-
-    const margin = { top: 20, right: 30, left: 20, bottom: 40 };
-    const yAxisWidth = 70;
-    const plotWidth = chartSize3.width - margin.left - margin.right - yAxisWidth;
-    const plotHeight = chartSize3.height - margin.top - margin.bottom;
-    if (plotWidth <= 0 || plotHeight <= 0) {
-      return null;
-    }
-
-    const step = plotWidth / calculationData3.length;
-    const left = margin.left + yAxisWidth + step * hoveredIndex3 + step / 2;
-    const maxTotal = Math.max(
-      ...calculationData3.map((row) => row.initialBalance + row.deposits + Math.max(0, row.interest)),
-      1
-    );
-    const total = hoveredPoint3.initialBalance + hoveredPoint3.deposits + Math.max(0, hoveredPoint3.interest);
-    const top = margin.top + (1 - total / maxTotal) * plotHeight;
-
-    return { left, top };
-  }, [calculationData3, chartSize3.height, chartSize3.width, hoveredIndex3, hoveredPoint3]);
   const barYearTicks = useMemo(() => {
     const horizon = Math.max(1, investmentHorizon);
     let step = 1;
@@ -1620,26 +997,6 @@ const InvestmentCalculator = () => {
     return ticks;
   }, [investmentHorizon2]);
 
-  const barYearTicks3 = useMemo(() => {
-    const horizon = Math.max(1, investmentHorizon3);
-    let step = 1;
-    if (horizon > 40) {
-      step = 5;
-    } else if (horizon > 30) {
-      step = 4;
-    } else if (horizon > 20) {
-      step = 2;
-    }
-    const ticks = [];
-    for (let year = 1; year <= horizon; year += step) {
-      ticks.push(year);
-    }
-    if (ticks[ticks.length - 1] !== horizon) {
-      ticks.push(horizon);
-    }
-    return ticks;
-  }, [investmentHorizon3]);
-
   const showcaseGraph = useMemo(() => {
     const halfYearMonths = Array.from({ length: 17 }, (_, i) => i * 6); // 2017.0 -> 2025.0
     const shapeReference = [100, 134, 150, 136, 160, 188, 212, 136, 266, 246, 232, 268, 360, 434, 400, 418, 430];
@@ -1651,8 +1008,28 @@ const InvestmentCalculator = () => {
     const checkpointSet = new Set(halfYearMonths);
 
     for (let month = 1; month <= 96; month++) {
-      const monthlyDeposit = getMonthlyDepositForMonth(month);
-      const oneTimeExtraThisMonth = getOneTimeExtraForMonth(month);
+      const monthInDepositTimeline = startDepositsInYear2 ? month - 12 : month;
+      let monthlyDeposit = 0;
+      if (monthInDepositTimeline > 0) {
+        const phase1Months = phase1Years * 12;
+        const phase2Months = phase2EndYear * 12;
+        const phase3Months = phase3EndYear * 12;
+        if (monthInDepositTimeline <= phase1Months) {
+          monthlyDeposit = phase1MonthlyDeposit;
+        } else if (monthInDepositTimeline <= phase2Months) {
+          monthlyDeposit = phase2MonthlyDeposit;
+        } else if (monthInDepositTimeline <= phase3Months) {
+          monthlyDeposit = phase3MonthlyDeposit;
+        }
+      }
+
+      const oneTimeExtraThisMonth = oneTimeExtras.reduce((sum, entry) => {
+        if (entry.amount <= 0) {
+          return sum;
+        }
+        const targetMonth = (entry.year - 1) * 12 + entry.month;
+        return sum + (month === targetMonth ? entry.amount : 0);
+      }, 0);
 
       balance = balance * (1 + monthlyReturn);
       balance += monthlyDeposit + oneTimeExtraThisMonth;
@@ -1697,12 +1074,6 @@ const InvestmentCalculator = () => {
     phase2EndYear,
     phase3MonthlyDeposit,
     phase3EndYear,
-    phase4MonthlyDeposit,
-    phase4EndYear,
-    phase5MonthlyDeposit,
-    phase5EndYear,
-    phase6MonthlyDeposit,
-    phase6EndYear,
     startAmount,
     startDepositsInYear2
   ]);
@@ -1713,23 +1084,16 @@ const InvestmentCalculator = () => {
       startAmount;
     const cfkDurationYears = cfkDurationMonths / 12;
     const cfkGrowthRate = cfkReturnRate / 100;
+    const cfkMonthlyReturn = cfkGrowthRate / 12;
+    const cfkYearsToCareerEnd = Math.max(0, careerEndAge - careerStartAge);
     const cfkYearsToPayoutStart = Math.max(0, cfkStartAge - careerStartAge);
-    const cfkBalanceAtCareerEnd = cfkPot * Math.pow(1 + cfkGrowthRate, Math.max(0, careerEndAge - careerStartAge));
-    const cfkBalanceAtPayoutStart = cfkPot * Math.pow(1 + cfkGrowthRate, cfkYearsToPayoutStart);
-    const getAnnualAnnuityPayout = (capital, years, annualGrowthRate) => {
-      if (capital <= 0 || years <= 0) {
-        return 0;
-      }
-      if (annualGrowthRate === 0) {
-        return capital / years;
-      }
-      const discountFactor = 1 - Math.pow(1 + annualGrowthRate, -years);
-      if (discountFactor <= 0) {
-        return capital / years;
-      }
-      return (capital * annualGrowthRate) / discountFactor;
-    };
-    const cfkAnnualPayout = getAnnualAnnuityPayout(cfkBalanceAtPayoutStart, cfkDurationYears, cfkGrowthRate);
+    const cfkMonthsToCareerEnd = Math.max(0, cfkYearsToCareerEnd * 12);
+    const cfkMonthsToPayoutStart = Math.max(0, cfkYearsToPayoutStart * 12);
+    const cfkBalanceAtCareerEnd = cfkPot * Math.pow(1 + cfkMonthlyReturn, cfkMonthsToCareerEnd);
+    const cfkBalanceAtPayoutStart = cfkPot * Math.pow(1 + cfkMonthlyReturn, cfkMonthsToPayoutStart);
+    const cfkMonthlyPayoutFixed =
+      cfkDurationMonths > 0 ? Math.floor(cfkBalanceAtPayoutStart / cfkDurationMonths) : 0;
+    const cfkAnnualPayout = cfkMonthlyPayoutFixed * 12;
     const cfkPayoutEndAge = cfkStartAge + cfkDurationYears;
 
     const getPensionBalanceAtAge = (age) => {
@@ -1747,78 +1111,15 @@ const InvestmentCalculator = () => {
       }
       return Math.max(0, balance);
     };
-    const getNextGenerationBalanceAtAge = (age) => {
-      if (age < startAge3) {
-        return 0;
-      }
-      let balance = 0;
-      const months = (age - startAge3) * 12;
-      for (let month = 1; month <= months; month++) {
-        balance = balance * (1 + annualReturn3 / 12);
-        const withinCalculatorHorizon = month <= investmentHorizon3 * 12;
-        const isYearlyDepositMonth = month % 12 === 0;
-        if (withinCalculatorHorizon && isYearlyDepositMonth) {
-          balance += startAmount3;
-        }
-      }
-      return Math.max(0, balance);
-    };
     const pensionCapitalAtAow = getPensionBalanceAtAge(aowAge);
-    const pensionPayoutGrowthRate = pensionReturnRate / 100;
-    const pensionMaxAnnualGross = 27192; // 2026 grensbedrag
-    const getAnnuityAnnualPayout = (capital, years, annualGrowthRate) => {
-      if (capital <= 0 || years <= 0) {
-        return 0;
-      }
-      if (annualGrowthRate === 0) {
-        return capital / years;
-      }
-      const discountFactor = 1 - Math.pow(1 + annualGrowthRate, -years);
-      if (discountFactor <= 0) {
-        return capital / years;
-      }
-      return (capital * annualGrowthRate) / discountFactor;
-    };
-
-    const getPensionPayoutPlan = (capital, annualGrowthRate, maxAnnualGross) => {
-      if (capital <= 0) {
-        return { years: 0, annualPayout: 0, route: "none" };
-      }
-
-      // Korte route: 5 t/m 19 jaar, alleen toegestaan als annuïtaire jaaruitkering <= fiscale grens.
-      for (let years = 5; years < 20; years++) {
-        const annuityPayout = getAnnuityAnnualPayout(capital, years, annualGrowthRate);
-        if (annuityPayout <= maxAnnualGross) {
-          return { years, annualPayout: annuityPayout, route: "short" };
-        }
-      }
-
-      // Lange route: 20 jaar, zonder jaarlijkse grens op 27.192.
-      return {
-        years: 20,
-        annualPayout: getAnnuityAnnualPayout(capital, 20, annualGrowthRate),
-        route: "long"
-      };
-    };
-
-    const pensionPlan = getPensionPayoutPlan(
-      pensionCapitalAtAow,
-      pensionPayoutGrowthRate,
-      pensionMaxAnnualGross
-    );
-    const pensionPayoutYears = pensionPlan.years;
-    const pensionAnnualPayout = pensionPlan.annualPayout;
-    const aowAnnualGross = 14380;
-    const yearsAbroad = Math.max(0, Math.floor(Number(pensionYearsAbroad) || 0));
-    const aowReductionFactor = Math.max(0, 1 - yearsAbroad * 0.02);
-    const aowAnnualIncome = pensionAowEnabled ? Math.round(aowAnnualGross * aowReductionFactor) : 0;
+    const pensionPayoutYears =
+      pensionCapitalAtAow > 0 ? Math.max(5, Math.min(20, Math.ceil(pensionCapitalAtAow / 27192))) : 0;
+    const pensionAnnualPayout = pensionPayoutYears > 0 ? pensionCapitalAtAow / pensionPayoutYears : 0;
 
     let freeWealthBalance = startAmount;
     let pensionBalance = 0;
     let pensionBalanceDuringPayout = pensionCapitalAtAow;
-    let nextGenerationBalance = 0;
     let freeWealthEndAge = startAge + investmentHorizon;
-    const nextGenerationHorizonAge = startAge3 + investmentHorizon3;
     const maxPayoutToAge = freeWealthPayouts.reduce(
       (max, row) => (row.amount > 0 ? Math.max(max, row.toAge) : max),
       startAge
@@ -1829,11 +1130,9 @@ const InvestmentCalculator = () => {
         cfkPayoutEndAge,
         maxPayoutToAge + 5,
         startAge + investmentHorizon + 1,
-        startAge3 + investmentHorizon3 + 1,
         aowAge + pensionPayoutYears,
         aowAge + 1,
-        careerEndAge + 1,
-        88
+        careerEndAge + 1
       )
     );
 
@@ -1845,29 +1144,48 @@ const InvestmentCalculator = () => {
     let cfkSimBalance = cfkPot;
 
     for (let age = careerStartAge; age <= maxAge; age++) {
+
       cfkYearStartBalanceByAge.set(age, cfkSimBalance);
+
+      // Growth-only period before CFK payout starts.
+      if (age < cfkStartAge) {
+        for (let month = 1; month <= 12; month++) {
+          cfkSimBalance = cfkSimBalance * (1 + cfkMonthlyReturn);
+        }
+        cfkYearIncomeByAge.set(age, 0);
+        continue;
+      }
+
+      // CFK payout period with slotuitkering in the final month.
+      const payoutEndMonthAbsolute = (cfkStartAge - careerStartAge) * 12 + cfkDurationMonths;
+      const yearStartMonthAbsolute = (age - careerStartAge) * 12;
+      const yearEndMonthAbsolute = yearStartMonthAbsolute + 12;
+      const payoutMonthsInThisYear = Math.max(
+        0,
+        Math.min(yearEndMonthAbsolute, payoutEndMonthAbsolute) - yearStartMonthAbsolute
+      );
+
+      if (payoutMonthsInThisYear <= 0 || cfkSimBalance <= 0) {
+        cfkYearIncomeByAge.set(age, 0);
+        continue;
+      }
+
       let yearIncome = 0;
-      let nextBalance = cfkSimBalance;
-      const intervalStart = age;
-      const intervalEnd = age + 1;
 
-      const prePayoutFraction = Math.max(0, Math.min(intervalEnd, cfkStartAge) - intervalStart);
-      if (prePayoutFraction > 0) {
-        nextBalance = nextBalance * Math.pow(1 + cfkGrowthRate, prePayoutFraction);
+      for (let month = 1; month <= payoutMonthsInThisYear; month++) {
+        cfkSimBalance = cfkSimBalance * (1 + cfkMonthlyReturn);
+        const regularPayout = Math.min(cfkMonthlyPayoutFixed, cfkSimBalance);
+        cfkSimBalance = Math.max(0, cfkSimBalance - regularPayout);
+        yearIncome += regularPayout;
+
+        const currentAbsoluteMonth = yearStartMonthAbsolute + month;
+        if (currentAbsoluteMonth === payoutEndMonthAbsolute) {
+          // Article 10 Slotuitkering: pay out all residual value at the end with accrued return.
+          yearIncome += cfkSimBalance;
+          cfkSimBalance = 0;
+        }
       }
 
-      const payoutStartInInterval = Math.max(intervalStart, cfkStartAge);
-      const payoutEndInInterval = Math.min(intervalEnd, cfkPayoutEndAge);
-      const payoutFraction = Math.max(0, payoutEndInInterval - payoutStartInInterval);
-
-      if (payoutFraction > 0 && nextBalance > 0) {
-        nextBalance = nextBalance * Math.pow(1 + cfkGrowthRate, payoutFraction);
-        const plannedPayout = cfkAnnualPayout * payoutFraction;
-        yearIncome = Math.min(plannedPayout, nextBalance);
-        nextBalance = Math.max(0, nextBalance - yearIncome);
-      }
-
-      cfkSimBalance = nextBalance;
       cfkYearIncomeByAge.set(age, yearIncome);
     }
 
@@ -1875,7 +1193,6 @@ const InvestmentCalculator = () => {
       let cfkIncome = 0;
       let freeIncome = 0;
       let pensionIncome = 0;
-      let aowIncome = 0;
       const cfkBalance = cfkYearStartBalanceByAge.get(age) ?? 0;
       cfkIncome = cfkYearIncomeByAge.get(age) ?? 0;
 
@@ -1903,27 +1220,14 @@ const InvestmentCalculator = () => {
         pensionBalance = getPensionBalanceAtAge(age);
       } else if (age < aowAge + pensionPayoutYears && pensionPayoutYears > 0) {
         pensionBalance = pensionBalanceDuringPayout;
-        const grownPensionBalance = pensionBalanceDuringPayout * (1 + pensionPayoutGrowthRate);
-        const annuityPayout = Math.min(pensionAnnualPayout, grownPensionBalance);
-        pensionIncome = annuityPayout;
-        pensionBalanceDuringPayout = Math.max(0, grownPensionBalance - annuityPayout);
+        pensionIncome = pensionAnnualPayout;
+        pensionBalanceDuringPayout = Math.max(0, pensionBalanceDuringPayout - pensionAnnualPayout);
       } else if (age >= aowAge + pensionPayoutYears) {
         pensionBalance = 0;
       }
 
-      if (age >= aowAge && aowAnnualIncome > 0) {
-        aowIncome = aowAnnualIncome;
-      }
-
-      if (age >= startAge3 && age <= nextGenerationHorizonAge) {
-        nextGenerationBalance = getNextGenerationBalanceAtAge(age);
-      } else {
-        nextGenerationBalance = 0;
-      }
-
       incomeData.push({
         age,
-        aow: aowIncome,
         cfk: cfkIncome,
         vrij: freeIncome,
         pensioen: pensionIncome
@@ -1933,8 +1237,7 @@ const InvestmentCalculator = () => {
         age,
         cfk: cfkBalance,
         vrij: freeWealthBalanceForAge,
-        pensioen: pensionBalance,
-        nextgen: age >= startAge3 && age <= nextGenerationHorizonAge ? nextGenerationBalance : null
+        pensioen: pensionBalance
       });
 
       if (freeWealthIsActive) {
@@ -1944,13 +1247,7 @@ const InvestmentCalculator = () => {
           const withinCalculatorHorizon = absoluteMonth <= investmentHorizon * 12;
           const activeDeposit = withinCalculatorHorizon ? getMonthlyDepositForMonth(absoluteMonth) : 0;
           const oneTimeExtra = withinCalculatorHorizon ? getOneTimeExtraForMonth(absoluteMonth) : 0;
-          const freeWealthTimelineYear = Math.ceil(absoluteMonth / 12);
-          const useConservativeReturn =
-            freeWealthSwitchToConservative &&
-            freeWealthTimelineYear >= freeWealthConservativeFromYear &&
-            annualReturn !== annualReturnBehouden;
-          const activeAnnualReturn = useConservativeReturn ? annualReturnBehouden : annualReturn;
-          freeWealthBalance = freeWealthBalance * (1 + activeAnnualReturn / 12);
+          freeWealthBalance = freeWealthBalance * (1 + annualReturn / 12);
           freeWealthBalance += activeDeposit + oneTimeExtra;
         }
       }
@@ -1971,16 +1268,13 @@ const InvestmentCalculator = () => {
       pensionCapitalAtAow,
       pensionAnnualPayout,
       pensionPayoutYears,
-      aowAnnualIncome,
       freeWealthEndAge,
-      nextGenerationHorizonAge,
       maxAge
     };
   }, [
     aowAge,
     annualReturn,
     annualReturn2,
-    annualReturn3,
     calculationData,
     careerStartAge,
     careerEndAge,
@@ -1993,23 +1287,12 @@ const InvestmentCalculator = () => {
     getOneTimeExtraForMonth,
     investmentHorizon,
     investmentHorizon2,
-    investmentHorizon3,
-    freeWealthSwitchToConservative,
-    freeWealthConservativeFromYear,
     getMonthlyDepositForMonth2,
-    getMonthlyDepositForMonth3,
     getOneTimeExtraForMonth2,
-    getOneTimeExtraForMonth3,
-    pensionAowEnabled,
-    pensionReturnRate,
-    pensionYearsAbroad,
-    annualReturnBehouden,
     startAge,
     startAge2,
-    startAge3,
     startAmount,
     startAmount2,
-    startAmount3,
     timelineStartAge
   ]);
 
@@ -2032,26 +1315,6 @@ const InvestmentCalculator = () => {
     }
     return ticks;
   }, [lifeline.maxAge, timelineStartAge]);
-  const lifelineFullMaxAge = Math.max(88, lifeline.maxAge);
-  const lifelineFullTicks = useMemo(() => {
-    const span = Math.max(1, lifelineFullMaxAge - timelineStartAge);
-    let step = 1;
-    if (span > 40) {
-      step = 5;
-    } else if (span > 25) {
-      step = 4;
-    } else if (span > 15) {
-      step = 2;
-    }
-    const ticks = [];
-    for (let age = timelineStartAge; age <= lifelineFullMaxAge; age += step) {
-      ticks.push(age);
-    }
-    if (ticks[ticks.length - 1] !== lifelineFullMaxAge) {
-      ticks.push(lifelineFullMaxAge);
-    }
-    return ticks;
-  }, [lifelineFullMaxAge, timelineStartAge]);
 
   const lifelinePhases = useMemo(() => {
     const maxPayoutToAge = freeWealthPayouts.reduce(
@@ -2065,8 +1328,7 @@ const InvestmentCalculator = () => {
       { key: "bridge", label: "Vrij Vermogen Animo", start: careerEndAge, end: cfkStartAge, color: "transparent" },
       { key: "cfk", label: "CFK", start: cfkStartAge, end: lifeline.cfkPayoutEndAge, color: "rgba(13,42,40,0.14)" },
       { key: "free", label: "Vrije periode", start: lifeline.cfkPayoutEndAge, end: freeEnd, color: "transparent" },
-      { key: "pension", label: "Pensioen Animo", start: aowAge, end: pensionEnd, color: "rgba(102,114,168,0.14)" },
-      { key: "aow", label: "AOW-uitkering", start: aowAge, end: lifeline.maxAge, color: "transparent" }
+      { key: "pension", label: "Pensioen Animo", start: aowAge, end: pensionEnd, color: "rgba(102,114,168,0.14)" }
     ];
   }, [
     aowAge,
@@ -2077,37 +1339,8 @@ const InvestmentCalculator = () => {
     startAge,
     lifeline.cfkPayoutEndAge,
     lifeline.freeWealthEndAge,
-    lifeline.pensionPayoutYears,
-    lifeline.maxAge
+    lifeline.pensionPayoutYears
   ]);
-  const lifelineFreeWealthPayoutAreas = useMemo(() => {
-    const payoutAges = lifeline.incomeData
-      .filter((row) => (row.vrij || 0) > 0)
-      .map((row) => row.age)
-      .sort((a, b) => a - b);
-
-    if (payoutAges.length === 0) {
-      return [];
-    }
-
-    const mergedRanges = [];
-    let currentStart = payoutAges[0];
-    let currentEnd = payoutAges[0];
-
-    for (let i = 1; i < payoutAges.length; i++) {
-      const age = payoutAges[i];
-      if (age <= currentEnd + 1) {
-        currentEnd = age;
-        continue;
-      }
-      mergedRanges.push({ start: currentStart - 0.5, end: currentEnd + 0.5 });
-      currentStart = age;
-      currentEnd = age;
-    }
-    mergedRanges.push({ start: currentStart - 0.5, end: currentEnd + 0.5 });
-
-    return mergedRanges;
-  }, [lifeline.incomeData]);
 
   const freeWealthScenarioLowFactor = finalBalance > 0 ? worstCaseBalance / finalBalance : 1;
   const freeWealthScenarioHighFactor = finalBalance > 0 ? bestCaseBalance / finalBalance : 1;
@@ -2115,103 +1348,95 @@ const InvestmentCalculator = () => {
   const pensionScenarioHighFactor = finalBalance2 > 0 ? bestCaseBalance2 / finalBalance2 : 1;
 
   const lifelineCfkGraphData = useMemo(() => {
-    const ZERO_EPSILON = 1; // euro
-    const cfkState = { seenPositive: false, hitZero: false };
-    const vvaState = { seenPositive: false, hitZero: false };
-    const pensioenState = { seenPositive: false, hitZero: false };
-    const nextgenState = { seenPositive: false, hitZero: false };
-
-    const normalizeSeriesValue = (rawValue, state) => {
-      if (rawValue == null) {
-        return null;
-      }
-      if (state.hitZero) {
-        return null;
-      }
-      const numericValue = Number(rawValue) || 0;
-      if (Math.abs(numericValue) <= ZERO_EPSILON) {
-        if (state.seenPositive) {
-          state.hitZero = true;
-          return 0;
-        }
-        return 0;
-      }
-      if (numericValue > 0) {
-        state.seenPositive = true;
-        return numericValue;
-      }
-      if (state.seenPositive && numericValue <= 0) {
-        state.hitZero = true;
-        return 0;
-      }
-      return numericValue;
-    };
+    if (!hasCfk) {
+      return lifeline.potData.map((row) => ({
+        age: row.age,
+        cfk: null,
+        vva: row.age >= startAge && row.age <= freeWealthHorizonAge ? row.vrij : null,
+        vvaLow:
+          row.age >= startAge && row.age <= freeWealthHorizonAge ? (row.vrij || 0) * freeWealthScenarioLowFactor : null,
+        vvaHigh:
+          row.age >= startAge && row.age <= freeWealthHorizonAge ? (row.vrij || 0) * freeWealthScenarioHighFactor : null,
+        vvaBand:
+          row.age >= startAge && row.age <= freeWealthHorizonAge
+            ? Math.max(0, (row.vrij || 0) * (freeWealthScenarioHighFactor - freeWealthScenarioLowFactor))
+            : null,
+        pensioenLow: (row.pensioen || 0) * pensionScenarioLowFactor,
+        pensioenHigh: (row.pensioen || 0) * pensionScenarioHighFactor,
+        pensioenBand: Math.max(0, (row.pensioen || 0) * (pensionScenarioHighFactor - pensionScenarioLowFactor)),
+        pensioen: row.age >= startAge2 ? row.pensioen : null
+      }));
+    }
+    let hitZero = false;
     return lifeline.potData.map((row) => {
-      const rawCfk =
-        hasCfk && row.age >= careerStartAge && row.age <= lifeline.cfkPayoutEndAge ? row.cfk : null;
-      const rawVva = row.age >= startAge && row.age <= freeWealthVisibleEndAge ? row.vrij : null;
-      const rawPensioen = row.age >= startAge2 ? row.pensioen : null;
-      const rawNextGen =
-        row.age >= startAge3 && row.age <= lifeline.nextGenerationHorizonAge ? row.nextgen : null;
-
-      const cfkValue = normalizeSeriesValue(rawCfk, cfkState);
-      const vvaValue = normalizeSeriesValue(rawVva, vvaState);
-      const pensioenValue = normalizeSeriesValue(rawPensioen, pensioenState);
-      const nextgenValue = normalizeSeriesValue(rawNextGen, nextgenState);
-
+      if (hitZero) {
+        return {
+          age: row.age,
+          cfk: null,
+          vva: row.age >= startAge && row.age <= freeWealthHorizonAge ? row.vrij : null,
+          vvaLow:
+            row.age >= startAge && row.age <= freeWealthHorizonAge ? (row.vrij || 0) * freeWealthScenarioLowFactor : null,
+          vvaHigh:
+            row.age >= startAge && row.age <= freeWealthHorizonAge ? (row.vrij || 0) * freeWealthScenarioHighFactor : null,
+          vvaBand:
+            row.age >= startAge && row.age <= freeWealthHorizonAge
+              ? Math.max(0, (row.vrij || 0) * (freeWealthScenarioHighFactor - freeWealthScenarioLowFactor))
+              : null,
+          pensioenLow: (row.pensioen || 0) * pensionScenarioLowFactor,
+          pensioenHigh: (row.pensioen || 0) * pensionScenarioHighFactor,
+          pensioenBand: Math.max(0, (row.pensioen || 0) * (pensionScenarioHighFactor - pensionScenarioLowFactor)),
+          pensioen: row.age >= startAge2 ? row.pensioen : null
+        };
+      }
+      const isZero = row.age >= cfkStartAge && row.cfk <= 0;
+      if (isZero) {
+        hitZero = true;
+      }
       return {
         age: row.age,
-        cfk: cfkValue,
-        vva: vvaValue,
-        vvaLow: vvaValue != null ? vvaValue * freeWealthScenarioLowFactor : null,
-        vvaHigh: vvaValue != null ? vvaValue * freeWealthScenarioHighFactor : null,
+        cfk: row.age >= careerStartAge ? row.cfk : null,
+        vva: row.age >= startAge && row.age <= freeWealthHorizonAge ? row.vrij : null,
+        vvaLow:
+          row.age >= startAge && row.age <= freeWealthHorizonAge ? (row.vrij || 0) * freeWealthScenarioLowFactor : null,
+        vvaHigh:
+          row.age >= startAge && row.age <= freeWealthHorizonAge ? (row.vrij || 0) * freeWealthScenarioHighFactor : null,
         vvaBand:
-          vvaValue != null
-            ? Math.max(0, vvaValue * (freeWealthScenarioHighFactor - freeWealthScenarioLowFactor))
+          row.age >= startAge && row.age <= freeWealthHorizonAge
+            ? Math.max(0, (row.vrij || 0) * (freeWealthScenarioHighFactor - freeWealthScenarioLowFactor))
             : null,
-        pensioenLow: pensioenValue != null ? pensioenValue * pensionScenarioLowFactor : null,
-        pensioenHigh: pensioenValue != null ? pensioenValue * pensionScenarioHighFactor : null,
-        pensioenBand:
-          pensioenValue != null
-            ? Math.max(0, pensioenValue * (pensionScenarioHighFactor - pensionScenarioLowFactor))
-            : null,
-        pensioen: pensioenValue,
-        nextgen: nextgenValue
+        pensioenLow: (row.pensioen || 0) * pensionScenarioLowFactor,
+        pensioenHigh: (row.pensioen || 0) * pensionScenarioHighFactor,
+        pensioenBand: Math.max(0, (row.pensioen || 0) * (pensionScenarioHighFactor - pensionScenarioLowFactor)),
+        pensioen: row.age >= startAge2 ? row.pensioen : null
       };
     });
   }, [
     hasCfk,
+    freeWealthHorizonAge,
     lifeline.potData,
-    freeWealthVisibleEndAge,
     freeWealthScenarioLowFactor,
     freeWealthScenarioHighFactor,
     pensionScenarioLowFactor,
     pensionScenarioHighFactor,
     startAge,
     startAge2,
-    startAge3,
     careerStartAge
   ]);
   const hasPension = (lifeline.pensionCapitalAtAow ?? 0) > 0;
-  const hasAowIncome = pensionAowEnabled && (lifeline.aowAnnualIncome || 0) > 0;
-  const hasNextGeneration = lifeline.potData.some((row) => (row.nextgen || 0) > 0);
   const lifelineWeekGraphData = useMemo(() => {
-    const firstRow = lifelineCfkGraphData[0] ?? { cfk: null, vva: 0, pensioen: 0, nextgen: 0 };
+    const firstRow = lifelineCfkGraphData[0] ?? { cfk: null, vva: 0, pensioen: 0 };
     const cfkStartRow = lifelineCfkGraphData.find((row) => row.age >= careerStartAge && row.cfk != null) ?? firstRow;
     const vvaStartRow = lifelineCfkGraphData.find((row) => row.age >= startAge && row.vva != null) ?? firstRow;
-    const nextGenStartRow = lifelineCfkGraphData.find((row) => row.age >= startAge3 && row.nextgen != null) ?? firstRow;
     const weekStartCfk = hasCfk ? cfkStartRow.cfk ?? 0 : null;
     const weekStartVva = vvaStartRow.vva ?? 0;
     const weekStartPensioen = hasPension ? firstRow.pensioen ?? 0 : null;
-    const weekStartNextGen = hasNextGeneration ? nextGenStartRow.nextgen ?? 0 : null;
     return Array.from({ length: 7 }, (_, index) => ({
       day: index + 1,
       cfk: weekStartCfk,
       vva: weekStartVva,
-      pensioen: weekStartPensioen,
-      nextgen: weekStartNextGen
+      pensioen: weekStartPensioen
     }));
-  }, [careerStartAge, lifelineCfkGraphData, hasCfk, hasPension, hasNextGeneration, startAge, startAge3]);
+  }, [careerStartAge, lifelineCfkGraphData, hasCfk, hasPension, startAge]);
   const lifelineVisiblePhases = useMemo(() => {
     if (lifelineZoomMode === "week") {
       return [];
@@ -2222,14 +1447,9 @@ const InvestmentCalculator = () => {
     return lifelinePhases.filter(
       (phase) =>
         phase.end > phase.start &&
-        (
-          phase.key === "career" ||
-          (phase.key === "cfk" && hasCfk) ||
-          (phase.key === "pension" && hasPension) ||
-          (phase.key === "aow" && hasAowIncome)
-        )
+        (phase.key === "career" || (phase.key === "cfk" && hasCfk) || (phase.key === "pension" && hasPension))
     );
-  }, [hasAowIncome, hasCfk, hasPension, lifelinePhases, lifelineZoomMode]);
+  }, [hasCfk, hasPension, lifelinePhases, lifelineZoomMode]);
   const lifelinePhaseBoundaries = useMemo(() => {
     if (lifelineZoomMode === "week") {
       return [];
@@ -2244,20 +1464,15 @@ const InvestmentCalculator = () => {
     if (hasPension) {
       markers.push(aowAge, aowAge + lifeline.pensionPayoutYears);
     }
-    if (hasAowIncome) {
-      markers.push(aowAge, lifeline.maxAge);
-    }
     return Array.from(new Set(markers)).sort((a, b) => a - b);
   }, [
     aowAge,
     careerEndAge,
     careerStartAge,
     cfkStartAge,
-    hasAowIncome,
     hasCfk,
     hasPension,
     lifeline.cfkPayoutEndAge,
-    lifeline.maxAge,
     lifeline.pensionPayoutYears,
     lifelineZoomMode
   ]);
@@ -2273,7 +1488,7 @@ const InvestmentCalculator = () => {
         7: "zondag"
       };
       const maxWeekValue = Math.max(
-        ...lifelineWeekGraphData.map((row) => Math.max(row.cfk || 0, row.vva || 0, row.pensioen || 0, row.nextgen || 0)),
+        ...lifelineWeekGraphData.map((row) => Math.max(row.cfk || 0, row.vva || 0, row.pensioen || 0)),
         0
       );
       const weekMarkerTopValue = maxWeekValue > 0 ? maxWeekValue * 0.72 : 2.3;
@@ -2309,8 +1524,8 @@ const InvestmentCalculator = () => {
     return {
       data: lifelineCfkGraphData,
       xDataKey: "age",
-      xDomain: [timelineStartAge, lifelineFullMaxAge],
-      xTicks: lifelineFullTicks,
+      xDomain: [timelineStartAge, lifeline.maxAge],
+      xTicks: lifelineTicks,
       xTickFormatter: undefined,
       showWeekNote: false,
       weekMarkerTopValue: 0
@@ -2320,48 +1535,18 @@ const InvestmentCalculator = () => {
     careerStartAge,
     lifeline.maxAge,
     lifelineCfkGraphData,
-    lifelineFullMaxAge,
-    lifelineFullTicks,
     lifelineTicks,
     lifelineWeekGraphData,
     lifelineZoomMode,
     timelineStartAge
   ]);
-  const lifelineYAxisMax = useMemo(() => {
-    if (lifelineZoomMode === "week") {
-      const weekMax = Math.max(
-        ...lifelineChartView.data.map((row) => Math.max(row.cfk || 0, row.vva || 0, row.pensioen || 0, row.nextgen || 0)),
-        4
-      );
-      return Math.max(4, weekMax * 1.05);
-    }
-
-    const lineMax = Math.max(
-      ...lifelineChartView.data.map((row) => Math.max(row.cfk || 0, row.vva || 0, row.pensioen || 0, row.nextgen || 0)),
-      0
-    );
-    const aowOverlayMax = hasAowIncome
-      ? hasPension
-        ? (lifeline.aowAnnualIncome || 0) + (lifeline.pensionAnnualPayout || 0)
-        : (lifeline.aowAnnualIncome || 0)
-      : 0;
-    const baseline = Math.max(1, lineMax, aowOverlayMax);
-    return baseline * 1.05;
-  }, [
-    hasAowIncome,
-    hasPension,
-    lifeline.aowAnnualIncome,
-    lifeline.pensionAnnualPayout,
-    lifelineChartView.data,
-    lifelineZoomMode
-  ]);
   const lifelineCareerStartMarkerLeft = useMemo(() => {
     if (lifelineZoomMode !== "full" || !lifelineChartSize.width) {
       return null;
     }
-    const marginLeft = 0;
-    const marginRight = 16;
-    const yAxisWidth = 60;
+    const marginLeft = 18;
+    const marginRight = 18;
+    const yAxisWidth = 68;
     const [domainStart, domainEnd] = lifelineChartView.xDomain;
     const span = Math.max(1, domainEnd - domainStart);
     const plotWidth = lifelineChartSize.width - marginLeft - marginRight - yAxisWidth;
@@ -2376,9 +1561,9 @@ const InvestmentCalculator = () => {
     if (lifelineZoomMode !== "full" || !lifelineChartSize.width) {
       return null;
     }
-    const marginLeft = 0;
-    const marginRight = 16;
-    const yAxisWidth = 60;
+    const marginLeft = 18;
+    const marginRight = 18;
+    const yAxisWidth = 68;
     const [domainStart, domainEnd] = lifelineChartView.xDomain;
     const span = Math.max(1, domainEnd - domainStart);
     const plotWidth = lifelineChartSize.width - marginLeft - marginRight - yAxisWidth;
@@ -2399,9 +1584,9 @@ const InvestmentCalculator = () => {
         return;
       }
       const rect = lifelineChartContainerRef.current.getBoundingClientRect();
-      const marginLeft = 0;
-      const marginRight = 16;
-      const yAxisWidth = 60;
+      const marginLeft = 18;
+      const marginRight = 18;
+      const yAxisWidth = 68;
       const plotLeft = rect.left + marginLeft + yAxisWidth;
       const plotWidth = rect.width - marginLeft - marginRight - yAxisWidth;
       if (plotWidth <= 0) {
@@ -2460,15 +1645,8 @@ const InvestmentCalculator = () => {
 
     const step = plotWidth / lifeline.incomeData.length;
     const left = margin.left + yAxisWidth + step * hoveredIncomeIndex + step / 2;
-    const maxTotal = Math.max(
-      ...lifeline.incomeData.map((row) => (row.aow || 0) + (row.cfk || 0) + (row.vrij || 0) + (row.pensioen || 0)),
-      1
-    );
-    const total =
-      (hoveredIncomePoint.aow || 0) +
-      (hoveredIncomePoint.cfk || 0) +
-      (hoveredIncomePoint.vrij || 0) +
-      (hoveredIncomePoint.pensioen || 0);
+    const maxTotal = Math.max(...lifeline.incomeData.map((row) => (row.cfk || 0) + (row.vrij || 0) + (row.pensioen || 0)), 1);
+    const total = (hoveredIncomePoint.cfk || 0) + (hoveredIncomePoint.vrij || 0) + (hoveredIncomePoint.pensioen || 0);
     const top = margin.top + (1 - total / maxTotal) * plotHeight;
 
     return { left, top };
@@ -2489,60 +1667,30 @@ const InvestmentCalculator = () => {
 
     const step = plotWidth / lifeline.potData.length;
     const left = margin.left + yAxisWidth + step * hoveredPotIndex + step / 2;
-    const maxTotal = Math.max(
-      ...lifeline.potData.map((row) => (row.cfk || 0) + (row.vrij || 0) + (row.pensioen || 0) + (row.nextgen || 0)),
-      1
-    );
-    const total =
-      (hoveredPotPoint.cfk || 0) +
-      (hoveredPotPoint.vrij || 0) +
-      (hoveredPotPoint.pensioen || 0) +
-      (hoveredPotPoint.nextgen || 0);
+    const maxTotal = Math.max(...lifeline.potData.map((row) => (row.cfk || 0) + (row.vrij || 0) + (row.pensioen || 0)), 1);
+    const total = (hoveredPotPoint.cfk || 0) + (hoveredPotPoint.vrij || 0) + (hoveredPotPoint.pensioen || 0);
     const top = margin.top + (1 - total / maxTotal) * plotHeight;
 
     return { left, top };
   }, [hoveredPotPoint, potChartSize.width, potChartSize.height, lifeline.potData, hoveredPotIndex]);
 
-  const freeWealthExpectedEndResult = lifelineCfkGraphData.reduce((maxValue, row) => {
-    if (row.vva == null) {
-      return maxValue;
-    }
-    return Math.max(maxValue, row.vva);
-  }, 0);
-  const cfkExpectedEndResult = lifelineCfkGraphData.reduce((maxValue, row) => {
-    if (row.cfk == null) {
-      return maxValue;
-    }
-    return Math.max(maxValue, row.cfk);
-  }, 0);
+  const freeWealthExpectedEndResult =
+    lifeline.potData.find((row) => row.age === freeWealthHorizonAge)?.vrij ??
+    lifeline.potData[lifeline.potData.length - 1]?.vrij ??
+    0;
   const hasFreeWealth = lifeline.potData.some((row) => (row.vrij || 0) > 0);
   const pensionExpectedEndResult = lifeline.pensionCapitalAtAow ?? 0;
-  const pensionReturnOnNetContribution = pensionExpectedEndResult - pensionNetOwnContributionTotal;
-  const pensionTaxBenefitPct =
-    pensionGrossContributionTotal > 0
-      ? (pensionTaxRefundOnOneTimeContributions / pensionGrossContributionTotal) * 100
-      : 0;
-  const pensionReturnOnNetContributionPct =
-    pensionNetOwnContributionTotal > 0
-      ? (pensionReturnOnNetContribution / pensionNetOwnContributionTotal) * 100
-      : 0;
-  const nextGenerationExpectedEndResult = finalBalance3;
   const isLifelineFocusMode = Boolean(activeScenarioBandKey);
   const showLifelineCfkLine = hasCfk && (!isLifelineFocusMode || activeScenarioBandKey === "cfk");
   const showLifelineVvaLine = hasFreeWealth && (!isLifelineFocusMode || activeScenarioBandKey === "vva");
   const showLifelinePensioenLine = hasPension && (!isLifelineFocusMode || activeScenarioBandKey === "pensioen");
-  const showLifelineNextGenLine =
-    hasNextGeneration && (!isLifelineFocusMode || activeScenarioBandKey === "nextgen");
-  const incomeCareerPhaseStart = Math.max(careerStartAge, timelineStartAge);
-  const incomeCareerPhaseEnd = Math.min(careerEndAge, lifeline.maxAge);
-  const hasIncomeCareerPhase = incomeCareerPhaseEnd > incomeCareerPhaseStart;
   const getLifelinePhaseLabelLeft = (phase, domainStart, domainEnd) => {
     if (!lifelineChartSize.width) {
       return "50%";
     }
-    const marginLeft = 0;
-    const marginRight = 16;
-    const yAxisWidth = 60;
+    const marginLeft = 18;
+    const marginRight = 18;
+    const yAxisWidth = 68;
     const span = Math.max(1, domainEnd - domainStart);
     const plotWidth = lifelineChartSize.width - marginLeft - marginRight - yAxisWidth;
     const centerAge = (phase.start + phase.end) / 2;
@@ -2559,214 +1707,19 @@ const InvestmentCalculator = () => {
     const yAxisWidth = 60;
     const span = Math.max(1, lifeline.maxAge - timelineStartAge);
     const plotWidth = incomeChartSize.width - marginLeft - marginRight - yAxisWidth;
-    const centerAge = (incomeCareerPhaseStart + incomeCareerPhaseEnd) / 2;
+    const centerAge = (careerStartAge + careerEndAge) / 2;
     const ratio = (centerAge - timelineStartAge) / span;
     const x = marginLeft + yAxisWidth + Math.max(0, Math.min(1, ratio)) * Math.max(0, plotWidth);
     return `${x}px`;
   };
 
-  const getCalculatorModel = (calculatorIndex) => {
-    if (calculatorIndex === 0) {
-      return {
-        startAmount,
-        setStartAmount,
-        startAge,
-        setStartAge,
-        childAge: 1,
-        setChildAge: () => {},
-        phase1MonthlyDeposit,
-        setPhase1MonthlyDeposit,
-        phase1Years,
-        setPhase1Years,
-        isCalculatorExpanded,
-        setIsCalculatorExpanded,
-        investmentHorizon,
-        setInvestmentHorizon,
-        phase2MonthlyDeposit,
-        setPhase2MonthlyDeposit,
-        phase2EndYear,
-        setPhase2EndYear,
-        phase3MonthlyDeposit,
-        setPhase3MonthlyDeposit,
-        phase3EndYear,
-        setPhase3EndYear,
-        phase4MonthlyDeposit,
-        setPhase4MonthlyDeposit,
-        phase4EndYear,
-        setPhase4EndYear,
-        phase5MonthlyDeposit,
-        setPhase5MonthlyDeposit,
-        phase5EndYear,
-        setPhase5EndYear,
-        phase6MonthlyDeposit,
-        setPhase6MonthlyDeposit,
-        phase6EndYear,
-        setPhase6EndYear,
-        startDepositsInYear2,
-        setStartDepositsInYear2,
-        isOneTimeExtrasExpanded,
-        setIsOneTimeExtrasExpanded,
-        oneTimeExtras,
-        updateOneTimeExtra,
-        profile,
-        setProfile,
-        finalBalanceCurrent: finalBalance,
-        calculationDataCurrent: calculationData,
-        chartContainerRefCurrent: chartContainerRef,
-        hoveredPointCurrent: hoveredPoint,
-        tooltipAnchorCurrent: tooltipAnchor,
-        setHoveredIndexCurrent: setHoveredIndex,
-        barYearTicksCurrent: barYearTicks,
-        worstCaseBalanceCurrent: worstCaseBalance,
-        bestCaseBalanceCurrent: bestCaseBalance
-      };
-    }
-
-    if (calculatorIndex === 1) {
-      return {
-        startAmount: startAmount2,
-        setStartAmount: setStartAmount2,
-        startAge: startAge2,
-        setStartAge: setStartAge2,
-        childAge: 1,
-        setChildAge: () => {},
-        phase1MonthlyDeposit: phase1MonthlyDeposit2,
-        setPhase1MonthlyDeposit: setPhase1MonthlyDeposit2,
-        phase1Years: phase1Years2,
-        setPhase1Years: setPhase1Years2,
-        isCalculatorExpanded: isCalculatorExpanded2,
-        setIsCalculatorExpanded: setIsCalculatorExpanded2,
-        investmentHorizon: investmentHorizon2,
-        setInvestmentHorizon: setInvestmentHorizon2,
-        phase2MonthlyDeposit: phase2MonthlyDeposit2,
-        setPhase2MonthlyDeposit: setPhase2MonthlyDeposit2,
-        phase2EndYear: phase2EndYear2,
-        setPhase2EndYear: setPhase2EndYear2,
-        phase3MonthlyDeposit: phase3MonthlyDeposit2,
-        setPhase3MonthlyDeposit: setPhase3MonthlyDeposit2,
-        phase3EndYear: phase3EndYear2,
-        setPhase3EndYear: setPhase3EndYear2,
-        phase4MonthlyDeposit: 0,
-        setPhase4MonthlyDeposit: () => {},
-        phase4EndYear: 0,
-        setPhase4EndYear: () => {},
-        phase5MonthlyDeposit: 0,
-        setPhase5MonthlyDeposit: () => {},
-        phase5EndYear: 0,
-        setPhase5EndYear: () => {},
-        phase6MonthlyDeposit: 0,
-        setPhase6MonthlyDeposit: () => {},
-        phase6EndYear: 0,
-        setPhase6EndYear: () => {},
-        startDepositsInYear2: startDepositsInYear22,
-        setStartDepositsInYear2: setStartDepositsInYear22,
-        isOneTimeExtrasExpanded: isOneTimeExtrasExpanded2,
-        setIsOneTimeExtrasExpanded: setIsOneTimeExtrasExpanded2,
-        oneTimeExtras: oneTimeExtras2,
-        updateOneTimeExtra: updateOneTimeExtra2,
-        profile: profile2,
-        setProfile: setProfile2,
-        finalBalanceCurrent: finalBalance2,
-        calculationDataCurrent: calculationData2,
-        chartContainerRefCurrent: chartContainerRef2,
-        hoveredPointCurrent: hoveredPoint2,
-        tooltipAnchorCurrent: tooltipAnchor2,
-        setHoveredIndexCurrent: setHoveredIndex2,
-        barYearTicksCurrent: barYearTicks2,
-        worstCaseBalanceCurrent: worstCaseBalance2,
-        bestCaseBalanceCurrent: bestCaseBalance2
-      };
-    }
-
-    return {
-      startAmount: startAmount3,
-      setStartAmount: setStartAmount3,
-      startAge: startAge3,
-      setStartAge: setStartAge3,
-      childAge: childAge3,
-      setChildAge: setChildAge3,
-      phase1MonthlyDeposit: phase1MonthlyDeposit3,
-      setPhase1MonthlyDeposit: setPhase1MonthlyDeposit3,
-      phase1Years: phase1Years3,
-      setPhase1Years: setPhase1Years3,
-      isCalculatorExpanded: isCalculatorExpanded3,
-      setIsCalculatorExpanded: setIsCalculatorExpanded3,
-      investmentHorizon: investmentHorizon3,
-      setInvestmentHorizon: setInvestmentHorizon3,
-      phase2MonthlyDeposit: phase2MonthlyDeposit3,
-      setPhase2MonthlyDeposit: setPhase2MonthlyDeposit3,
-      phase2EndYear: phase2EndYear3,
-      setPhase2EndYear: setPhase2EndYear3,
-      phase3MonthlyDeposit: phase3MonthlyDeposit3,
-      setPhase3MonthlyDeposit: setPhase3MonthlyDeposit3,
-      phase3EndYear: phase3EndYear3,
-      setPhase3EndYear: setPhase3EndYear3,
-      phase4MonthlyDeposit: 0,
-      setPhase4MonthlyDeposit: () => {},
-      phase4EndYear: 0,
-      setPhase4EndYear: () => {},
-      phase5MonthlyDeposit: 0,
-      setPhase5MonthlyDeposit: () => {},
-      phase5EndYear: 0,
-      setPhase5EndYear: () => {},
-      phase6MonthlyDeposit: 0,
-      setPhase6MonthlyDeposit: () => {},
-      phase6EndYear: 0,
-      setPhase6EndYear: () => {},
-      startDepositsInYear2: startDepositsInYear23,
-      setStartDepositsInYear2: setStartDepositsInYear23,
-      isOneTimeExtrasExpanded: false,
-      setIsOneTimeExtrasExpanded: () => {},
-      oneTimeExtras: oneTimeExtras3,
-      updateOneTimeExtra: updateOneTimeExtra3,
-      profile: profile3,
-      setProfile: setProfile3,
-      finalBalanceCurrent: finalBalance3,
-      calculationDataCurrent: calculationData3,
-      chartContainerRefCurrent: chartContainerRef3,
-      hoveredPointCurrent: hoveredPoint3,
-      tooltipAnchorCurrent: tooltipAnchor3,
-      setHoveredIndexCurrent: setHoveredIndex3,
-      barYearTicksCurrent: barYearTicks3,
-      worstCaseBalanceCurrent: worstCaseBalance3,
-      bestCaseBalanceCurrent: bestCaseBalance3
-    };
-  };
-
-  return (
-    <div
-      style={{
-        width: "100%",
-        minHeight: "100vh",
-        backgroundColor: "#0d2a28",
-        padding: "24px 0",
-        fontFamily:
-          'Satoshi, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-      }}
-    >
-      <div
-        style={{
-          maxWidth: "1280px",
-          margin: "0 auto",
-          padding: "24px",
-          backgroundColor: "#F7F5E9",
-          display: "flex",
-          flexDirection: "column",
-          fontFamily:
-            'Satoshi, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-        }}
-      >
-      {[0, 1, 2].map((calculatorIndex) => {
-        const isPrimary = calculatorIndex === 0;
-        const model = getCalculatorModel(calculatorIndex);
-
-        const {
+  const getCalculatorModel = (isPrimary) =>
+    isPrimary
+      ? {
           startAmount,
           setStartAmount,
           startAge,
           setStartAge,
-          childAge,
-          setChildAge,
           phase1MonthlyDeposit,
           setPhase1MonthlyDeposit,
           phase1Years,
@@ -2783,22 +1736,110 @@ const InvestmentCalculator = () => {
           setPhase3MonthlyDeposit,
           phase3EndYear,
           setPhase3EndYear,
-          phase4MonthlyDeposit,
-          setPhase4MonthlyDeposit,
-          phase4EndYear,
-          setPhase4EndYear,
-          phase5MonthlyDeposit,
-          setPhase5MonthlyDeposit,
-          phase5EndYear,
-          setPhase5EndYear,
-          phase6MonthlyDeposit,
-          setPhase6MonthlyDeposit,
-          phase6EndYear,
-          setPhase6EndYear,
           startDepositsInYear2,
           setStartDepositsInYear2,
-          isOneTimeExtrasExpanded,
-          setIsOneTimeExtrasExpanded,
+          oneTimeExtras,
+          updateOneTimeExtra,
+          profile,
+          setProfile,
+          finalBalanceCurrent: finalBalance,
+          calculationDataCurrent: calculationData,
+          chartContainerRefCurrent: chartContainerRef,
+          hoveredPointCurrent: hoveredPoint,
+          tooltipAnchorCurrent: tooltipAnchor,
+          setHoveredIndexCurrent: setHoveredIndex,
+          barYearTicksCurrent: barYearTicks,
+          worstCaseBalanceCurrent: worstCaseBalance,
+          bestCaseBalanceCurrent: bestCaseBalance
+        }
+      : {
+          startAmount: startAmount2,
+          setStartAmount: setStartAmount2,
+          startAge: startAge2,
+          setStartAge: setStartAge2,
+          phase1MonthlyDeposit: phase1MonthlyDeposit2,
+          setPhase1MonthlyDeposit: setPhase1MonthlyDeposit2,
+          phase1Years: phase1Years2,
+          setPhase1Years: setPhase1Years2,
+          isCalculatorExpanded: isCalculatorExpanded2,
+          setIsCalculatorExpanded: setIsCalculatorExpanded2,
+          investmentHorizon: investmentHorizon2,
+          setInvestmentHorizon: setInvestmentHorizon2,
+          phase2MonthlyDeposit: phase2MonthlyDeposit2,
+          setPhase2MonthlyDeposit: setPhase2MonthlyDeposit2,
+          phase2EndYear: phase2EndYear2,
+          setPhase2EndYear: setPhase2EndYear2,
+          phase3MonthlyDeposit: phase3MonthlyDeposit2,
+          setPhase3MonthlyDeposit: setPhase3MonthlyDeposit2,
+          phase3EndYear: phase3EndYear2,
+          setPhase3EndYear: setPhase3EndYear2,
+          startDepositsInYear2: startDepositsInYear22,
+          setStartDepositsInYear2: setStartDepositsInYear22,
+          oneTimeExtras: oneTimeExtras2,
+          updateOneTimeExtra: updateOneTimeExtra2,
+          profile: profile2,
+          setProfile: setProfile2,
+          finalBalanceCurrent: finalBalance2,
+          calculationDataCurrent: calculationData2,
+          chartContainerRefCurrent: chartContainerRef2,
+          hoveredPointCurrent: hoveredPoint2,
+          tooltipAnchorCurrent: tooltipAnchor2,
+          setHoveredIndexCurrent: setHoveredIndex2,
+          barYearTicksCurrent: barYearTicks2,
+          worstCaseBalanceCurrent: worstCaseBalance2,
+          bestCaseBalanceCurrent: bestCaseBalance2
+        };
+
+  return (
+    <div
+      style={{
+        width: "100%",
+        minHeight: "100vh",
+        backgroundColor: "#0d2a28",
+        padding: "24px 0",
+        fontFamily:
+          'Satoshi, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+      }}
+    >
+      <div
+        style={{
+          maxWidth: "1200px",
+          margin: "0 auto",
+          padding: "24px",
+          backgroundColor: "#F7F5E9",
+          display: "flex",
+          flexDirection: "column",
+          fontFamily:
+            'Satoshi, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+        }}
+      >
+      {[0, 1].map((calculatorIndex) => {
+        const isPrimary = calculatorIndex === 0;
+        const model = getCalculatorModel(isPrimary);
+
+        const {
+          startAmount,
+          setStartAmount,
+          startAge,
+          setStartAge,
+          phase1MonthlyDeposit,
+          setPhase1MonthlyDeposit,
+          phase1Years,
+          setPhase1Years,
+          isCalculatorExpanded,
+          setIsCalculatorExpanded,
+          investmentHorizon,
+          setInvestmentHorizon,
+          phase2MonthlyDeposit,
+          setPhase2MonthlyDeposit,
+          phase2EndYear,
+          setPhase2EndYear,
+          phase3MonthlyDeposit,
+          setPhase3MonthlyDeposit,
+          phase3EndYear,
+          setPhase3EndYear,
+          startDepositsInYear2,
+          setStartDepositsInYear2,
           oneTimeExtras,
           updateOneTimeExtra,
           profile,
@@ -2813,34 +1854,16 @@ const InvestmentCalculator = () => {
           worstCaseBalanceCurrent,
           bestCaseBalanceCurrent
         } = model;
-        const isNextGeneration = calculatorIndex === 2;
-        const startAmountMax = isNextGeneration ? 6500 : 1000000;
-        const startAmountFill = startAmountMax === 0 ? 0 : (startAmount / startAmountMax) * 100;
-        const phase2MinYear = phase1Years;
+        const phase2MinYear = phase2MonthlyDeposit > 0 || phase3MonthlyDeposit > 0 ? phase1Years : 0;
         const phase2FillPercentage =
           investmentHorizon - phase2MinYear === 0
             ? 0
             : ((phase2EndYear - phase2MinYear) / (investmentHorizon - phase2MinYear)) * 100;
-        const phase3MinYear = phase2EndYear;
+        const phase3MinYear = phase3MonthlyDeposit > 0 ? phase2EndYear : 0;
         const phase3FillPercentage =
           investmentHorizon - phase3MinYear === 0
             ? 0
             : ((phase3EndYear - phase3MinYear) / (investmentHorizon - phase3MinYear)) * 100;
-        const phase4MinYear = phase3EndYear;
-        const phase4FillPercentage =
-          investmentHorizon - phase4MinYear === 0
-            ? 0
-            : ((phase4EndYear - phase4MinYear) / (investmentHorizon - phase4MinYear)) * 100;
-        const phase5MinYear = phase4EndYear;
-        const phase5FillPercentage =
-          investmentHorizon - phase5MinYear === 0
-            ? 0
-            : ((phase5EndYear - phase5MinYear) / (investmentHorizon - phase5MinYear)) * 100;
-        const phase6MinYear = phase5EndYear;
-        const phase6FillPercentage =
-          investmentHorizon - phase6MinYear === 0
-            ? 0
-            : ((phase6EndYear - phase6MinYear) / (investmentHorizon - phase6MinYear)) * 100;
 
         return (
       <div
@@ -2872,11 +1895,7 @@ const InvestmentCalculator = () => {
                 textAlign: "center"
               }}
             >
-              {calculatorIndex === 0
-                ? "Vrij Vermogen"
-                : calculatorIndex === 1
-                  ? "Pensioen vermogen"
-                  : "Next Generation vermogen"}
+              {calculatorIndex === 0 ? "Vrij Vermogen" : "Pensioen vermogen"}
             </div>
           </div>
           <div style={{ width: isDesktop ? "60%" : "100%", display: "flex", justifyContent: "center" }}>
@@ -2955,15 +1974,15 @@ const InvestmentCalculator = () => {
               <input
                 type="range"
                 min="0"
-                max={startAmountMax}
-                step={isNextGeneration ? 100 : 1000}
+                max="1000000"
+                step="1000"
                 value={startAmount}
                 onChange={(e) => setStartAmount(Number(e.target.value))}
                 style={{
                   width: "100%",
                   height: "8px",
                   borderRadius: "4px",
-                  background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${startAmountFill}%, #E5E7EB ${startAmountFill}%, #E5E7EB 100%)`,
+                  background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${(startAmount / 1000000) * 100}%, #E5E7EB ${(startAmount / 1000000) * 100}%, #E5E7EB 100%)`,
                   outline: "none",
                   appearance: "none",
                   cursor: "pointer"
@@ -2979,28 +1998,7 @@ const InvestmentCalculator = () => {
                 }}
               >
                 <span>€0</span>
-                <span>{isNextGeneration ? "€6.500" : "€1.000.000"}</span>
-              </div>
-              <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "8px" }}>
-                <span style={{ fontSize: "14px", color: "#6B7280" }}>Exact:</span>
-                <span style={{ fontSize: "14px", color: "#111827" }}>€</span>
-                <input
-                  type="number"
-                  min="0"
-                  max={startAmountMax}
-                  step="1"
-                  value={startAmount}
-                  onChange={(e) => setStartAmount(clampEuro(e.target.value, 0, startAmountMax))}
-                  style={{
-                    width: "120px",
-                    padding: "6px 8px",
-                    border: "1px solid #D2BB5D",
-                    borderRadius: "6px",
-                    fontSize: "14px",
-                    outline: "none",
-                    backgroundColor: "#fff"
-                  }}
-                />
+                <span>€1.000.000</span>
               </div>
             </div>
           </div>
@@ -3022,7 +2020,7 @@ const InvestmentCalculator = () => {
               <input
                 type="range"
                 min="18"
-                max="50"
+                max="30"
                 step="1"
                 value={startAge}
                 onChange={(e) => setStartAge(Number(e.target.value))}
@@ -3030,7 +2028,7 @@ const InvestmentCalculator = () => {
                   width: "100%",
                   height: "8px",
                   borderRadius: "4px",
-                  background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${((startAge - 18) / 32) * 100}%, #E5E7EB ${((startAge - 18) / 32) * 100}%, #E5E7EB 100%)`,
+                  background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${((startAge - 18) / 12) * 100}%, #E5E7EB ${((startAge - 18) / 12) * 100}%, #E5E7EB 100%)`,
                   outline: "none",
                   appearance: "none",
                   cursor: "pointer"
@@ -3046,60 +2044,13 @@ const InvestmentCalculator = () => {
                 }}
               >
                 <span>18</span>
-                <span>50</span>
+                <span>30</span>
               </div>
             </div>
           </div>
 
-          {isNextGeneration && (
-            <div style={{ marginBottom: "32px" }}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: "16px"
-                }}
-              >
-                <label style={{ fontSize: "18px", fontWeight: "500", color: "#111827" }}>Leeftijd kind</label>
-                <span style={{ fontSize: "20px", fontWeight: "bold" }}>{childAge} jaar</span>
-              </div>
-              <div style={{ position: "relative" }}>
-                <input
-                  type="range"
-                  min="1"
-                  max="15"
-                  step="1"
-                  value={childAge}
-                  onChange={(e) => setChildAge(Number(e.target.value))}
-                  style={{
-                    width: "100%",
-                    height: "8px",
-                    borderRadius: "4px",
-                    background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${((childAge - 1) / 14) * 100}%, #E5E7EB ${((childAge - 1) / 14) * 100}%, #E5E7EB 100%)`,
-                    outline: "none",
-                    appearance: "none",
-                    cursor: "pointer"
-                  }}
-                />
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    fontSize: "14px",
-                    color: "#6B7280",
-                    marginTop: "8px"
-                  }}
-                >
-                  <span>1 jaar</span>
-                  <span>15 jaar</span>
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* Monthly Deposit - Phase 1 */}
-          {!isNextGeneration && <div style={{ marginBottom: "32px" }}>
+          <div style={{ marginBottom: "32px" }}>
             <div
               style={{
                 display: "flex",
@@ -3167,10 +2118,8 @@ const InvestmentCalculator = () => {
                 />
               </div>
             </div>
-          </div>}
+          </div>
 
-          {!isNextGeneration && (
-          <>
           <div
             role="button"
             tabIndex={0}
@@ -3505,378 +2454,6 @@ const InvestmentCalculator = () => {
             </div>
           </div>
 
-          {isPrimary && (
-            <>
-              {/* Monthly Deposit - Phase 4 */}
-              <div style={{ marginBottom: "32px" }}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginBottom: "16px"
-                  }}
-                >
-                  <label style={{ fontSize: "18px", fontWeight: "500", color: "#111827" }}>
-                    Inleg p/m fase 4
-                  </label>
-                  <span style={{ fontSize: "20px", fontWeight: "bold" }}>
-                    {formatCurrency(phase4MonthlyDeposit)}
-                  </span>
-                </div>
-                <div style={{ position: "relative" }}>
-                  <input
-                    type="range"
-                    min="0"
-                    max="10000"
-                    step="100"
-                    value={phase4MonthlyDeposit}
-                    onChange={(e) => setPhase4MonthlyDeposit(Number(e.target.value))}
-                    style={{
-                      width: "100%",
-                      height: "8px",
-                      borderRadius: "4px",
-                      background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${(phase4MonthlyDeposit / 10000) * 100}%, #E5E7EB ${(phase4MonthlyDeposit / 10000) * 100}%, #E5E7EB 100%)`,
-                      outline: "none",
-                      appearance: "none",
-                      cursor: "pointer"
-                    }}
-                  />
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      fontSize: "14px",
-                      color: "#6B7280",
-                      marginTop: "8px"
-                    }}
-                  >
-                    <span>€0</span>
-                    <span>€10.000</span>
-                  </div>
-                  <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "8px" }}>
-                    <span style={{ fontSize: "14px", color: "#6B7280" }}>Exact p/m:</span>
-                    <span style={{ fontSize: "14px", color: "#111827" }}>€</span>
-                    <input
-                      type="number"
-                      min="0"
-                      max="10000"
-                      step="1"
-                      value={phase4MonthlyDeposit}
-                      onChange={(e) => setPhase4MonthlyDeposit(clampEuro(e.target.value))}
-                      style={{
-                        width: "120px",
-                        padding: "6px 8px",
-                        border: "1px solid #D2BB5D",
-                        borderRadius: "6px",
-                        fontSize: "14px",
-                        outline: "none",
-                        backgroundColor: "#fff"
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Phase 4 End Year */}
-              <div style={{ marginBottom: "32px" }}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginBottom: "16px"
-                  }}
-                >
-                  <label style={{ fontSize: "18px", fontWeight: "500", color: "#111827" }}>
-                    Fase 4 tot jaar
-                  </label>
-                  <span style={{ fontSize: "20px", fontWeight: "bold" }}>
-                    {phase4EndYear} jaar
-                  </span>
-                </div>
-                <div style={{ position: "relative" }}>
-                  <input
-                    type="range"
-                    min={phase4MinYear}
-                    max={investmentHorizon}
-                    step="1"
-                    value={phase4EndYear}
-                    onChange={(e) => setPhase4EndYear(Number(e.target.value))}
-                    style={{
-                      width: "100%",
-                      height: "8px",
-                      borderRadius: "4px",
-                      background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${phase4FillPercentage}%, #E5E7EB ${phase4FillPercentage}%, #E5E7EB 100%)`,
-                      outline: "none",
-                      appearance: "none",
-                      cursor: "pointer"
-                    }}
-                  />
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      fontSize: "14px",
-                      color: "#6B7280",
-                      marginTop: "8px"
-                    }}
-                  >
-                    <span>{phase4MinYear} jaar</span>
-                    <span>{investmentHorizon} jaar</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Monthly Deposit - Phase 5 */}
-              <div style={{ marginBottom: "32px" }}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginBottom: "16px"
-                  }}
-                >
-                  <label style={{ fontSize: "18px", fontWeight: "500", color: "#111827" }}>
-                    Inleg p/m fase 5
-                  </label>
-                  <span style={{ fontSize: "20px", fontWeight: "bold" }}>
-                    {formatCurrency(phase5MonthlyDeposit)}
-                  </span>
-                </div>
-                <div style={{ position: "relative" }}>
-                  <input
-                    type="range"
-                    min="0"
-                    max="10000"
-                    step="100"
-                    value={phase5MonthlyDeposit}
-                    onChange={(e) => setPhase5MonthlyDeposit(Number(e.target.value))}
-                    style={{
-                      width: "100%",
-                      height: "8px",
-                      borderRadius: "4px",
-                      background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${(phase5MonthlyDeposit / 10000) * 100}%, #E5E7EB ${(phase5MonthlyDeposit / 10000) * 100}%, #E5E7EB 100%)`,
-                      outline: "none",
-                      appearance: "none",
-                      cursor: "pointer"
-                    }}
-                  />
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      fontSize: "14px",
-                      color: "#6B7280",
-                      marginTop: "8px"
-                    }}
-                  >
-                    <span>€0</span>
-                    <span>€10.000</span>
-                  </div>
-                  <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "8px" }}>
-                    <span style={{ fontSize: "14px", color: "#6B7280" }}>Exact p/m:</span>
-                    <span style={{ fontSize: "14px", color: "#111827" }}>€</span>
-                    <input
-                      type="number"
-                      min="0"
-                      max="10000"
-                      step="1"
-                      value={phase5MonthlyDeposit}
-                      onChange={(e) => setPhase5MonthlyDeposit(clampEuro(e.target.value))}
-                      style={{
-                        width: "120px",
-                        padding: "6px 8px",
-                        border: "1px solid #D2BB5D",
-                        borderRadius: "6px",
-                        fontSize: "14px",
-                        outline: "none",
-                        backgroundColor: "#fff"
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Phase 5 End Year */}
-              <div style={{ marginBottom: "32px" }}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginBottom: "16px"
-                  }}
-                >
-                  <label style={{ fontSize: "18px", fontWeight: "500", color: "#111827" }}>
-                    Fase 5 tot jaar
-                  </label>
-                  <span style={{ fontSize: "20px", fontWeight: "bold" }}>
-                    {phase5EndYear} jaar
-                  </span>
-                </div>
-                <div style={{ position: "relative" }}>
-                  <input
-                    type="range"
-                    min={phase5MinYear}
-                    max={investmentHorizon}
-                    step="1"
-                    value={phase5EndYear}
-                    onChange={(e) => setPhase5EndYear(Number(e.target.value))}
-                    style={{
-                      width: "100%",
-                      height: "8px",
-                      borderRadius: "4px",
-                      background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${phase5FillPercentage}%, #E5E7EB ${phase5FillPercentage}%, #E5E7EB 100%)`,
-                      outline: "none",
-                      appearance: "none",
-                      cursor: "pointer"
-                    }}
-                  />
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      fontSize: "14px",
-                      color: "#6B7280",
-                      marginTop: "8px"
-                    }}
-                  >
-                    <span>{phase5MinYear} jaar</span>
-                    <span>{investmentHorizon} jaar</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Monthly Deposit - Phase 6 */}
-              <div style={{ marginBottom: "32px" }}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginBottom: "16px"
-                  }}
-                >
-                  <label style={{ fontSize: "18px", fontWeight: "500", color: "#111827" }}>
-                    Inleg p/m fase 6
-                  </label>
-                  <span style={{ fontSize: "20px", fontWeight: "bold" }}>
-                    {formatCurrency(phase6MonthlyDeposit)}
-                  </span>
-                </div>
-                <div style={{ position: "relative" }}>
-                  <input
-                    type="range"
-                    min="0"
-                    max="10000"
-                    step="100"
-                    value={phase6MonthlyDeposit}
-                    onChange={(e) => setPhase6MonthlyDeposit(Number(e.target.value))}
-                    style={{
-                      width: "100%",
-                      height: "8px",
-                      borderRadius: "4px",
-                      background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${(phase6MonthlyDeposit / 10000) * 100}%, #E5E7EB ${(phase6MonthlyDeposit / 10000) * 100}%, #E5E7EB 100%)`,
-                      outline: "none",
-                      appearance: "none",
-                      cursor: "pointer"
-                    }}
-                  />
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      fontSize: "14px",
-                      color: "#6B7280",
-                      marginTop: "8px"
-                    }}
-                  >
-                    <span>€0</span>
-                    <span>€10.000</span>
-                  </div>
-                  <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "8px" }}>
-                    <span style={{ fontSize: "14px", color: "#6B7280" }}>Exact p/m:</span>
-                    <span style={{ fontSize: "14px", color: "#111827" }}>€</span>
-                    <input
-                      type="number"
-                      min="0"
-                      max="10000"
-                      step="1"
-                      value={phase6MonthlyDeposit}
-                      onChange={(e) => setPhase6MonthlyDeposit(clampEuro(e.target.value))}
-                      style={{
-                        width: "120px",
-                        padding: "6px 8px",
-                        border: "1px solid #D2BB5D",
-                        borderRadius: "6px",
-                        fontSize: "14px",
-                        outline: "none",
-                        backgroundColor: "#fff"
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Phase 6 End Year */}
-              <div style={{ marginBottom: "32px" }}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginBottom: "16px"
-                  }}
-                >
-                  <label style={{ fontSize: "18px", fontWeight: "500", color: "#111827" }}>
-                    Fase 6 tot jaar
-                  </label>
-                  <span style={{ fontSize: "20px", fontWeight: "bold" }}>
-                    {phase6EndYear} jaar
-                  </span>
-                </div>
-                <div style={{ position: "relative" }}>
-                  <input
-                    type="range"
-                    min={phase6MinYear}
-                    max={investmentHorizon}
-                    step="1"
-                    value={phase6EndYear}
-                    onChange={(e) => setPhase6EndYear(Number(e.target.value))}
-                    style={{
-                      width: "100%",
-                      height: "8px",
-                      borderRadius: "4px",
-                      background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${phase6FillPercentage}%, #E5E7EB ${phase6FillPercentage}%, #E5E7EB 100%)`,
-                      outline: "none",
-                      appearance: "none",
-                      cursor: "pointer"
-                    }}
-                  />
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      fontSize: "14px",
-                      color: "#6B7280",
-                      marginTop: "8px"
-                    }}
-                  >
-                    <span>{phase6MinYear} jaar</span>
-                    <span>{investmentHorizon} jaar</span>
-                  </div>
-                </div>
-              </div>
-            </>
-          )}
-          </div>
-
-          </div>
-          </>
-          )}
-
           {/* Investment Horizon */}
           <div style={{ marginBottom: "32px" }}>
             <div
@@ -3888,7 +2465,7 @@ const InvestmentCalculator = () => {
               }}
             >
               <label style={{ fontSize: "18px", fontWeight: "500", color: "#111827" }}>
-                {isNextGeneration ? "Looptijd tot 18 jaar" : "Beleggingshorizon"}
+                Beleggingshorizon
               </label>
               <span style={{ fontSize: "20px", fontWeight: "bold" }}>
                 {investmentHorizon} jaar
@@ -3901,12 +2478,7 @@ const InvestmentCalculator = () => {
                 max="50"
                 step="1"
                 value={investmentHorizon}
-                onChange={(e) => {
-                  if (!isNextGeneration) {
-                    setInvestmentHorizon(Number(e.target.value));
-                  }
-                }}
-                disabled={isNextGeneration}
+                onChange={(e) => setInvestmentHorizon(Number(e.target.value))}
                 style={{
                   width: "100%",
                   height: "8px",
@@ -3914,8 +2486,7 @@ const InvestmentCalculator = () => {
                   background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${((investmentHorizon - 1) / 49) * 100}%, #E5E7EB ${((investmentHorizon - 1) / 49) * 100}%, #E5E7EB 100%)`,
                   outline: "none",
                   appearance: "none",
-                  cursor: isNextGeneration ? "not-allowed" : "pointer",
-                  opacity: isNextGeneration ? 0.75 : 1
+                  cursor: "pointer"
                 }}
               />
               <div
@@ -3927,13 +2498,13 @@ const InvestmentCalculator = () => {
                   marginTop: "8px"
                 }}
               >
-                <span>{isNextGeneration ? `${childAge} jaar` : "1 jaar"}</span>
-                <span>{isNextGeneration ? "18 jaar" : "50 jaar"}</span>
+                <span>1 jaar</span>
+                <span>50 jaar</span>
               </div>
             </div>
           </div>
 
-          {!isNextGeneration && <div style={{ marginBottom: "24px" }}>
+          <div style={{ marginBottom: "24px" }}>
             <label
               style={{
                 display: "flex",
@@ -3953,70 +2524,51 @@ const InvestmentCalculator = () => {
               />
               Start maandinleg vanaf jaar 2 (jaar 1 zonder inleg)
             </label>
-          </div>}
+          </div>
 
           {/* One-time extra deposit */}
-          {!isNextGeneration && <div style={{ marginBottom: "28px", padding: "12px", border: "1px solid #D2BB5D", borderRadius: "8px" }}>
-            <div
-              role="button"
-              tabIndex={0}
-              aria-expanded={isOneTimeExtrasExpanded}
-              onClick={() => setIsOneTimeExtrasExpanded((prev) => !prev)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  setIsOneTimeExtrasExpanded((prev) => !prev);
-                }
-              }}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                cursor: "pointer",
-                userSelect: "none",
-                marginBottom: "12px"
-              }}
-            >
-              <div style={{ fontSize: "16px", fontWeight: "600", color: "#111827" }}>
-                Eenmalige extra inleg
-              </div>
-              <span
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: "24px",
-                  height: "24px",
-                  borderRadius: "999px",
-                  border: "1px solid #d8d2bf",
-                  backgroundColor: "#ffffff",
-                  transform: isOneTimeExtrasExpanded ? "rotate(180deg)" : "rotate(0deg)",
-                  transition: "transform 200ms ease"
-                }}
-              >
-                <svg width="12" height="8" viewBox="0 0 12 8" aria-hidden="true">
-                  <path d="M1 1l5 5 5-5" fill="none" stroke="#111827" strokeWidth="1.7" strokeLinecap="round" />
-                </svg>
-              </span>
+          <div style={{ marginBottom: "28px", padding: "12px", border: "1px solid #D2BB5D", borderRadius: "8px" }}>
+            <div style={{ fontSize: "16px", fontWeight: "600", color: "#111827", marginBottom: "12px" }}>
+              Eenmalige extra inleg
             </div>
-            {oneTimeExtras.map((entry, index) => {
-              if (!isOneTimeExtrasExpanded && index > 0) {
-                return null;
-              }
-              return (
-                <div key={`extra-${index}`} style={{ marginBottom: index === oneTimeExtras.length - 1 ? 0 : "14px" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
-                    <span style={{ fontSize: "14px", color: "#6B7280", minWidth: "74px" }}>Bedrag {index + 1}</span>
-                    <span style={{ fontSize: "14px", color: "#111827" }}>€</span>
+            {oneTimeExtras.map((entry, index) => (
+              <div key={`extra-${index}`} style={{ marginBottom: index === oneTimeExtras.length - 1 ? 0 : "14px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
+                  <span style={{ fontSize: "14px", color: "#6B7280", minWidth: "74px" }}>Bedrag {index + 1}</span>
+                  <span style={{ fontSize: "14px", color: "#111827" }}>€</span>
+                  <input
+                    type="number"
+                    min="0"
+                    max="5000000"
+                    step="1"
+                    value={entry.amount}
+                    onChange={(e) => updateOneTimeExtra(index, "amount", e.target.value)}
+                    style={{
+                      flex: 1,
+                      padding: "6px 8px",
+                      border: "1px solid #D2BB5D",
+                      borderRadius: "6px",
+                      fontSize: "14px",
+                      outline: "none",
+                      backgroundColor: "#fff",
+                      boxSizing: "border-box"
+                    }}
+                  />
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", columnGap: "16px" }}>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: "14px", color: "#6B7280", marginBottom: "6px" }}>
+                      Bedrag {index + 1} - Jaar
+                    </div>
                     <input
                       type="number"
-                      min="0"
-                      max="5000000"
+                      min="1"
+                      max={investmentHorizon}
                       step="1"
-                      value={entry.amount}
-                      onChange={(e) => updateOneTimeExtra(index, "amount", e.target.value)}
+                      value={entry.year}
+                      onChange={(e) => updateOneTimeExtra(index, "year", e.target.value)}
                       style={{
-                        flex: 1,
+                        width: "100%",
                         padding: "6px 8px",
                         border: "1px solid #D2BB5D",
                         borderRadius: "6px",
@@ -4027,58 +2579,33 @@ const InvestmentCalculator = () => {
                       }}
                     />
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", columnGap: "16px" }}>
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: "14px", color: "#6B7280", marginBottom: "6px" }}>
-                        Bedrag {index + 1} - Jaar
-                      </div>
-                      <input
-                        type="number"
-                        min="1"
-                        max={investmentHorizon}
-                        step="1"
-                        value={entry.year}
-                        onChange={(e) => updateOneTimeExtra(index, "year", e.target.value)}
-                        style={{
-                          width: "100%",
-                          padding: "6px 8px",
-                          border: "1px solid #D2BB5D",
-                          borderRadius: "6px",
-                          fontSize: "14px",
-                          outline: "none",
-                          backgroundColor: "#fff",
-                          boxSizing: "border-box"
-                        }}
-                      />
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: "14px", color: "#6B7280", marginBottom: "6px" }}>
+                      Bedrag {index + 1} - Maand
                     </div>
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: "14px", color: "#6B7280", marginBottom: "6px" }}>
-                        Bedrag {index + 1} - Maand
-                      </div>
-                      <input
-                        type="number"
-                        min="1"
-                        max="12"
-                        step="1"
-                        value={entry.month}
-                        onChange={(e) => updateOneTimeExtra(index, "month", e.target.value)}
-                        style={{
-                          width: "100%",
-                          padding: "6px 8px",
-                          border: "1px solid #D2BB5D",
-                          borderRadius: "6px",
-                          fontSize: "14px",
-                          outline: "none",
-                          backgroundColor: "#fff",
-                          boxSizing: "border-box"
-                        }}
-                      />
-                    </div>
+                    <input
+                      type="number"
+                      min="1"
+                      max="12"
+                      step="1"
+                      value={entry.month}
+                      onChange={(e) => updateOneTimeExtra(index, "month", e.target.value)}
+                      style={{
+                        width: "100%",
+                        padding: "6px 8px",
+                        border: "1px solid #D2BB5D",
+                        borderRadius: "6px",
+                        fontSize: "14px",
+                        outline: "none",
+                        backgroundColor: "#fff",
+                        boxSizing: "border-box"
+                      }}
+                    />
                   </div>
                 </div>
-              );
-            })}
-          </div>}
+              </div>
+            ))}
+          </div>
 
           {/* Profile */}
           <div style={{ marginBottom: "32px" }}>
@@ -4114,7 +2641,9 @@ const InvestmentCalculator = () => {
               <option value="Ambitieus">Ambitieus</option>
             </select>
           </div>
+            </div>
         </div>
+          </div>
 
         {/* Right Panel - Results (60% on desktop) */}
         <div
@@ -4362,30 +2891,8 @@ const InvestmentCalculator = () => {
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: "16px" }}>
           <h2 style={{ margin: 0, fontSize: "28px" }}>Levensloop profvoetballer</h2>
-          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-            {[
-              { key: "future", label: "Toekomst" },
-              { key: "actual", label: "Werkelijk" }
-            ].map((mode) => (
-              <button
-                key={mode.key}
-                type="button"
-                onClick={() => setLifelineViewMode(mode.key)}
-                style={{
-                  border: `1px solid ${subtleOverlayTextColor}`,
-                  color: lifelineViewMode === mode.key ? "#0d2a28" : subtleOverlayTextColor,
-                  backgroundColor: lifelineViewMode === mode.key ? "rgba(13,42,40,0.08)" : "transparent",
-                  borderRadius: "4px",
-                  padding: "5px 12px",
-                  fontSize: "12px",
-                  fontWeight: 700,
-                  lineHeight: 1.2,
-                  cursor: "pointer"
-                }}
-              >
-                {mode.label}
-              </button>
-            ))}
+          <div style={{ fontSize: "14px", color: "#6B7280" }}>
+            Startleeftijd {startAge} · AOW {aowAge}
           </div>
         </div>
 
@@ -4485,52 +2992,21 @@ const InvestmentCalculator = () => {
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart
                 data={lifelineChartView.data}
-                margin={{ top: 18, right: 16, left: 0, bottom: 18 }}
+                margin={{ top: 18, right: 18, left: 18, bottom: 18 }}
                 onMouseLeave={() => setHoveredLifelineSeriesKey(null)}
               >
                 <CartesianGrid stroke="#e5e2d8" vertical={false} />
-                {lifelineZoomMode !== "week" && hasAowIncome && (() => {
-                  const visibleStart = Math.max(aowAge, lifelineChartView.xDomain[0]);
-                  const visibleEnd = Math.min(lifelineChartView.xDomain[1], lifeline.maxAge);
-                  return visibleEnd > visibleStart ? (
-                    <ReferenceArea
-                      x1={visibleStart}
-                      x2={visibleEnd}
-                      y1={0}
-                      y2={lifeline.aowAnnualIncome}
-                      fill="#c0c0c0"
-                      fillOpacity={0.32}
-                      strokeOpacity={0}
-                    />
-                  ) : null;
-                })()}
-                {lifelineVisiblePhases.map((phase) => {
-                  const visibleStart = Math.max(phase.start, lifelineChartView.xDomain[0]);
-                  const visibleEnd = Math.min(phase.end, lifelineChartView.xDomain[1]);
-                  return visibleEnd > visibleStart ? (
+                {lifelineVisiblePhases.map((phase) =>
+                  phase.end > phase.start ? (
                     <ReferenceArea
                       key={`phase-${phase.key}`}
-                      x1={visibleStart}
-                      x2={visibleEnd}
+                      x1={phase.start}
+                      x2={phase.end}
                       fill={phase.color}
                       strokeOpacity={0}
                     />
-                  ) : null;
-                })}
-                {lifelineZoomMode !== "week" &&
-                  lifelineFreeWealthPayoutAreas.map((range, idx) => {
-                    const visibleStart = Math.max(range.start, lifelineChartView.xDomain[0]);
-                    const visibleEnd = Math.min(range.end, lifelineChartView.xDomain[1]);
-                    return visibleEnd > visibleStart ? (
-                      <ReferenceArea
-                        key={`vrij-payout-area-${idx}`}
-                        x1={visibleStart}
-                        x2={visibleEnd}
-                        fill="rgba(210,187,93,0.13)"
-                        strokeOpacity={0}
-                      />
-                    ) : null;
-                  })}
+                  ) : null
+                )}
                 {lifelinePhaseBoundaries.map((marker) => (
                   <ReferenceLine key={`marker-${marker}`} x={marker} stroke="#8a8a8a" strokeDasharray="3 4" />
                 ))}
@@ -4564,7 +3040,6 @@ const InvestmentCalculator = () => {
                   dataKey={lifelineChartView.xDataKey}
                   domain={lifelineChartView.xDomain}
                   ticks={lifelineChartView.xTicks}
-                  padding={lifelineZoomMode === "week" ? { left: 0, right: 14 } : undefined}
                   tick={{ fontSize: 11, fill: "#4b5563" }}
                   axisLine={{ stroke: "#d8d2bf" }}
                   tickLine={false}
@@ -4573,10 +3048,9 @@ const InvestmentCalculator = () => {
                 <YAxis
                   tick={{ fontSize: 11, fill: "#4b5563" }}
                   tickFormatter={formatCurrencyShort}
-                  domain={[0, lifelineYAxisMax]}
                   axisLine={false}
                   tickLine={false}
-                  width={60}
+                  width={68}
                 />
                 <Tooltip
                   cursor={{ stroke: "#9ca3af", strokeDasharray: "3 4" }}
@@ -4645,67 +3119,27 @@ const InvestmentCalculator = () => {
                     onMouseMove={() => setHoveredLifelineSeriesKey("pensioen")}
                   />
                 )}
-                {showLifelineNextGenLine && (
-                  <Line
-                    type="monotone"
-                    dataKey="nextgen"
-                    stroke="#ffa07a"
-                    strokeWidth={3}
-                    dot={false}
-                    onMouseMove={() => setHoveredLifelineSeriesKey("nextgen")}
-                  />
-                )}
               </ComposedChart>
             </ResponsiveContainer>
           </div>
           {lifelineVisiblePhases.length > 0 && (
-            <div style={{ position: "relative", marginTop: "4px", height: "40px" }}>
+            <div style={{ position: "relative", marginTop: "4px", height: "28px" }}>
               {lifelineVisiblePhases.map((phase) => {
-                const rangeLabel = `(${Math.round(phase.start)}-${Math.round(phase.end)})`;
-                const labelPhase =
-                  phase.key === "aow" && hasPension
-                    ? { ...phase, start: aowAge, end: aowAge + lifeline.pensionPayoutYears }
-                    : phase;
                 return (
                   <div
                     key={`label-${phase.key}`}
                     style={{
                       position: "absolute",
-                      left: getLifelinePhaseLabelLeft(
-                        labelPhase,
-                        lifelineChartView.xDomain[0],
-                        lifelineChartView.xDomain[1]
-                      ),
-                      transform:
-                        phase.key === "aow" && hasPension
-                          ? "translate(-50%, 22px)"
-                          : "translateX(-50%)",
+                      left: getLifelinePhaseLabelLeft(phase, lifelineChartView.xDomain[0], lifelineChartView.xDomain[1]),
+                      transform: "translateX(-50%)",
                       textAlign: "center",
                       fontSize: "13px",
-                      color:
-                        phase.key === "career"
-                          ? "#65c368"
-                          : phase.key === "pension"
-                            ? "#6672a8"
-                            : phase.key === "aow"
-                              ? "#8d8d8d"
-                              : "#0d2a28",
+                      color: phase.key === "career" ? "#65c368" : phase.key === "pension" ? "#6672a8" : "#0d2a28",
                       fontWeight: 600,
                       whiteSpace: "nowrap"
                     }}
                   >
-                    {phase.key === "cfk" ? (
-                      <>
-                        <div>CFK uitkering</div>
-                        <div style={{ fontSize: "12px", marginTop: "2px" }}>{rangeLabel}</div>
-                      </>
-                    ) : phase.key === "pension" ? (
-                      <div>Pensioen uitkering {rangeLabel}</div>
-                    ) : phase.key === "aow" ? (
-                      <div>AOW uitkering {rangeLabel}</div>
-                    ) : (
-                      <div>{phase.label} {rangeLabel}</div>
-                    )}
+                    <div>{phase.label} ({Math.round(phase.start)}-{Math.round(phase.end)})</div>
                     {phase.key === "career" && <div style={{ fontSize: "12px", marginTop: "2px" }}>Opbouwfase</div>}
                   </div>
                 );
@@ -4757,28 +3191,6 @@ const InvestmentCalculator = () => {
                 Vrij Vermogen Animo
               </button>
             )}
-            {hasNextGeneration && (
-              <button
-                type="button"
-                onClick={() => setActiveScenarioBandKey((prev) => (prev === "nextgen" ? null : "nextgen"))}
-                style={{
-                  border: `1px solid ${subtleOverlayTextColor}`,
-                  color: subtleOverlayTextColor,
-                  backgroundColor: activeScenarioBandKey === "nextgen" ? "rgba(0,0,0,0.08)" : "transparent",
-                  borderRadius: "4px",
-                  padding: "3px 8px",
-                  fontSize: "11px",
-                  lineHeight: 1.2,
-                  cursor: "pointer",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "6px"
-                }}
-              >
-                <span style={{ width: "10px", height: "3px", backgroundColor: "#ffa07a", borderRadius: "2px" }} />
-                Next Generation Animo
-              </button>
-            )}
             {hasPension && (
               <button
                 type="button"
@@ -4801,46 +3213,6 @@ const InvestmentCalculator = () => {
                 Pensioen Animo
               </button>
             )}
-            {hasAowIncome && (
-              <button
-                type="button"
-                style={{
-                  border: `1px solid ${subtleOverlayTextColor}`,
-                  color: subtleOverlayTextColor,
-                  backgroundColor: "transparent",
-                  borderRadius: "4px",
-                  padding: "3px 8px",
-                  fontSize: "11px",
-                  lineHeight: 1.2,
-                  cursor: "default",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "6px"
-                }}
-              >
-                <span style={{ width: "10px", height: "3px", backgroundColor: "#c0c0c0", borderRadius: "2px" }} />
-                AOW uitkering
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={toggleExamplePreset}
-              style={{
-                border: `1px solid ${subtleOverlayTextColor}`,
-                color: subtleOverlayTextColor,
-                backgroundColor: isExamplePresetActive ? "rgba(0,0,0,0.08)" : "transparent",
-                borderRadius: "4px",
-                padding: "3px 8px",
-                fontSize: "11px",
-                lineHeight: 1.2,
-                cursor: "pointer",
-                display: "inline-flex",
-                alignItems: "center",
-                marginLeft: "auto"
-              }}
-            >
-              voorbeeld
-            </button>
           </div>
         </div>
 
@@ -4849,137 +3221,96 @@ const InvestmentCalculator = () => {
             marginTop: "20px",
             display: "grid",
             gap: "16px",
-            gridTemplateColumns: isDesktop ? "repeat(4, minmax(0, 1fr))" : "1fr"
+            gridTemplateColumns: isDesktop ? "repeat(3, minmax(0, 1fr))" : "1fr"
           }}
         >
-          <div
-            style={{
-              background: "#fff",
-              borderRadius: "8px",
-              padding: "12px",
-              border: "1px solid #e1dccb"
-            }}
-          >
+          <div style={{ background: "#fff", borderRadius: "8px", padding: "12px", border: "1px solid #e1dccb" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "14px", fontWeight: 700, marginBottom: "10px" }}>
               <span>CFK</span>
               <span style={{ width: "14px", height: "3px", backgroundColor: "#0d2a28", borderRadius: "2px" }} />
             </div>
-            <div style={{ fontSize: "12px", color: "#6B7280" }}>Verwacht eindresultaat (bruto - box1)</div>
-            <div style={{ fontSize: "16px", fontWeight: 700, marginTop: "6px", marginBottom: "10px" }}>
-              {formatCurrency(cfkExpectedEndResult)}
-            </div>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: isDesktop ? "minmax(0, 1fr) minmax(0, 110px)" : "1fr",
-                gap: "12px",
-                alignItems: "end"
-              }}
-            >
-              <div style={{ minWidth: 0 }}>
-                <label style={{ fontSize: "12px", color: "#6B7280" }}>CFK waarde</label>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "6px", maxWidth: "128px" }}>
-                  <span style={{ fontSize: "14px", color: "#111827" }}>€</span>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={formatEuroInput(cfkPot)}
-                    onChange={(e) => setCfkPot(clampEuro(parseEuroInput(e.target.value), 0, 5000000))}
-                    style={{
-                      width: "100%",
-                      padding: "6px 8px",
-                      border: "1px solid #D2BB5D",
-                      borderRadius: "6px",
-                      fontSize: "14px",
-                      outline: "none",
-                      backgroundColor: "#fff"
-                    }}
-                  />
-                </div>
-              </div>
-              <div style={{ minWidth: 0 }}>
-                <label style={{ fontSize: "12px", color: "#6B7280" }}>Rendement % p/j</label>
-                <input
-                  type="number"
-                  min="0"
-                  max="10"
-                  step="0.1"
-                  value={cfkReturnRate}
-                  onChange={(e) => setCfkReturnRate(Number(e.target.value))}
-                  style={{
-                    width: "100%",
-                    maxWidth: "96px",
-                    marginTop: "6px",
-                    padding: "6px 8px",
-                    border: "1px solid #D2BB5D",
-                    borderRadius: "6px",
-                    fontSize: "14px",
-                    outline: "none",
-                    backgroundColor: "#fff"
-                  }}
-                />
-              </div>
-            </div>
-            <div style={{ marginTop: "10px" }}>
-              <div style={{ fontSize: "12px", color: "#6B7280" }}>
-                Start uitkering: {cfkStartAge} jaar
-              </div>
-              <label style={{ fontSize: "12px", color: "#6B7280", marginTop: "8px", display: "block" }}>
-                Uitkeringsduur (maanden)
-              </label>
+            <label style={{ fontSize: "12px", color: "#6B7280" }}>CFK waarde (bruto - box1)</label>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", width: "50%", marginTop: "6px" }}>
+              <span style={{ fontSize: "14px", color: "#111827" }}>€</span>
               <input
-                className="cfk-duration-slider"
-                type="range"
-                min={cfkDurationRange.min}
-                max={cfkDurationRange.max}
-                step="1"
-                value={cfkDurationMonths}
-                onChange={(e) => setCfkDurationMonths(Number(e.target.value))}
+                type="text"
+                inputMode="numeric"
+                value={formatEuroInput(cfkPot)}
+                onChange={(e) => setCfkPot(clampEuro(parseEuroInput(e.target.value), 0, 5000000))}
                 style={{
                   width: "100%",
-                  marginTop: "6px",
-                  height: "6px",
-                  borderRadius: "4px",
-                  background: `linear-gradient(to right, #0d2a28 0%, #0d2a28 ${
-                    cfkDurationRange.max === cfkDurationRange.min
-                      ? 100
-                      : ((cfkDurationMonths - cfkDurationRange.min) / (cfkDurationRange.max - cfkDurationRange.min)) * 100
-                  }%, #E5E7EB ${
-                    cfkDurationRange.max === cfkDurationRange.min
-                      ? 100
-                      : ((cfkDurationMonths - cfkDurationRange.min) / (cfkDurationRange.max - cfkDurationRange.min)) * 100
-                  }%, #E5E7EB 100%)`,
+                  padding: "6px 8px",
+                  border: "1px solid #D2BB5D",
+                  borderRadius: "6px",
+                  fontSize: "14px",
                   outline: "none",
-                  appearance: "none",
-                  cursor: "pointer"
+                  backgroundColor: "#fff"
                 }}
               />
-              <div style={{ fontSize: "12px", color: "#6B7280", textAlign: "right" }}>{cfkDurationMonths} mnd</div>
             </div>
+            <label style={{ fontSize: "12px", color: "#6B7280", marginTop: "10px", display: "block" }}>
+              Rendement (% p/j)
+            </label>
+            <input
+              type="number"
+              min="0"
+              max="10"
+              step="0.1"
+              value={cfkReturnRate}
+              onChange={(e) => setCfkReturnRate(Number(e.target.value))}
+              style={{
+                width: "50%",
+                marginTop: "6px",
+                padding: "6px 8px",
+                border: "1px solid #D2BB5D",
+                borderRadius: "6px",
+                fontSize: "14px",
+                outline: "none",
+                backgroundColor: "#fff"
+              }}
+            />
+            <div style={{ fontSize: "12px", color: "#6B7280", marginTop: "10px" }}>
+              Start uitkering: {cfkStartAge} jaar
+            </div>
+            <label style={{ fontSize: "12px", color: "#6B7280", marginTop: "8px", display: "block" }}>
+              Uitkeringsduur (maanden)
+            </label>
+            <input
+              className="cfk-duration-slider"
+              type="range"
+              min={cfkDurationRange.min}
+              max={cfkDurationRange.max}
+              step="1"
+              value={cfkDurationMonths}
+              onChange={(e) => setCfkDurationMonths(Number(e.target.value))}
+              style={{
+                width: "100%",
+                marginTop: "6px",
+                height: "6px",
+                borderRadius: "4px",
+                background: `linear-gradient(to right, #0d2a28 0%, #0d2a28 ${
+                  cfkDurationRange.max === cfkDurationRange.min
+                    ? 100
+                    : ((cfkDurationMonths - cfkDurationRange.min) / (cfkDurationRange.max - cfkDurationRange.min)) * 100
+                }%, #E5E7EB ${
+                  cfkDurationRange.max === cfkDurationRange.min
+                    ? 100
+                    : ((cfkDurationMonths - cfkDurationRange.min) / (cfkDurationRange.max - cfkDurationRange.min)) * 100
+                }%, #E5E7EB 100%)`,
+                outline: "none",
+                appearance: "none",
+                cursor: "pointer"
+              }}
+            />
+            <div style={{ fontSize: "12px", color: "#6B7280", textAlign: "right" }}>{cfkDurationMonths} mnd</div>
           </div>
 
           <div style={{ background: "#fff", borderRadius: "8px", padding: "12px", border: "1px solid #e1dccb" }}>
-            <button
-              type="button"
-              onClick={() => setIsFreeWealthInfoModalOpen(true)}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                fontSize: "14px",
-                fontWeight: 700,
-                marginBottom: "10px",
-                border: "none",
-                background: "transparent",
-                padding: 0,
-                cursor: "pointer",
-                color: "#111827"
-              }}
-            >
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "14px", fontWeight: 700, marginBottom: "10px" }}>
               <span>Vrij Vermogen Animo</span>
               <span style={{ width: "14px", height: "3px", backgroundColor: "#d2bb5d", borderRadius: "2px" }} />
-            </button>
-            <div style={{ fontSize: "12px", color: "#6B7280" }}>Verwacht eindresultaat (box 2 / 3)</div>
+            </div>
+            <div style={{ fontSize: "12px", color: "#6B7280" }}>Verwacht eindresultaat (netto - box3)</div>
             <div style={{ fontSize: "16px", fontWeight: 700, marginTop: "6px" }}>
               {formatCurrency(freeWealthExpectedEndResult)}
             </div>
@@ -5074,127 +3405,15 @@ const InvestmentCalculator = () => {
                 />
               </div>
             ))}
-            <div
-              style={{
-                marginTop: "10px",
-                borderTop: `1px solid ${subtleOverlayTextColor}`,
-                width: "100%"
-              }}
-            />
-            <div
-              style={{
-                marginTop: "10px",
-                display: "flex",
-                alignItems: "center",
-                gap: "10px",
-                flexWrap: "nowrap",
-                width: "92%"
-              }}
-            >
-              <label
-                style={{
-                  fontSize: "12px",
-                  color: "#6B7280",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  cursor: "pointer"
-                }}
-              >
-                <span>Behouden</span>
-                <input
-                  type="checkbox"
-                  checked={freeWealthSwitchToConservative}
-                  onChange={(e) => setFreeWealthSwitchToConservative(e.target.checked)}
-                  style={{ width: "14px", height: "14px", accentColor: "#D2BB5D", cursor: "pointer" }}
-                />
-              </label>
-              <label
-                style={{
-                  marginLeft: "12px",
-                  fontSize: "12px",
-                  color: "#6B7280",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "8px"
-                }}
-              >
-                <span>vanaf jaar</span>
-                <input
-                  type="number"
-                  min="1"
-                  max={Math.max(1, investmentHorizon)}
-                  step="1"
-                  value={freeWealthConservativeFromYear}
-                  onChange={(e) => {
-                    const raw = e.target.value;
-                    if (raw === "") {
-                      return;
-                    }
-                    const parsed = Number(raw);
-                    if (Number.isFinite(parsed)) {
-                      const clamped = Math.min(Math.max(1, Math.floor(parsed)), Math.max(1, investmentHorizon));
-                      setFreeWealthConservativeFromYear(clamped);
-                    }
-                  }}
-                  style={{
-                    width: "44px",
-                    padding: "5px 6px",
-                    border: "1px solid #D2BB5D",
-                    borderRadius: "6px",
-                    fontSize: "12px",
-                    outline: "none",
-                    backgroundColor: "#fff"
-                  }}
-                />
-              </label>
-            </div>
           </div>
 
           <div style={{ background: "#fff", borderRadius: "8px", padding: "12px", border: "1px solid #e1dccb" }}>
-            <button
-              type="button"
-              onClick={() => setIsPensionInfoModalOpen(true)}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                fontSize: "14px",
-                fontWeight: 700,
-                marginBottom: "10px",
-                border: "none",
-                background: "transparent",
-                padding: 0,
-                cursor: "pointer",
-                color: "#111827"
-              }}
-            >
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "14px", fontWeight: 700, marginBottom: "10px" }}>
               <span>Pensioen Animo</span>
               <span style={{ width: "14px", height: "3px", backgroundColor: "#6672a8", borderRadius: "2px" }} />
-            </button>
+            </div>
             <div style={{ fontSize: "12px", color: "#6B7280" }}>Verwacht eindresultaat (bruto - box1)</div>
             <div style={{ fontSize: "16px", fontWeight: 700, marginTop: "6px" }}>{formatCurrency(pensionExpectedEndResult)}</div>
-            <label style={{ fontSize: "12px", color: "#6B7280", marginTop: "10px", display: "block" }}>
-              Rendement vanaf uitkering (% p/j)
-            </label>
-            <input
-              type="number"
-              min="0"
-              max="10"
-              step="0.1"
-              value={pensionReturnRate}
-              onChange={(e) => setPensionReturnRate(Number(e.target.value))}
-              style={{
-                width: "50%",
-                marginTop: "6px",
-                padding: "6px 8px",
-                border: "1px solid #D2BB5D",
-                borderRadius: "6px",
-                fontSize: "14px",
-                outline: "none",
-                backgroundColor: "#fff"
-              }}
-            />
             <div style={{ fontSize: "12px", color: "#6B7280", marginTop: "10px" }}>
               Start uitkering: {aowAge} jaar
             </div>
@@ -5203,96 +3422,6 @@ const InvestmentCalculator = () => {
             </div>
             <div style={{ fontSize: "12px", color: "#6B7280", marginTop: "6px" }}>
               Jaarlijkse uitkering: {formatCurrency(lifeline.pensionAnnualPayout)}
-            </div>
-            <div
-              style={{
-                marginTop: "10px",
-                borderTop: `1px solid ${subtleOverlayTextColor}`
-              }}
-            />
-            <div
-              style={{
-                marginTop: "10px",
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                flexWrap: "nowrap"
-              }}
-            >
-              <label
-                style={{
-                  fontSize: "12px",
-                  color: "#6B7280",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  cursor: "pointer"
-                }}
-              >
-                <span style={{ width: "14px", height: "3px", backgroundColor: "#c0c0c0", borderRadius: "2px" }} />
-                <span>AOW</span>
-                <input
-                  type="checkbox"
-                  checked={pensionAowEnabled}
-                  onChange={(e) => setPensionAowEnabled(e.target.checked)}
-                  style={{ width: "14px", height: "14px", accentColor: "#D2BB5D", cursor: "pointer" }}
-                />
-              </label>
-              <label
-                style={{
-                  marginLeft: "14px",
-                  fontSize: "12px",
-                  color: "#6B7280",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "8px"
-                }}
-              >
-                <span>jaren in buitenland</span>
-                <input
-                  type="number"
-                  min="0"
-                  step="1"
-                  value={pensionYearsAbroad}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    if (value === "") {
-                      setPensionYearsAbroad("");
-                      return;
-                    }
-                    const parsed = Number(value);
-                    if (Number.isFinite(parsed) && parsed >= 0) {
-                      setPensionYearsAbroad(String(Math.floor(parsed)));
-                    }
-                  }}
-                  style={{
-                    width: "36px",
-                    padding: "5px 6px",
-                    border: "1px solid #D2BB5D",
-                    borderRadius: "6px",
-                    fontSize: "12px",
-                    outline: "none",
-                    backgroundColor: "#fff"
-                  }}
-                />
-              </label>
-            </div>
-          </div>
-
-          <div style={{ background: "#fff", borderRadius: "8px", padding: "12px", border: "1px solid #e1dccb" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "14px", fontWeight: 700, marginBottom: "10px" }}>
-              <span>Next Generation Animo</span>
-              <span style={{ width: "14px", height: "3px", backgroundColor: "#ffa07a", borderRadius: "2px" }} />
-            </div>
-            <div style={{ fontSize: "12px", color: "#6B7280" }}>Verwacht eindresultaat (netto)</div>
-            <div style={{ fontSize: "16px", fontWeight: 700, marginTop: "6px" }}>
-              {formatCurrency(nextGenerationExpectedEndResult)}
-            </div>
-            <div style={{ fontSize: "12px", color: "#6B7280", marginTop: "10px" }}>
-              Minderjarige rekening: tot 18 jaar
-            </div>
-            <div style={{ fontSize: "12px", color: "#6B7280", marginTop: "6px" }}>
-              o.b.v. jaarlijks belastingvrije schenking
             </div>
           </div>
 
@@ -5311,7 +3440,7 @@ const InvestmentCalculator = () => {
                   formatCurrency={formatCurrency}
                 />
               ) : null}
-              {hasIncomeCareerPhase && (
+              {careerEndAge > careerStartAge && (
                 <div
                   style={{
                     position: "absolute",
@@ -5336,20 +3465,16 @@ const InvestmentCalculator = () => {
                   margin={{ top: 10, right: 16, left: 0, bottom: 4 }}
                   onMouseLeave={() => setHoveredIncomeIndex(null)}
                 >
-                  {hasIncomeCareerPhase && (
+                  {careerEndAge > careerStartAge && (
                     <ReferenceArea
-                      x1={incomeCareerPhaseStart}
-                      x2={incomeCareerPhaseEnd}
+                      x1={careerStartAge}
+                      x2={careerEndAge}
                       fill="rgba(101,195,104,0.18)"
                       strokeOpacity={0}
                     />
                   )}
-                  {hasIncomeCareerPhase && (
-                    <>
-                      <ReferenceLine x={incomeCareerPhaseStart} stroke="#8a8a8a" strokeDasharray="3 4" />
-                      <ReferenceLine x={incomeCareerPhaseEnd} stroke="#8a8a8a" strokeDasharray="3 4" />
-                    </>
-                  )}
+                  <ReferenceLine x={careerStartAge} stroke="#8a8a8a" strokeDasharray="3 4" />
+                  <ReferenceLine x={careerEndAge} stroke="#8a8a8a" strokeDasharray="3 4" />
                   <XAxis
                     dataKey="age"
                     ticks={lifelineTicks}
@@ -5361,20 +3486,14 @@ const InvestmentCalculator = () => {
                     tickFormatter={(value) => Math.round(value).toLocaleString("nl-NL")}
                     width={60}
                   />
-                  <Bar
-                    dataKey="aow"
-                    stackId="income"
-                    fill="#c0c0c0"
-                    onMouseOver={(_, index) => setHoveredIncomeIndex(index)}
-                  />
+                  <Bar dataKey="cfk" stackId="income" fill="#0d2a28" onMouseOver={(_, index) => setHoveredIncomeIndex(index)} />
+                  <Bar dataKey="vrij" stackId="income" fill="#d2bb5d" onMouseOver={(_, index) => setHoveredIncomeIndex(index)} />
                   <Bar
                     dataKey="pensioen"
                     stackId="income"
                     fill="#6672a8"
                     onMouseOver={(_, index) => setHoveredIncomeIndex(index)}
                   />
-                  <Bar dataKey="cfk" stackId="income" fill="#0d2a28" onMouseOver={(_, index) => setHoveredIncomeIndex(index)} />
-                  <Bar dataKey="vrij" stackId="income" fill="#d2bb5d" onMouseOver={(_, index) => setHoveredIncomeIndex(index)} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -5410,15 +3529,14 @@ const InvestmentCalculator = () => {
                     tickFormatter={(value) => Math.round(value).toLocaleString("nl-NL")}
                     width={60}
                   />
+                  <Bar dataKey="cfk" stackId="pots" fill="#0d2a28" onMouseOver={(_, index) => setHoveredPotIndex(index)} />
+                  <Bar dataKey="vrij" stackId="pots" fill="#d2bb5d" onMouseOver={(_, index) => setHoveredPotIndex(index)} />
                   <Bar
                     dataKey="pensioen"
                     stackId="pots"
                     fill="#6672a8"
                     onMouseOver={(_, index) => setHoveredPotIndex(index)}
                   />
-                  <Bar dataKey="cfk" stackId="pots" fill="#0d2a28" onMouseOver={(_, index) => setHoveredPotIndex(index)} />
-                  <Bar dataKey="vrij" stackId="pots" fill="#d2bb5d" onMouseOver={(_, index) => setHoveredPotIndex(index)} />
-                  <Bar dataKey="nextgen" stackId="pots" fill="#ffa07a" onMouseOver={(_, index) => setHoveredPotIndex(index)} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -5457,373 +3575,6 @@ const InvestmentCalculator = () => {
           background: #0d2a28 !important;
         }
       `}</style>
-      {isFreeWealthInfoModalOpen && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Vrij Vermogen Animo overzicht"
-          onClick={() => setIsFreeWealthInfoModalOpen(false)}
-          style={{
-            position: "fixed",
-            inset: 0,
-            backgroundColor: "rgba(13,42,40,0.45)",
-            zIndex: 1000,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "20px"
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              width: "100%",
-              maxWidth: "640px",
-              minHeight: "360px",
-              backgroundColor: "#ffffff",
-              border: "1px solid #e1dccb",
-              borderRadius: "12px",
-              boxShadow: "0 12px 40px rgba(0,0,0,0.2)",
-              padding: "20px"
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
-              <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", fontSize: "20px", fontWeight: 700, color: "#111827" }}>
-                <span>Vrij Vermogen Animo</span>
-                <span style={{ width: "14px", height: "3px", backgroundColor: "#d2bb5d", borderRadius: "2px" }} />
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsFreeWealthInfoModalOpen(false)}
-                style={{
-                  border: "1px solid #d1d5db",
-                  backgroundColor: "#fff",
-                  color: "#111827",
-                  borderRadius: "8px",
-                  width: "34px",
-                  height: "34px",
-                  lineHeight: "1",
-                  fontSize: "20px",
-                  cursor: "pointer"
-                }}
-              >
-                ×
-              </button>
-            </div>
-            <div
-              style={{
-                minHeight: "270px",
-                border: "1px solid #e5e7eb",
-                borderRadius: "8px",
-                backgroundColor: "#f9fafb",
-                padding: "16px"
-              }}
-            >
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-                  gap: "8px",
-                  border: "1px solid #e5e7eb",
-                  borderRadius: "8px",
-                  backgroundColor: "#fff",
-                  padding: "10px 12px",
-                  marginBottom: "12px"
-                }}
-              >
-                <div style={{ fontSize: "13px", color: "#374151", textAlign: "center", fontWeight: 600 }}>
-                  Looptijd: {investmentHorizon} jaar
-                </div>
-                <div style={{ fontSize: "13px", color: "#374151", textAlign: "center", fontWeight: 600 }}>
-                  Portefeuille: {profile}
-                </div>
-                <div style={{ fontSize: "13px", color: "#374151", textAlign: "center", fontWeight: 600 }}>
-                  Eigen inleg: {formatCurrency(freeWealthOwnContributionTotal)}
-                </div>
-              </div>
-
-              <div
-                style={{
-                  border: "1px solid #e5e7eb",
-                  borderRadius: "8px",
-                  overflow: "hidden",
-                  backgroundColor: "#fff"
-                }}
-              >
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "1.2fr 1fr 1fr",
-                    borderBottom: "1px solid #e5e7eb",
-                    backgroundColor: "#f9fafb"
-                  }}
-                >
-                  <div style={{ padding: "10px 12px", fontSize: "12px", color: "#6b7280", fontWeight: 600 }}>
-                    Vergelijking
-                  </div>
-                  <div style={{ padding: "10px 12px", fontSize: "12px", color: "#6b7280", fontWeight: 700, textAlign: "center" }}>
-                    Animo beleggen
-                  </div>
-                  <div style={{ padding: "10px 12px", fontSize: "12px", color: "#6b7280", fontWeight: 700, textAlign: "center" }}>
-                    Spaarrekening (1,5% p/j)
-                  </div>
-                </div>
-
-                <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr 1fr", borderBottom: "1px solid #e5e7eb" }}>
-                  <div style={{ padding: "12px", fontSize: "13px", color: "#374151", fontWeight: 600 }}>Verwacht eindresultaat</div>
-                  <div style={{ padding: "10px 12px", fontSize: "clamp(20px,2vw,30px)", color: "#111827", fontWeight: 700, textAlign: "center", lineHeight: 1 }}>
-                    {formatCurrency(finalBalance)}
-                  </div>
-                  <div style={{ padding: "10px 12px", fontSize: "clamp(20px,2vw,30px)", color: "#111827", fontWeight: 700, textAlign: "center", lineHeight: 1 }}>
-                    {formatCurrency(freeWealthSavingsBalance)}
-                  </div>
-                </div>
-
-                <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr 1fr", borderBottom: "1px solid #e5e7eb" }}>
-                  <div style={{ padding: "10px 12px", fontSize: "13px", color: "#374151", fontWeight: 600 }}>Rendement in €</div>
-                  <div style={{ padding: "10px 12px", fontSize: "17px", color: "#0d2a28", fontWeight: 700, textAlign: "center" }}>
-                    {formatCurrency(freeWealthReturnAmount)}
-                  </div>
-                  <div style={{ padding: "10px 12px", fontSize: "17px", color: "#111827", fontWeight: 700, textAlign: "center" }}>
-                    {formatCurrency(freeWealthSavingsReturnAmount)}
-                  </div>
-                </div>
-
-                <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr 1fr" }}>
-                  <div style={{ padding: "10px 12px", fontSize: "13px", color: "#374151", fontWeight: 600 }}>
-                    Rendement in % van eigen inleg
-                  </div>
-                  <div style={{ padding: "10px 12px", fontSize: "15px", color: "#0d2a28", fontWeight: 700, textAlign: "center" }}>
-                    {freeWealthAnimoReturnPct.toFixed(1).replace(".", ",")}%
-                  </div>
-                  <div style={{ padding: "10px 12px", fontSize: "15px", color: "#111827", fontWeight: 700, textAlign: "center" }}>
-                    {freeWealthSavingsReturnPct.toFixed(1).replace(".", ",")}%
-                  </div>
-                </div>
-              </div>
-
-              <div
-                style={{
-                  marginTop: "12px",
-                  border: "1px solid #e5e7eb",
-                  borderRadius: "8px",
-                  backgroundColor: "#fff",
-                  padding: "12px",
-                  textAlign: "center",
-                  fontSize: "16px",
-                  fontWeight: 700,
-                  color: freeWealthExtraVsSavings >= 0 ? "#0d2a28" : "#991b1b"
-                }}
-              >
-                Extra resultaat met Animo: {freeWealthExtraVsSavings >= 0 ? "+" : "-"}
-                {formatCurrency(Math.abs(freeWealthExtraVsSavings))}
-              </div>
-
-              <div
-                style={{
-                  marginTop: "12px",
-                  border: "1px solid #e5e7eb",
-                  borderRadius: "8px",
-                  backgroundColor: "#fff",
-                  padding: "12px",
-                  fontSize: "13px",
-                  color: "#4b5563",
-                  lineHeight: 1.5
-                }}
-              >
-                <div>
-                  Dit vermogen biedt volledige flexibiliteit, ook wel vrij vermogen genoemd. Je kunt er altijd bij,
-                  al is het uiteraard de bedoeling om voor de lange termijn te investeren, want dat geeft de beste
-                  eindresultaten.
-                </div>
-                <div style={{ marginTop: "8px" }}>
-                  Dit vermogen kan mooi dienen als inkomstenaanvulling bijvoorbeeld na de CFK-uitkering.
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-      {isPensionInfoModalOpen && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Pensioen Animo overzicht"
-          onClick={() => setIsPensionInfoModalOpen(false)}
-          style={{
-            position: "fixed",
-            inset: 0,
-            backgroundColor: "rgba(13,42,40,0.45)",
-            zIndex: 1000,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "20px"
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              width: "100%",
-              maxWidth: "760px",
-              backgroundColor: "#ffffff",
-              border: "1px solid #e1dccb",
-              borderRadius: "12px",
-              boxShadow: "0 12px 40px rgba(0,0,0,0.2)",
-              padding: "20px"
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
-              <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", fontSize: "20px", fontWeight: 700, color: "#111827" }}>
-                <span>Pensioen Animo</span>
-                <span style={{ width: "14px", height: "3px", backgroundColor: "#6672a8", borderRadius: "2px" }} />
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsPensionInfoModalOpen(false)}
-                style={{
-                  border: "1px solid #d1d5db",
-                  backgroundColor: "#fff",
-                  color: "#111827",
-                  borderRadius: "8px",
-                  width: "34px",
-                  height: "34px",
-                  lineHeight: "1",
-                  fontSize: "20px",
-                  cursor: "pointer"
-                }}
-              >
-                ×
-              </button>
-            </div>
-            <div
-              style={{
-                border: "1px solid #e5e7eb",
-                borderRadius: "8px",
-                backgroundColor: "#f9fafb",
-                padding: "16px"
-              }}
-            >
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr 1fr",
-                  gap: "8px",
-                  border: "1px solid #e5e7eb",
-                  borderRadius: "8px",
-                  backgroundColor: "#fff",
-                  padding: "10px 12px",
-                  marginBottom: "12px"
-                }}
-              >
-                <div style={{ fontSize: "13px", color: "#374151", textAlign: "center", fontWeight: 600 }}>
-                  Looptijd calculator: {investmentHorizon2} jaar
-                </div>
-                <div style={{ fontSize: "13px", color: "#374151", textAlign: "center", fontWeight: 600 }}>
-                  Portefeuille: {profile2}
-                </div>
-                <div style={{ fontSize: "13px", color: "#374151", textAlign: "center", fontWeight: 600 }}>
-                  Start uitkering: {aowAge} jaar
-                </div>
-              </div>
-
-              <div
-                style={{
-                  border: "1px solid #e5e7eb",
-                  borderRadius: "8px",
-                  backgroundColor: "#fff",
-                  padding: "12px",
-                  marginBottom: "12px"
-                }}
-              >
-                <div style={{ fontSize: "13px", color: "#6B7280", marginBottom: "8px" }}>
-                  Verwacht eindresultaat pensioen
-                </div>
-                <div style={{ fontSize: "clamp(24px, 2.4vw, 36px)", fontWeight: 700, color: "#111827", lineHeight: 1 }}>
-                  {formatCurrency(pensionExpectedEndResult)}
-                </div>
-              </div>
-
-              <div
-                style={{
-                  border: "1px solid #e5e7eb",
-                  borderRadius: "8px",
-                  backgroundColor: "#fff",
-                  padding: "12px",
-                  marginBottom: "12px"
-                }}
-              >
-                <div style={{ fontSize: "13px", color: "#6B7280", marginBottom: "10px", fontWeight: 600 }}>
-                  Inlegoverzicht
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr auto", rowGap: "8px", columnGap: "12px" }}>
-                  <div style={{ fontSize: "14px", color: "#111827" }}>Totale inleg</div>
-                  <div style={{ fontSize: "14px", color: "#111827", fontWeight: 700 }}>{formatCurrency(pensionGrossContributionTotal)}</div>
-
-                  <div style={{ fontSize: "14px", color: "#111827" }}>Indicatieve belastingteruggave</div>
-                  <div style={{ fontSize: "14px", color: "#0d2a28", fontWeight: 700 }}>
-                    {formatCurrency(pensionTaxRefundOnOneTimeContributions)}
-                  </div>
-
-                  <div style={{ fontSize: "14px", color: "#111827", fontWeight: 700, paddingTop: "2px", borderTop: "1px solid #e5e7eb" }}>
-                    Netto eigen inleg
-                  </div>
-                  <div style={{ fontSize: "14px", color: "#111827", fontWeight: 700, paddingTop: "2px", borderTop: "1px solid #e5e7eb" }}>
-                    {formatCurrency(pensionNetOwnContributionTotal)}
-                  </div>
-                </div>
-              </div>
-
-              <div
-                style={{
-                  border: "1px solid #e5e7eb",
-                  borderRadius: "8px",
-                  backgroundColor: "#fff",
-                  padding: "12px"
-                }}
-              >
-                <div style={{ fontSize: "13px", color: "#6B7280", marginBottom: "10px", fontWeight: 600 }}>
-                  Rendementsoverzicht
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr auto", rowGap: "8px", columnGap: "12px" }}>
-                  <div style={{ fontSize: "14px", color: "#111827" }}>Rendement op netto inleg</div>
-                  <div style={{ fontSize: "14px", color: "#0d2a28", fontWeight: 700 }}>{formatCurrency(pensionReturnOnNetContribution)}</div>
-
-                  <div style={{ fontSize: "14px", color: "#111827" }}>Rendement op netto inleg (%)</div>
-                  <div style={{ fontSize: "14px", color: "#0d2a28", fontWeight: 700 }}>{formatPercentOneDecimal(pensionReturnOnNetContributionPct)}</div>
-
-                  <div style={{ fontSize: "14px", color: "#111827" }}>
-                    Indicatieve jaarlijkse uitkering vanaf AOW gedurende {lifeline.pensionPayoutYears} jaar
-                  </div>
-                  <div style={{ fontSize: "14px", color: "#111827", fontWeight: 700 }}>{formatCurrency(lifeline.pensionAnnualPayout)}</div>
-                </div>
-              </div>
-
-              <div
-                style={{
-                  marginTop: "12px",
-                  border: "1px solid #e5e7eb",
-                  borderRadius: "8px",
-                  backgroundColor: "#fff",
-                  padding: "12px",
-                  fontSize: "13px",
-                  color: "#4b5563",
-                  lineHeight: 1.5
-                }}
-              >
-                <div>
-                  Dit vermogen bouw je op als pensioen voorziening. Het is echt bedoeld voor je oude dag en biedt
-                  mooie voordelen tijdens de opbouwfase, zoals:
-                </div>
-                <ul style={{ marginTop: "8px", paddingLeft: "18px" }}>
-                  <li>De inleg krijg je deels terug van de belastingdienst.</li>
-                  <li>Over dit vermogen wordt geen vermogensbelasting gerekend.</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
       </div>
     </div>
   );
