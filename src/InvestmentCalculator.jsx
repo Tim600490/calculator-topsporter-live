@@ -6076,7 +6076,9 @@ const InvestmentCalculator = () => {
                   fontSize: "11px",
                   color: "#6B7280",
                   background: "#fbf9f1",
-                  borderBottom: "1px solid #e1dccb"
+                  borderBottom: "1px solid #e1dccb",
+                  padding: "9px 14px",
+                  textAlign: "left"
                 }}
               >
                 {[
@@ -6091,7 +6093,7 @@ const InvestmentCalculator = () => {
                   "Werkelijk vermogen",
                   "Met planinleg"
                 ].map((label) => (
-                  <div key={label} style={{ padding: "9px 10px", fontWeight: 700 }}>
+                  <div key={label} style={{ fontWeight: 700 }}>
                     {label}
                   </div>
                 ))}
