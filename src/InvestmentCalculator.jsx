@@ -6083,8 +6083,22 @@ const InvestmentCalculator = () => {
                 overflow: "hidden"
               }}
             >
-              <div style={{ padding: "12px 14px", fontSize: "15px", fontWeight: 700, borderBottom: "1px solid #e1dccb" }}>
-                Maandoverzicht
+              <div
+                style={{
+                  padding: "12px 14px",
+                  fontSize: "15px",
+                  fontWeight: 700,
+                  borderBottom: "1px solid #e1dccb",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: "12px"
+                }}
+              >
+                <span>Maandoverzicht 2026</span>
+                <span style={{ fontSize: "12px", fontWeight: 700, color: "#6B7280" }}>
+                  {selectedActualCustomer || "testpersoon"}
+                </span>
               </div>
               <div
                 style={{
@@ -6152,12 +6166,11 @@ const InvestmentCalculator = () => {
                 padding: "12px"
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px" }}>
-                <div style={{ fontSize: "15px", fontWeight: 700 }}>Plan vs werkelijk</div>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "12px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "12px", fontSize: "11px", color: "#6B7280" }}>
                   <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
                     <span style={{ width: "12px", height: "3px", background: "#d2bb5d", borderRadius: "2px" }} />
-                    Plan
+                    Verwacht
                   </span>
                   <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
                     <span style={{ width: "12px", height: "3px", background: "#0d2a28", borderRadius: "2px" }} />
@@ -6217,7 +6230,7 @@ const InvestmentCalculator = () => {
                             <div style={{ display: "grid", gap: "4px" }}>
                               <div style={{ display: "flex", alignItems: "center", gap: "6px", whiteSpace: "nowrap" }}>
                                 <span style={{ width: "8px", height: "8px", background: "#d2bb5d", borderRadius: "2px" }} />
-                                <span>Plan: {formatCurrency(point.plannedBalance)}</span>
+                                <span>Verwacht: {formatCurrency(point.plannedBalance)}</span>
                               </div>
                               <div style={{ display: "flex", alignItems: "center", gap: "6px", whiteSpace: "nowrap" }}>
                                 <span style={{ width: "8px", height: "8px", background: "#0d2a28", borderRadius: "2px" }} />
