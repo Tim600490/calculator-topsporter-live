@@ -4389,6 +4389,8 @@ const InvestmentCalculator = () => {
           </div>
         </div>
 
+        {lifelineViewMode === "future" ? (
+          <>
         <div style={{ marginTop: "16px", border: "1px solid #ded8c7", borderRadius: "8px", background: "#fbf9f1", padding: "12px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "8px" }}>
             {[
@@ -5424,6 +5426,215 @@ const InvestmentCalculator = () => {
             </div>
           </div>
         </div>
+          </>
+        ) : (
+          <div style={{ marginTop: "16px", display: "grid", gap: "18px" }}>
+            <div
+              style={{
+                border: "1px solid #ded8c7",
+                borderRadius: "8px",
+                background: "#fbf9f1",
+                padding: "12px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: "12px",
+                flexWrap: "wrap"
+              }}
+            >
+              <div>
+                <div style={{ fontSize: "15px", fontWeight: 700, color: "#111827" }}>Werkelijk verloop</div>
+                <div style={{ marginTop: "4px", fontSize: "12px", color: "#6B7280" }}>
+                  Import van maanddata wordt hier gekoppeld aan de uitgangspunten uit Toekomst.
+                </div>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                <button
+                  type="button"
+                  style={{
+                    border: `1px solid ${subtleOverlayTextColor}`,
+                    color: subtleOverlayTextColor,
+                    backgroundColor: "transparent",
+                    borderRadius: "4px",
+                    padding: "6px 10px",
+                    fontSize: "12px",
+                    fontWeight: 700,
+                    lineHeight: 1.2,
+                    cursor: "default"
+                  }}
+                >
+                  Import Excel
+                </button>
+                <div
+                  style={{
+                    border: "1px solid #e1dccb",
+                    borderRadius: "6px",
+                    background: "#fff",
+                    padding: "6px 10px",
+                    fontSize: "12px",
+                    color: "#6B7280"
+                  }}
+                >
+                  Klant: nog niet geselecteerd
+                </div>
+                <div
+                  style={{
+                    border: "1px solid #e1dccb",
+                    borderRadius: "6px",
+                    background: "#fff",
+                    padding: "6px 10px",
+                    fontSize: "12px",
+                    color: "#6B7280"
+                  }}
+                >
+                  Periode: geen import
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: "12px" }}>
+              {[
+                { label: "Werkelijk vermogen", value: "Nog geen data" },
+                { label: "Verschil t.o.v. plan", value: "Nog geen data" },
+                { label: "Werkelijke inleg", value: "Nog geen data" },
+                { label: "Werkelijk rendement", value: "Nog geen data" }
+              ].map((card) => (
+                <div
+                  key={card.label}
+                  style={{
+                    background: "#fff",
+                    borderRadius: "8px",
+                    padding: "14px",
+                    border: "1px solid #e1dccb",
+                    minHeight: "82px"
+                  }}
+                >
+                  <div style={{ fontSize: "12px", color: "#6B7280" }}>{card.label}</div>
+                  <div style={{ marginTop: "10px", fontSize: "18px", fontWeight: 800, color: "#0d2a28" }}>
+                    {card.value}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div
+              style={{
+                border: "1px solid #ded8c7",
+                borderRadius: "8px",
+                background: "#fbf9f1",
+                padding: "12px"
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px" }}>
+                <div style={{ fontSize: "15px", fontWeight: 700 }}>Plan vs werkelijk</div>
+                <div style={{ display: "flex", alignItems: "center", gap: "12px", fontSize: "11px", color: "#6B7280" }}>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                    <span style={{ width: "12px", height: "3px", background: "#d2bb5d", borderRadius: "2px" }} />
+                    Plan
+                  </span>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                    <span style={{ width: "12px", height: "3px", background: "#0d2a28", borderRadius: "2px" }} />
+                    Werkelijk
+                  </span>
+                </div>
+              </div>
+              <div
+                style={{
+                  marginTop: "12px",
+                  height: "260px",
+                  border: "1px dashed #d8d2bf",
+                  borderRadius: "8px",
+                  background:
+                    "linear-gradient(to bottom, rgba(13,42,40,0.04), rgba(13,42,40,0.01)), #fff",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "#6B7280",
+                  fontSize: "13px",
+                  textAlign: "center",
+                  padding: "18px"
+                }}
+              >
+                Na import tonen we hier de geplande vermogenslijn tegenover het werkelijke verloop per maand.
+              </div>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1.35fr 0.65fr", gap: "14px", alignItems: "start" }}>
+              <div
+                style={{
+                  background: "#fff",
+                  borderRadius: "8px",
+                  border: "1px solid #e1dccb",
+                  overflow: "hidden"
+                }}
+              >
+                <div style={{ padding: "12px 14px", fontSize: "15px", fontWeight: 700, borderBottom: "1px solid #e1dccb" }}>
+                  Maandoverzicht
+                </div>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr 1fr 1fr",
+                    gap: 0,
+                    fontSize: "11px",
+                    color: "#6B7280",
+                    background: "#fbf9f1",
+                    borderBottom: "1px solid #e1dccb"
+                  }}
+                >
+                  {["Maand", "Portefeuille", "Plan inleg", "Werkelijk", "Onttrekking", "Rendement", "Eindwaarde"].map((label) => (
+                    <div key={label} style={{ padding: "9px 10px", fontWeight: 700 }}>
+                      {label}
+                    </div>
+                  ))}
+                </div>
+                <div style={{ padding: "18px 14px", fontSize: "13px", color: "#6B7280", textAlign: "center" }}>
+                  Nog geen Excelbestand geimporteerd.
+                </div>
+              </div>
+
+              <div style={{ display: "grid", gap: "14px" }}>
+                <div
+                  style={{
+                    background: "#fff",
+                    borderRadius: "8px",
+                    padding: "14px",
+                    border: "1px solid #e1dccb"
+                  }}
+                >
+                  <div style={{ fontSize: "15px", fontWeight: 700 }}>Verschilanalyse</div>
+                  <div style={{ marginTop: "12px", display: "grid", gap: "8px", fontSize: "12px", color: "#6B7280" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", gap: "12px" }}>
+                      <span>Gemiste / extra inleg</span>
+                      <strong style={{ color: "#111827" }}>-</strong>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", gap: "12px" }}>
+                      <span>Rendementsverschil</span>
+                      <strong style={{ color: "#111827" }}>-</strong>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", gap: "12px" }}>
+                      <span>Onttrekkingen</span>
+                      <strong style={{ color: "#111827" }}>-</strong>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  style={{
+                    background: "#fff",
+                    borderRadius: "8px",
+                    padding: "14px",
+                    border: "1px solid #e1dccb"
+                  }}
+                >
+                  <div style={{ fontSize: "15px", fontWeight: 700 }}>Nieuwe prognose</div>
+                  <div style={{ marginTop: "10px", fontSize: "12px", color: "#6B7280", lineHeight: 1.45 }}>
+                    Hier tonen we straks wat de verwachte eindstand wordt als de speler vanaf het ijkmoment het plan weer volgt.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </section>
 
       <style>{`
