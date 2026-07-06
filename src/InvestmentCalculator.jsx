@@ -324,6 +324,7 @@ const InvestmentCalculator = () => {
   const [isOneTimeExtrasExpanded, setIsOneTimeExtrasExpanded] = useState(false);
   const [isOneTimeExtrasExpanded2, setIsOneTimeExtrasExpanded2] = useState(false);
   const [lifelineViewMode, setLifelineViewMode] = useState("future");
+  const [actualAccountFilter, setActualAccountFilter] = useState("all");
   const [lifelineZoomMode, setLifelineZoomMode] = useState("week");
   const [activeScenarioBandKey, setActiveScenarioBandKey] = useState(null);
   const [hoveredLifelineSeriesKey, setHoveredLifelineSeriesKey] = useState(null);
@@ -1503,43 +1504,183 @@ const InvestmentCalculator = () => {
 
   const actualProgressData = useMemo(() => {
     const sampleMonths = [
-      { month: "Januari", portfolio: "Gedreven", actualDeposit: 5000, withdrawal: 0, actualReturn: 0.02 },
-      { month: "Februari", portfolio: "Gedreven", actualDeposit: 5000, withdrawal: 0, actualReturn: 0.011 },
-      { month: "Maart", portfolio: "Gedreven", actualDeposit: 4000, withdrawal: 0, actualReturn: -0.008 },
-      { month: "April", portfolio: "Gedreven", actualDeposit: 5000, withdrawal: 0, actualReturn: 0.016 },
-      { month: "Mei", portfolio: "Gedreven", actualDeposit: 5000, withdrawal: 0, actualReturn: 0.004 },
-      { month: "Juni", portfolio: "Gedreven", actualDeposit: 7500, withdrawal: 0, actualReturn: 0.022 },
-      { month: "Juli", portfolio: "Gedreven", actualDeposit: 5000, withdrawal: 0, actualReturn: -0.003 }
+      {
+        month: "Januari",
+        accounts: [
+          { accountId: "VVA-001", accountType: "Vrij vermogen", portfolio: "Gedreven", actualDeposit: 5000, withdrawal: 0, actualReturn: 0.02 },
+          { accountId: "PEN-001", accountType: "Pensioen", portfolio: "Gedreven", actualDeposit: 2500, withdrawal: 0, actualReturn: 0.02 }
+        ]
+      },
+      {
+        month: "Februari",
+        accounts: [
+          { accountId: "VVA-001", accountType: "Vrij vermogen", portfolio: "Gedreven", actualDeposit: 5000, withdrawal: 0, actualReturn: 0.011 },
+          { accountId: "PEN-001", accountType: "Pensioen", portfolio: "Gedreven", actualDeposit: 2500, withdrawal: 0, actualReturn: 0.011 }
+        ]
+      },
+      {
+        month: "Maart",
+        accounts: [
+          { accountId: "VVA-001", accountType: "Vrij vermogen", portfolio: "Gedreven", actualDeposit: 4000, withdrawal: 0, actualReturn: -0.008 },
+          { accountId: "PEN-001", accountType: "Pensioen", portfolio: "Gedreven", actualDeposit: 2500, withdrawal: 0, actualReturn: -0.008 }
+        ]
+      },
+      {
+        month: "April",
+        accounts: [
+          { accountId: "VVA-001", accountType: "Vrij vermogen", portfolio: "Gedreven", actualDeposit: 5000, withdrawal: 0, actualReturn: 0.016 },
+          { accountId: "PEN-001", accountType: "Pensioen", portfolio: "Gedreven", actualDeposit: 2500, withdrawal: 0, actualReturn: 0.016 }
+        ]
+      },
+      {
+        month: "Mei",
+        accounts: [
+          { accountId: "VVA-001", accountType: "Vrij vermogen", portfolio: "Gedreven", actualDeposit: 5000, withdrawal: 0, actualReturn: 0.004 },
+          { accountId: "PEN-001", accountType: "Pensioen", portfolio: "Gedreven", actualDeposit: 2000, withdrawal: 0, actualReturn: 0.004 }
+        ]
+      },
+      {
+        month: "Juni",
+        accounts: [
+          { accountId: "VVA-001", accountType: "Vrij vermogen", portfolio: "Gedreven", actualDeposit: 7500, withdrawal: 0, actualReturn: 0.022 },
+          { accountId: "PEN-001", accountType: "Pensioen", portfolio: "Gedreven", actualDeposit: 2500, withdrawal: 0, actualReturn: 0.022 }
+        ]
+      },
+      {
+        month: "Juli",
+        accounts: [
+          { accountId: "VVA-001", accountType: "Vrij vermogen", portfolio: "Gedreven", actualDeposit: 5000, withdrawal: 0, actualReturn: -0.003 },
+          { accountId: "PEN-001", accountType: "Pensioen", portfolio: "Gedreven", actualDeposit: 2500, withdrawal: 0, actualReturn: -0.003 }
+        ]
+      }
     ];
 
-    let plannedBalance = startAmount;
-    let actualBalance = startAmount;
+    const accountState = {
+      "VVA-001": {
+        plannedBalance: startAmount,
+        actualBalance: startAmount,
+        initialCapital: startAmount,
+        monthlyPlanReturn: annualReturn / 12,
+        getPlannedDeposit: (monthNumber) => getMonthlyDepositForMonth(monthNumber) + getOneTimeExtraForMonth(monthNumber)
+      },
+      "PEN-001": {
+        plannedBalance: startAmount2,
+        actualBalance: startAmount2,
+        initialCapital: startAmount2,
+        monthlyPlanReturn: annualReturn2 / 12,
+        getPlannedDeposit: (monthNumber) => getMonthlyDepositForMonth2(monthNumber) + getOneTimeExtraForMonth2(monthNumber)
+      }
+    };
+
+    const accountMeta = [
+      { key: "all", label: "Alle rekeningen" },
+      { key: "VVA-001", label: "Vrij vermogen", accountId: "VVA-001" },
+      { key: "PEN-001", label: "Pensioen", accountId: "PEN-001" }
+    ];
+
+    const rows = [];
+    const chartRows = [];
     let totalPlannedDeposit = 0;
     let totalActualDeposit = 0;
     let totalWithdrawals = 0;
-    const monthlyPlanReturn = annualReturn / 12;
+    let totalInitialCapital = 0;
 
-    const rows = sampleMonths.map((row, index) => {
-      const monthNumber = index + 1;
-      const plannedDeposit = getMonthlyDepositForMonth(monthNumber) + getOneTimeExtraForMonth(monthNumber);
-      plannedBalance = plannedBalance * (1 + monthlyPlanReturn) + plannedDeposit;
-      actualBalance = Math.max(0, (actualBalance + row.actualDeposit - row.withdrawal) * (1 + row.actualReturn));
-      totalPlannedDeposit += plannedDeposit;
-      totalActualDeposit += row.actualDeposit;
-      totalWithdrawals += row.withdrawal;
-
-      return {
-        ...row,
-        monthNumber,
-        plannedDeposit,
-        plannedBalance,
-        actualBalance,
-        difference: actualBalance - plannedBalance
-      };
+    Object.values(accountState).forEach((state) => {
+      totalInitialCapital += state.initialCapital;
     });
 
-    const lastRow = rows[rows.length - 1] ?? null;
-    const initialCapital = startAmount;
+    sampleMonths.forEach((monthGroup, index) => {
+      const monthNumber = index + 1;
+      let plannedTotalBalance = 0;
+      let actualTotalBalance = 0;
+
+      monthGroup.accounts.forEach((accountRow) => {
+        const state = accountState[accountRow.accountId];
+        const plannedDeposit = state.getPlannedDeposit(monthNumber);
+        state.plannedBalance = state.plannedBalance * (1 + state.monthlyPlanReturn) + plannedDeposit;
+        state.actualBalance = Math.max(
+          0,
+          (state.actualBalance + accountRow.actualDeposit - accountRow.withdrawal) * (1 + accountRow.actualReturn)
+        );
+
+        const row = {
+          ...accountRow,
+          month: monthGroup.month,
+          monthNumber,
+          plannedDeposit,
+          plannedBalance: state.plannedBalance,
+          actualBalance: state.actualBalance,
+          difference: state.actualBalance - state.plannedBalance
+        };
+
+        rows.push(row);
+        plannedTotalBalance += state.plannedBalance;
+        actualTotalBalance += state.actualBalance;
+        totalPlannedDeposit += plannedDeposit;
+        totalActualDeposit += accountRow.actualDeposit;
+        totalWithdrawals += accountRow.withdrawal;
+      });
+
+      chartRows.push({
+        month: monthGroup.month,
+        monthNumber,
+        plannedBalance: plannedTotalBalance,
+        actualBalance: actualTotalBalance,
+        difference: actualTotalBalance - plannedTotalBalance
+      });
+    });
+
+    const lastRow = chartRows[chartRows.length - 1] ?? null;
+    const actualReturnAmount = lastRow
+      ? lastRow.actualBalance - totalInitialCapital - totalActualDeposit + totalWithdrawals
+      : 0;
+    const plannedReturnAmount = lastRow
+      ? lastRow.plannedBalance - totalInitialCapital - totalPlannedDeposit
+      : 0;
+
+    return {
+      rows,
+      chartRows,
+      lastRow,
+      accountMeta,
+      totalPlannedDeposit,
+      totalActualDeposit,
+      totalWithdrawals,
+      actualReturnAmount,
+      plannedReturnAmount,
+      depositDifference: totalActualDeposit - totalPlannedDeposit,
+      returnDifference: actualReturnAmount - plannedReturnAmount
+    };
+  }, [
+    annualReturn,
+    annualReturn2,
+    getMonthlyDepositForMonth,
+    getMonthlyDepositForMonth2,
+    getOneTimeExtraForMonth,
+    getOneTimeExtraForMonth2,
+    startAmount,
+    startAmount2
+  ]);
+
+  const selectedActualProgressData = useMemo(() => {
+    if (actualAccountFilter === "all") {
+      return actualProgressData;
+    }
+
+    const rows = actualProgressData.rows.filter((row) => row.accountId === actualAccountFilter);
+    const chartRows = rows.map((row) => ({
+      month: row.month,
+      monthNumber: row.monthNumber,
+      plannedBalance: row.plannedBalance,
+      actualBalance: row.actualBalance,
+      difference: row.difference
+    }));
+    const lastRow = chartRows[chartRows.length - 1] ?? null;
+    const firstRow = rows[0] ?? null;
+    const initialCapital = firstRow?.accountId === "PEN-001" ? startAmount2 : startAmount;
+    const totalPlannedDeposit = rows.reduce((sum, row) => sum + row.plannedDeposit, 0);
+    const totalActualDeposit = rows.reduce((sum, row) => sum + row.actualDeposit, 0);
+    const totalWithdrawals = rows.reduce((sum, row) => sum + row.withdrawal, 0);
     const actualReturnAmount = lastRow
       ? lastRow.actualBalance - initialCapital - totalActualDeposit + totalWithdrawals
       : 0;
@@ -1548,7 +1689,9 @@ const InvestmentCalculator = () => {
       : 0;
 
     return {
+      ...actualProgressData,
       rows,
+      chartRows,
       lastRow,
       totalPlannedDeposit,
       totalActualDeposit,
@@ -1558,10 +1701,10 @@ const InvestmentCalculator = () => {
       depositDifference: totalActualDeposit - totalPlannedDeposit,
       returnDifference: actualReturnAmount - plannedReturnAmount
     };
-  }, [annualReturn, getMonthlyDepositForMonth, getOneTimeExtraForMonth, startAmount]);
+  }, [actualAccountFilter, actualProgressData, startAmount, startAmount2]);
 
   const actualProgressCards = useMemo(() => {
-    const lastRow = actualProgressData.lastRow;
+    const lastRow = selectedActualProgressData.lastRow;
     return [
       { label: "Werkelijk vermogen", value: lastRow ? formatCurrency(lastRow.actualBalance) : "Nog geen data" },
       {
@@ -1570,14 +1713,14 @@ const InvestmentCalculator = () => {
       },
       {
         label: "Werkelijke inleg",
-        value: `${formatCurrency(actualProgressData.totalActualDeposit)} van ${formatCurrency(actualProgressData.totalPlannedDeposit)} gepland`
+        value: `${formatCurrency(selectedActualProgressData.totalActualDeposit)} van ${formatCurrency(selectedActualProgressData.totalPlannedDeposit)} gepland`
       },
       {
         label: "Werkelijk rendement",
-        value: formatCurrency(actualProgressData.actualReturnAmount)
+        value: formatCurrency(selectedActualProgressData.actualReturnAmount)
       }
     ];
-  }, [actualProgressData]);
+  }, [selectedActualProgressData]);
 
   const isDesktop = window.innerWidth >= 1024;
   const hoveredPoint = hoveredIndex != null ? calculationData[hoveredIndex] : null;
@@ -5570,6 +5713,29 @@ const InvestmentCalculator = () => {
               </div>
             </div>
 
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+              {actualProgressData.accountMeta.map((account) => (
+                <button
+                  key={account.key}
+                  type="button"
+                  onClick={() => setActualAccountFilter(account.key)}
+                  style={{
+                    border: `1px solid ${subtleOverlayTextColor}`,
+                    color: actualAccountFilter === account.key ? "#0d2a28" : subtleOverlayTextColor,
+                    backgroundColor: actualAccountFilter === account.key ? "rgba(13,42,40,0.08)" : "transparent",
+                    borderRadius: "4px",
+                    padding: "5px 10px",
+                    fontSize: "12px",
+                    fontWeight: 700,
+                    lineHeight: 1.2,
+                    cursor: "pointer"
+                  }}
+                >
+                  {account.label}
+                </button>
+              ))}
+            </div>
+
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: "12px" }}>
               {actualProgressCards.map((card) => (
                 <div
@@ -5622,7 +5788,7 @@ const InvestmentCalculator = () => {
                 }}
               >
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={actualProgressData.rows} margin={{ top: 12, right: 16, left: 0, bottom: 8 }}>
+                  <LineChart data={selectedActualProgressData.chartRows} margin={{ top: 12, right: 16, left: 0, bottom: 8 }}>
                     <CartesianGrid stroke="#e5e2d8" vertical={false} />
                     <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#6B7280" }} tickLine={false} />
                     <YAxis
@@ -5668,7 +5834,7 @@ const InvestmentCalculator = () => {
                 <div
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr 1fr 1fr",
+                    gridTemplateColumns: "0.9fr 0.9fr 1fr 0.9fr 0.9fr 0.9fr 0.9fr 0.9fr 1fr",
                     gap: 0,
                     fontSize: "11px",
                     color: "#6B7280",
@@ -5676,19 +5842,29 @@ const InvestmentCalculator = () => {
                     borderBottom: "1px solid #e1dccb"
                   }}
                 >
-                  {["Maand", "Portefeuille", "Plan inleg", "Werkelijk", "Onttrekking", "Rendement", "Eindwaarde"].map((label) => (
+                  {[
+                    "Maand",
+                    "Rekening",
+                    "Type",
+                    "Portefeuille",
+                    "Plan inleg",
+                    "Werkelijk",
+                    "Onttrekking",
+                    "Rendement",
+                    "Eindwaarde"
+                  ].map((label) => (
                     <div key={label} style={{ padding: "9px 10px", fontWeight: 700 }}>
                       {label}
                     </div>
                   ))}
                 </div>
                 <div style={{ padding: "18px 14px", fontSize: "13px", color: "#6B7280", textAlign: "center" }}>
-                  {actualProgressData.rows.map((row) => (
+                  {selectedActualProgressData.rows.map((row) => (
                     <div
-                      key={row.month}
+                      key={`${row.month}-${row.accountId}`}
                       style={{
                         display: "grid",
-                        gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr 1fr 1fr",
+                        gridTemplateColumns: "0.9fr 0.9fr 1fr 0.9fr 0.9fr 0.9fr 0.9fr 0.9fr 1fr",
                         textAlign: "left",
                         borderTop: "1px solid #f0ede3",
                         margin: "0 -14px",
@@ -5697,6 +5873,8 @@ const InvestmentCalculator = () => {
                       }}
                     >
                       <div>{row.month}</div>
+                      <div>{row.accountId}</div>
+                      <div>{row.accountType}</div>
                       <div>{row.portfolio}</div>
                       <div>{formatCurrency(row.plannedDeposit)}</div>
                       <div>{formatCurrency(row.actualDeposit)}</div>
@@ -5722,18 +5900,20 @@ const InvestmentCalculator = () => {
                     <div style={{ display: "flex", justifyContent: "space-between", gap: "12px" }}>
                       <span>Gemiste / extra inleg</span>
                       <strong style={{ color: "#111827" }}>
-                        {actualProgressData.depositDifference >= 0 ? "+" : "-"} {formatCurrency(Math.abs(actualProgressData.depositDifference))}
+                        {selectedActualProgressData.depositDifference >= 0 ? "+" : "-"}{" "}
+                        {formatCurrency(Math.abs(selectedActualProgressData.depositDifference))}
                       </strong>
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between", gap: "12px" }}>
                       <span>Rendementsverschil</span>
                       <strong style={{ color: "#111827" }}>
-                        {actualProgressData.returnDifference >= 0 ? "+" : "-"} {formatCurrency(Math.abs(actualProgressData.returnDifference))}
+                        {selectedActualProgressData.returnDifference >= 0 ? "+" : "-"}{" "}
+                        {formatCurrency(Math.abs(selectedActualProgressData.returnDifference))}
                       </strong>
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between", gap: "12px" }}>
                       <span>Onttrekkingen</span>
-                      <strong style={{ color: "#111827" }}>{formatCurrency(actualProgressData.totalWithdrawals)}</strong>
+                      <strong style={{ color: "#111827" }}>{formatCurrency(selectedActualProgressData.totalWithdrawals)}</strong>
                     </div>
                   </div>
                 </div>
@@ -5748,7 +5928,7 @@ const InvestmentCalculator = () => {
                   <div style={{ fontSize: "15px", fontWeight: 700 }}>Nieuwe prognose</div>
                   <div style={{ marginTop: "10px", fontSize: "12px", color: "#6B7280", lineHeight: 1.45 }}>
                     Op basis van deze testdata ligt het actuele vermogen{" "}
-                    {actualProgressData.lastRow && actualProgressData.lastRow.difference >= 0 ? "voor" : "achter"} op het plan.
+                    {selectedActualProgressData.lastRow && selectedActualProgressData.lastRow.difference >= 0 ? "voor" : "achter"} op het plan.
                     In de volgende stap rekenen we vanaf dit ijkmoment opnieuw door naar de einddatum.
                   </div>
                 </div>
