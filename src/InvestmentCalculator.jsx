@@ -324,7 +324,7 @@ const InvestmentCalculator = () => {
   const [isOneTimeExtrasExpanded, setIsOneTimeExtrasExpanded] = useState(false);
   const [isOneTimeExtrasExpanded2, setIsOneTimeExtrasExpanded2] = useState(false);
   const [lifelineViewMode, setLifelineViewMode] = useState("future");
-  const [actualAccountFilter, setActualAccountFilter] = useState("all");
+  const [actualAccountFilter, setActualAccountFilter] = useState("VVA-001");
   const [lifelineZoomMode, setLifelineZoomMode] = useState("week");
   const [activeScenarioBandKey, setActiveScenarioBandKey] = useState(null);
   const [hoveredLifelineSeriesKey, setHoveredLifelineSeriesKey] = useState(null);
@@ -1573,7 +1573,6 @@ const InvestmentCalculator = () => {
     };
 
     const accountMeta = [
-      { key: "all", label: "Alle rekeningen" },
       { key: "VVA-001", label: "Vrij vermogen", accountId: "VVA-001" },
       { key: "PEN-001", label: "Pensioen", accountId: "PEN-001" }
     ];
