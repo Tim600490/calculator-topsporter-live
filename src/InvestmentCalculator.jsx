@@ -1990,23 +1990,17 @@ const InvestmentCalculator = () => {
     ];
   }, [selectedActualProgressData]);
 
-  const hasSelectedPlannedDeposits = selectedActualProgressData.totalPlannedDeposit > 0;
   const actualMonthlyTableColumns = [
     { key: "month", label: "Maand" },
     { key: "account", label: "Rekening" },
     { key: "type", label: "Type" },
     { key: "portfolio", label: "Portefeuille" },
-    { key: "plannedDeposit", label: "Berekende inleg" },
     { key: "actualDeposit", label: "Werkelijk ingelegd" },
-    { key: "gap", label: "Verschil" },
     { key: "withdrawal", label: "Onttrekking" },
     { key: "plannedBalance", label: ["Verwacht", "vermogen"] },
-    { key: "actualBalance", label: ["Werkelijk", "vermogen"] },
-    ...(hasSelectedPlannedDeposits ? [{ key: "planFollowBalance", label: ["Berekende", "inleg incl."] }] : [])
+    { key: "actualBalance", label: ["Werkelijk", "vermogen"] }
   ];
-  const actualMonthlyTableGrid = hasSelectedPlannedDeposits
-    ? "0.75fr 0.85fr 0.95fr 0.85fr 0.95fr 1fr 0.8fr 0.8fr 1fr 1fr 1fr"
-    : "0.75fr 0.85fr 0.95fr 0.85fr 0.95fr 1fr 0.8fr 0.8fr 1fr 1fr";
+  const actualMonthlyTableGrid = "0.8fr 0.95fr 1fr 0.95fr 1.05fr 0.95fr 1.1fr 1.1fr";
 
   const actualCustomerOptions = useMemo(
     () => [...new Set(importedActualRows.map((row) => row.customerName).filter(Boolean))],
@@ -6123,7 +6117,6 @@ const InvestmentCalculator = () => {
               </div>
               <div style={{ padding: "0 14px", fontSize: "13px", color: "#6B7280", textAlign: "center" }}>
                 {selectedActualProgressData.rows.map((row) => {
-                  const depositGap = row.actualDeposit - row.plannedDeposit;
                   return (
                     <div
                       key={`${row.month}-${row.accountId}`}
@@ -6141,17 +6134,10 @@ const InvestmentCalculator = () => {
                       <div>{row.accountId}</div>
                       <div>{row.accountType}</div>
                       <div>{row.portfolio}</div>
-                      <div>{row.plannedDeposit > 0 ? formatCurrency(row.plannedDeposit) : "n.v.t."}</div>
-                      <div>{row.plannedDeposit > 0 ? formatCurrency(row.actualDeposit) : "n.v.t."}</div>
-                      <div style={{ fontWeight: 700 }}>
-                        {row.plannedDeposit > 0 ? `${depositGap >= 0 ? "+" : "-"} ${formatCurrency(Math.abs(depositGap))}` : "n.v.t."}
-                      </div>
+                      <div>{row.actualDeposit > 0 ? formatCurrency(row.actualDeposit) : "-"}</div>
                       <div>{row.withdrawal > 0 ? formatCurrency(row.withdrawal) : "-"}</div>
-                      <div style={{ fontWeight: 700, color: "#d2bb5d" }}>{formatCurrency(row.plannedBalance)}</div>
+                      <div style={{ fontWeight: 700, color: "#6672a8" }}>{formatCurrency(row.plannedBalance)}</div>
                       <div style={{ fontWeight: 700, color: "#0d2a28" }}>{formatCurrency(row.actualBalance)}</div>
-                      {hasSelectedPlannedDeposits && (
-                        <div style={{ fontWeight: 700, color: "#6B7280" }}>{formatCurrency(row.planFollowBalance)}</div>
-                      )}
                     </div>
                   );
                 })}
@@ -6169,19 +6155,13 @@ const InvestmentCalculator = () => {
               <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "12px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "12px", fontSize: "11px", color: "#6B7280" }}>
                   <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
-                    <span style={{ width: "12px", height: "3px", background: "#d2bb5d", borderRadius: "2px" }} />
+                    <span style={{ width: "12px", height: "3px", background: "#6672a8", borderRadius: "2px" }} />
                     Verwacht
                   </span>
                   <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
                     <span style={{ width: "12px", height: "3px", background: "#0d2a28", borderRadius: "2px" }} />
                     Werkelijk
                   </span>
-                  {hasSelectedPlannedDeposits && (
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
-                      <span style={{ width: "12px", height: "3px", background: "#6672a8", borderRadius: "2px" }} />
-                      Werkelijk + berekende inleg
-                    </span>
-                  )}
                 </div>
               </div>
               <div
@@ -6229,29 +6209,20 @@ const InvestmentCalculator = () => {
                             <div style={{ fontWeight: 700, marginBottom: "6px" }}>{label}</div>
                             <div style={{ display: "grid", gap: "4px" }}>
                               <div style={{ display: "flex", alignItems: "center", gap: "6px", whiteSpace: "nowrap" }}>
-                                <span style={{ width: "8px", height: "8px", background: "#d2bb5d", borderRadius: "2px" }} />
+                                <span style={{ width: "8px", height: "8px", background: "#6672a8", borderRadius: "2px" }} />
                                 <span>Verwacht: {formatCurrency(point.plannedBalance)}</span>
                               </div>
                               <div style={{ display: "flex", alignItems: "center", gap: "6px", whiteSpace: "nowrap" }}>
                                 <span style={{ width: "8px", height: "8px", background: "#0d2a28", borderRadius: "2px" }} />
                                 <span>Werkelijk: {formatCurrency(point.actualBalance)}</span>
                               </div>
-                              {hasSelectedPlannedDeposits && (
-                                <div style={{ display: "flex", alignItems: "center", gap: "6px", whiteSpace: "nowrap" }}>
-                                  <span style={{ width: "8px", height: "8px", background: "#6672a8", borderRadius: "2px" }} />
-                                  <span>Werkelijk + berekende inleg: {formatCurrency(point.planFollowBalance)}</span>
-                                </div>
-                              )}
                             </div>
                           </div>
                         );
                       }}
                     />
-                    <Line type="monotone" dataKey="plannedBalance" stroke="#d2bb5d" strokeWidth={3} dot={false} />
+                    <Line type="monotone" dataKey="plannedBalance" stroke="#6672a8" strokeWidth={3} dot={false} />
                     <Line type="monotone" dataKey="actualBalance" stroke="#0d2a28" strokeWidth={3} dot={{ r: 3 }} />
-                    {hasSelectedPlannedDeposits && (
-                      <Line type="monotone" dataKey="planFollowBalance" stroke="#6672a8" strokeWidth={3} dot={false} />
-                    )}
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -6273,20 +6244,6 @@ const InvestmentCalculator = () => {
                       <strong style={{ color: "#111827" }}>
                         {selectedActualProgressData.depositDifference >= 0 ? "+" : "-"}{" "}
                         {formatCurrency(Math.abs(selectedActualProgressData.depositDifference))}
-                      </strong>
-                    </div>
-                    <div style={{ display: "flex", justifyContent: "space-between", gap: "12px" }}>
-                      <span>Extra waarde bij planinleg</span>
-                      <strong style={{ color: "#111827" }}>
-                        {selectedActualProgressData.lastRow
-                          ? formatCurrency(
-                              Math.max(
-                                0,
-                                (selectedActualProgressData.lastRow.planFollowBalance || 0) -
-                                  (selectedActualProgressData.lastRow.actualBalance || 0)
-                              )
-                            )
-                          : "-"}
                       </strong>
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between", gap: "12px" }}>
