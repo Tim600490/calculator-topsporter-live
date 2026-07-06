@@ -1525,14 +1525,6 @@ const InvestmentCalculator = () => {
     return Number.isFinite(parsed) ? parsed : 0;
   };
 
-  const parseImportReturn = (value) => {
-    const parsed = parseImportNumber(value);
-    if (Math.abs(parsed) > 1) {
-      return parsed / 100;
-    }
-    return parsed;
-  };
-
   const normalizeImportText = (value) =>
     String(value ?? "")
       .trim()
@@ -1592,6 +1584,7 @@ const InvestmentCalculator = () => {
       .forEach(([monthNumber, monthGroup]) => {
         let plannedTotalBalance = 0;
         let actualTotalBalance = 0;
+        let planFollowTotalBalance = 0;
 
         monthGroup.rows.forEach((accountRow) => {
           if (!accountState.has(accountRow.accountId)) {
@@ -1599,17 +1592,28 @@ const InvestmentCalculator = () => {
             accountState.set(accountRow.accountId, {
               ...planConfig,
               plannedBalance: planConfig.initialCapital,
-              actualBalance: planConfig.initialCapital
+              actualBalance: planConfig.initialCapital,
+              planFollowBalance: planConfig.initialCapital
             });
           }
 
           const state = accountState.get(accountRow.accountId);
           const plannedDeposit = state.getPlannedDeposit(monthNumber);
+          const previousActualBalance = state.actualBalance;
           state.plannedBalance = state.plannedBalance * (1 + state.monthlyPlanReturn) + plannedDeposit;
+          const actualBaseBeforeReturn = previousActualBalance + accountRow.actualDeposit - accountRow.withdrawal;
           state.actualBalance =
             accountRow.actualBalance != null
               ? accountRow.actualBalance
               : Math.max(0, (state.actualBalance + accountRow.actualDeposit - accountRow.withdrawal) * (1 + accountRow.actualReturn));
+          const realizedGrowthFactor =
+            actualBaseBeforeReturn > 0
+              ? state.actualBalance / actualBaseBeforeReturn
+              : 1 + (Number(accountRow.actualReturn) || 0);
+          state.planFollowBalance = Math.max(
+            0,
+            (state.planFollowBalance + plannedDeposit - accountRow.withdrawal) * realizedGrowthFactor
+          );
 
           const row = {
             ...accountRow,
@@ -1617,12 +1621,14 @@ const InvestmentCalculator = () => {
             plannedDeposit,
             plannedBalance: state.plannedBalance,
             actualBalance: state.actualBalance,
+            planFollowBalance: state.planFollowBalance,
             difference: state.actualBalance - state.plannedBalance
           };
 
           rows.push(row);
           plannedTotalBalance += state.plannedBalance;
           actualTotalBalance += state.actualBalance;
+          planFollowTotalBalance += state.planFollowBalance;
           totalPlannedDeposit += plannedDeposit;
           totalActualDeposit += accountRow.actualDeposit;
           totalWithdrawals += accountRow.withdrawal;
@@ -1641,6 +1647,7 @@ const InvestmentCalculator = () => {
           monthNumber,
           plannedBalance: plannedTotalBalance,
           actualBalance: actualTotalBalance,
+          planFollowBalance: planFollowTotalBalance,
           difference: actualTotalBalance - plannedTotalBalance
         });
       });
@@ -1691,15 +1698,6 @@ const InvestmentCalculator = () => {
         const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
         const monthNumber = sheetIndex + 1;
         const month = getMonthLabelFromSheetName(sheetName);
-        const returnByProfile = new Map();
-
-        rows.slice(2).forEach((row) => {
-          const profile = normalizeImportText(row[30]);
-          const monthlyReturn = parseImportReturn(row[31]);
-          if (profile && Number.isFinite(monthlyReturn)) {
-            returnByProfile.set(profile, monthlyReturn);
-          }
-        });
 
         rows.slice(2).forEach((row) => {
           const accountId = String(row[5] ?? "").trim();
@@ -1708,7 +1706,6 @@ const InvestmentCalculator = () => {
             return;
           }
           const portfolio = String(row[6] ?? "").trim();
-          const normalizedPortfolio = normalizeImportText(portfolio);
           importedRows.push({
             month,
             monthNumber,
@@ -1719,7 +1716,7 @@ const InvestmentCalculator = () => {
             actualBalance: parseImportNumber(row[11]),
             actualDeposit: parseImportNumber(row[13]),
             withdrawal: parseImportNumber(row[14]),
-            actualReturn: returnByProfile.get(normalizedPortfolio) ?? parseImportReturn(row[31])
+            actualReturn: 0
           });
         });
       });
@@ -1812,6 +1809,7 @@ const InvestmentCalculator = () => {
       "VVA-001": {
         plannedBalance: startAmount,
         actualBalance: startAmount,
+        planFollowBalance: startAmount,
         initialCapital: startAmount,
         monthlyPlanReturn: annualReturn / 12,
         getPlannedDeposit: (monthNumber) => getMonthlyDepositForMonth(monthNumber) + getOneTimeExtraForMonth(monthNumber)
@@ -1819,6 +1817,7 @@ const InvestmentCalculator = () => {
       "PEN-001": {
         plannedBalance: startAmount2,
         actualBalance: startAmount2,
+        planFollowBalance: startAmount2,
         initialCapital: startAmount2,
         monthlyPlanReturn: annualReturn2 / 12,
         getPlannedDeposit: (monthNumber) => getMonthlyDepositForMonth2(monthNumber) + getOneTimeExtraForMonth2(monthNumber)
@@ -1845,14 +1844,23 @@ const InvestmentCalculator = () => {
       const monthNumber = index + 1;
       let plannedTotalBalance = 0;
       let actualTotalBalance = 0;
+      let planFollowTotalBalance = 0;
 
       monthGroup.accounts.forEach((accountRow) => {
         const state = accountState[accountRow.accountId];
         const plannedDeposit = state.getPlannedDeposit(monthNumber);
+        const previousActualBalance = state.actualBalance;
         state.plannedBalance = state.plannedBalance * (1 + state.monthlyPlanReturn) + plannedDeposit;
         state.actualBalance = Math.max(
           0,
           (state.actualBalance + accountRow.actualDeposit - accountRow.withdrawal) * (1 + accountRow.actualReturn)
+        );
+        const actualBaseBeforeReturn = previousActualBalance + accountRow.actualDeposit - accountRow.withdrawal;
+        const realizedGrowthFactor =
+          actualBaseBeforeReturn > 0 ? state.actualBalance / actualBaseBeforeReturn : 1 + (Number(accountRow.actualReturn) || 0);
+        state.planFollowBalance = Math.max(
+          0,
+          (state.planFollowBalance + plannedDeposit - accountRow.withdrawal) * realizedGrowthFactor
         );
 
         const row = {
@@ -1862,12 +1870,14 @@ const InvestmentCalculator = () => {
           plannedDeposit,
           plannedBalance: state.plannedBalance,
           actualBalance: state.actualBalance,
+          planFollowBalance: state.planFollowBalance,
           difference: state.actualBalance - state.plannedBalance
         };
 
         rows.push(row);
         plannedTotalBalance += state.plannedBalance;
         actualTotalBalance += state.actualBalance;
+        planFollowTotalBalance += state.planFollowBalance;
         totalPlannedDeposit += plannedDeposit;
         totalActualDeposit += accountRow.actualDeposit;
         totalWithdrawals += accountRow.withdrawal;
@@ -1878,6 +1888,7 @@ const InvestmentCalculator = () => {
         monthNumber,
         plannedBalance: plannedTotalBalance,
         actualBalance: actualTotalBalance,
+        planFollowBalance: planFollowTotalBalance,
         difference: actualTotalBalance - plannedTotalBalance
       });
     });
@@ -1929,6 +1940,7 @@ const InvestmentCalculator = () => {
       monthNumber: row.monthNumber,
       plannedBalance: row.plannedBalance,
       actualBalance: row.actualBalance,
+      planFollowBalance: row.planFollowBalance,
       difference: row.difference
     }));
     const lastRow = chartRows[chartRows.length - 1] ?? null;
@@ -6045,24 +6057,77 @@ const InvestmentCalculator = () => {
               ))}
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: "12px" }}>
-              {actualProgressCards.map((card) => (
-                <div
-                  key={card.label}
-                  style={{
-                    background: "#fff",
-                    borderRadius: "8px",
-                    padding: "14px",
-                    border: "1px solid #e1dccb",
-                    minHeight: "82px"
-                  }}
-                >
-                  <div style={{ fontSize: "12px", color: "#6B7280" }}>{card.label}</div>
-                  <div style={{ marginTop: "10px", fontSize: "18px", fontWeight: 800, color: "#0d2a28" }}>
-                    {card.value}
+            <div
+              style={{
+                background: "#fff",
+                borderRadius: "8px",
+                border: "1px solid #e1dccb",
+                overflow: "hidden"
+              }}
+            >
+              <div style={{ padding: "12px 14px", fontSize: "15px", fontWeight: 700, borderBottom: "1px solid #e1dccb" }}>
+                Maandoverzicht
+              </div>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "0.85fr 0.9fr 1fr 0.9fr 0.9fr 0.9fr 0.9fr 0.9fr 1fr 1fr",
+                  gap: 0,
+                  fontSize: "11px",
+                  color: "#6B7280",
+                  background: "#fbf9f1",
+                  borderBottom: "1px solid #e1dccb"
+                }}
+              >
+                {[
+                  "Maand",
+                  "Rekening",
+                  "Type",
+                  "Portefeuille",
+                  "Plan inleg",
+                  "Werkelijk",
+                  "Verschil",
+                  "Onttrekking",
+                  "Werkelijk vermogen",
+                  "Met planinleg"
+                ].map((label) => (
+                  <div key={label} style={{ padding: "9px 10px", fontWeight: 700 }}>
+                    {label}
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
+              <div style={{ padding: "0 14px", fontSize: "13px", color: "#6B7280", textAlign: "center" }}>
+                {selectedActualProgressData.rows.map((row) => {
+                  const depositGap = row.actualDeposit - row.plannedDeposit;
+                  return (
+                    <div
+                      key={`${row.month}-${row.accountId}`}
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "0.85fr 0.9fr 1fr 0.9fr 0.9fr 0.9fr 0.9fr 0.9fr 1fr 1fr",
+                        textAlign: "left",
+                        borderTop: "1px solid #f0ede3",
+                        margin: "0 -14px",
+                        padding: "9px 14px",
+                        alignItems: "center"
+                      }}
+                    >
+                      <div>{row.month}</div>
+                      <div>{row.accountId}</div>
+                      <div>{row.accountType}</div>
+                      <div>{row.portfolio}</div>
+                      <div>{formatCurrency(row.plannedDeposit)}</div>
+                      <div>{formatCurrency(row.actualDeposit)}</div>
+                      <div style={{ color: depositGap < 0 ? "#991b1b" : "#0d2a28", fontWeight: 700 }}>
+                        {depositGap >= 0 ? "+" : "-"} {formatCurrency(Math.abs(depositGap))}
+                      </div>
+                      <div>{row.withdrawal > 0 ? formatCurrency(row.withdrawal) : "-"}</div>
+                      <div style={{ fontWeight: 700, color: "#0d2a28" }}>{formatCurrency(row.actualBalance)}</div>
+                      <div style={{ fontWeight: 700, color: "#6B7280" }}>{formatCurrency(row.planFollowBalance)}</div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
             <div
@@ -6083,6 +6148,10 @@ const InvestmentCalculator = () => {
                   <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
                     <span style={{ width: "12px", height: "3px", background: "#0d2a28", borderRadius: "2px" }} />
                     Werkelijk
+                  </span>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                    <span style={{ width: "12px", height: "3px", background: "#6672a8", borderRadius: "2px" }} />
+                    Werkelijk + planinleg
                   </span>
                 </div>
               </div>
@@ -6108,94 +6177,54 @@ const InvestmentCalculator = () => {
                       width={64}
                     />
                     <Tooltip
-                      formatter={(value, name) => [
-                        formatCurrency(value),
-                        name === "plannedBalance" ? "Plan" : "Werkelijk"
-                      ]}
-                      labelStyle={{ color: "#111827", fontWeight: 700 }}
-                      contentStyle={{
-                        background: "#2f2f2f",
-                        border: "none",
-                        borderRadius: "6px",
-                        color: "#fff",
-                        fontSize: "12px"
+                      cursor={{ stroke: "#9ca3af", strokeDasharray: "3 4" }}
+                      content={({ active, payload, label }) => {
+                        if (!active || !payload?.length) {
+                          return null;
+                        }
+                        const point = payload[0]?.payload;
+                        if (!point) {
+                          return null;
+                        }
+                        return (
+                          <div
+                            style={{
+                              background: "#2f2f2f",
+                              borderRadius: "6px",
+                              color: "#fff",
+                              fontSize: "12px",
+                              padding: "8px 10px",
+                              boxShadow: "0 3px 10px rgba(0,0,0,0.22)"
+                            }}
+                          >
+                            <div style={{ fontWeight: 700, marginBottom: "6px" }}>{label}</div>
+                            <div style={{ display: "grid", gap: "4px" }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: "6px", whiteSpace: "nowrap" }}>
+                                <span style={{ width: "8px", height: "8px", background: "#d2bb5d", borderRadius: "2px" }} />
+                                <span>Plan: {formatCurrency(point.plannedBalance)}</span>
+                              </div>
+                              <div style={{ display: "flex", alignItems: "center", gap: "6px", whiteSpace: "nowrap" }}>
+                                <span style={{ width: "8px", height: "8px", background: "#0d2a28", borderRadius: "2px" }} />
+                                <span>Werkelijk: {formatCurrency(point.actualBalance)}</span>
+                              </div>
+                              <div style={{ display: "flex", alignItems: "center", gap: "6px", whiteSpace: "nowrap" }}>
+                                <span style={{ width: "8px", height: "8px", background: "#6672a8", borderRadius: "2px" }} />
+                                <span>Werkelijk + planinleg: {formatCurrency(point.planFollowBalance)}</span>
+                              </div>
+                            </div>
+                          </div>
+                        );
                       }}
                     />
                     <Line type="monotone" dataKey="plannedBalance" stroke="#d2bb5d" strokeWidth={3} dot={false} />
                     <Line type="monotone" dataKey="actualBalance" stroke="#0d2a28" strokeWidth={3} dot={{ r: 3 }} />
+                    <Line type="monotone" dataKey="planFollowBalance" stroke="#6672a8" strokeWidth={3} dot={false} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1.35fr 0.65fr", gap: "14px", alignItems: "start" }}>
-              <div
-                style={{
-                  background: "#fff",
-                  borderRadius: "8px",
-                  border: "1px solid #e1dccb",
-                  overflow: "hidden"
-                }}
-              >
-                <div style={{ padding: "12px 14px", fontSize: "15px", fontWeight: 700, borderBottom: "1px solid #e1dccb" }}>
-                  Maandoverzicht
-                </div>
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "0.9fr 0.9fr 1fr 0.9fr 0.9fr 0.9fr 0.9fr 0.9fr 1fr",
-                    gap: 0,
-                    fontSize: "11px",
-                    color: "#6B7280",
-                    background: "#fbf9f1",
-                    borderBottom: "1px solid #e1dccb"
-                  }}
-                >
-                  {[
-                    "Maand",
-                    "Rekening",
-                    "Type",
-                    "Portefeuille",
-                    "Plan inleg",
-                    "Werkelijk",
-                    "Onttrekking",
-                    "Rendement",
-                    "Eindwaarde"
-                  ].map((label) => (
-                    <div key={label} style={{ padding: "9px 10px", fontWeight: 700 }}>
-                      {label}
-                    </div>
-                  ))}
-                </div>
-                <div style={{ padding: "18px 14px", fontSize: "13px", color: "#6B7280", textAlign: "center" }}>
-                  {selectedActualProgressData.rows.map((row) => (
-                    <div
-                      key={`${row.month}-${row.accountId}`}
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: "0.9fr 0.9fr 1fr 0.9fr 0.9fr 0.9fr 0.9fr 0.9fr 1fr",
-                        textAlign: "left",
-                        borderTop: "1px solid #f0ede3",
-                        margin: "0 -14px",
-                        padding: "9px 14px",
-                        alignItems: "center"
-                      }}
-                    >
-                      <div>{row.month}</div>
-                      <div>{row.accountId}</div>
-                      <div>{row.accountType}</div>
-                      <div>{row.portfolio}</div>
-                      <div>{formatCurrency(row.plannedDeposit)}</div>
-                      <div>{formatCurrency(row.actualDeposit)}</div>
-                      <div>{row.withdrawal > 0 ? formatCurrency(row.withdrawal) : "-"}</div>
-                      <div>{formatPercentOneDecimal(row.actualReturn * 100)}</div>
-                      <div style={{ fontWeight: 700, color: "#0d2a28" }}>{formatCurrency(row.actualBalance)}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div style={{ display: "grid", gap: "14px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "14px", alignItems: "start" }}>
                 <div
                   style={{
                     background: "#fff",
@@ -6214,10 +6243,17 @@ const InvestmentCalculator = () => {
                       </strong>
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between", gap: "12px" }}>
-                      <span>Rendementsverschil</span>
+                      <span>Extra waarde bij planinleg</span>
                       <strong style={{ color: "#111827" }}>
-                        {selectedActualProgressData.returnDifference >= 0 ? "+" : "-"}{" "}
-                        {formatCurrency(Math.abs(selectedActualProgressData.returnDifference))}
+                        {selectedActualProgressData.lastRow
+                          ? formatCurrency(
+                              Math.max(
+                                0,
+                                (selectedActualProgressData.lastRow.planFollowBalance || 0) -
+                                  (selectedActualProgressData.lastRow.actualBalance || 0)
+                              )
+                            )
+                          : "-"}
                       </strong>
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between", gap: "12px" }}>
@@ -6242,7 +6278,6 @@ const InvestmentCalculator = () => {
                   </div>
                 </div>
               </div>
-            </div>
           </div>
         )}
       </section>
