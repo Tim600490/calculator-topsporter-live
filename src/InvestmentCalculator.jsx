@@ -1992,17 +1992,17 @@ const InvestmentCalculator = () => {
 
   const hasSelectedPlannedDeposits = selectedActualProgressData.totalPlannedDeposit > 0;
   const actualMonthlyTableColumns = [
-    "Maand",
-    "Rekening",
-    "Type",
-    "Portefeuille",
-    "Berekende inleg",
-    "Werkelijk ingelegd",
-    "Verschil",
-    "Onttrekking",
-    "Verwacht vermogen",
-    "Werkelijk vermogen",
-    ...(hasSelectedPlannedDeposits ? ["Met planinleg"] : [])
+    { key: "month", label: "Maand" },
+    { key: "account", label: "Rekening" },
+    { key: "type", label: "Type" },
+    { key: "portfolio", label: "Portefeuille" },
+    { key: "plannedDeposit", label: "Berekende inleg" },
+    { key: "actualDeposit", label: "Werkelijk ingelegd" },
+    { key: "gap", label: "Verschil" },
+    { key: "withdrawal", label: "Onttrekking" },
+    { key: "plannedBalance", label: ["Verwacht", "vermogen"] },
+    { key: "actualBalance", label: ["Werkelijk", "vermogen"] },
+    ...(hasSelectedPlannedDeposits ? [{ key: "planFollowBalance", label: ["Berekende", "inleg incl."] }] : [])
   ];
   const actualMonthlyTableGrid = hasSelectedPlannedDeposits
     ? "0.75fr 0.85fr 0.95fr 0.85fr 0.95fr 1fr 0.8fr 0.8fr 1fr 1fr 1fr"
@@ -6099,9 +6099,11 @@ const InvestmentCalculator = () => {
                   textAlign: "left"
                 }}
               >
-                {actualMonthlyTableColumns.map((label) => (
-                  <div key={label} style={{ fontWeight: 700 }}>
-                    {label}
+                {actualMonthlyTableColumns.map((column) => (
+                  <div key={column.key} style={{ fontWeight: 700, lineHeight: 1.15 }}>
+                    {Array.isArray(column.label)
+                      ? column.label.map((line) => <div key={line}>{line}</div>)
+                      : column.label}
                   </div>
                 ))}
               </div>
