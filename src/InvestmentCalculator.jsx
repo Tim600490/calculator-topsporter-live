@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import * as XLSX from "xlsx";
 import {
   Area,
   Bar,
@@ -325,6 +326,10 @@ const InvestmentCalculator = () => {
   const [isOneTimeExtrasExpanded2, setIsOneTimeExtrasExpanded2] = useState(false);
   const [lifelineViewMode, setLifelineViewMode] = useState("future");
   const [actualAccountFilter, setActualAccountFilter] = useState("VVA-001");
+  const [importedActualRows, setImportedActualRows] = useState([]);
+  const [actualImportFileName, setActualImportFileName] = useState("");
+  const [actualImportError, setActualImportError] = useState("");
+  const [selectedActualCustomer, setSelectedActualCustomer] = useState("");
   const [lifelineZoomMode, setLifelineZoomMode] = useState("week");
   const [activeScenarioBandKey, setActiveScenarioBandKey] = useState(null);
   const [hoveredLifelineSeriesKey, setHoveredLifelineSeriesKey] = useState(null);
@@ -356,6 +361,7 @@ const InvestmentCalculator = () => {
   const chartContainerRef = useRef(null);
   const chartContainerRef2 = useRef(null);
   const chartContainerRef3 = useRef(null);
+  const actualImportInputRef = useRef(null);
   const lifelineChartContainerRef = useRef(null);
   const incomeChartContainerRef = useRef(null);
   const potChartContainerRef = useRef(null);
@@ -1502,7 +1508,254 @@ const InvestmentCalculator = () => {
   };
   const formatPercentOneDecimal = (value) => `${(Number(value) || 0).toFixed(1).replace(".", ",")}%`;
 
+  const parseImportNumber = (value) => {
+    if (typeof value === "number") {
+      return Number.isFinite(value) ? value : 0;
+    }
+    if (value == null) {
+      return 0;
+    }
+    const normalized = String(value)
+      .replace(/\s/g, "")
+      .replace(/€/g, "")
+      .replace(/%/g, "")
+      .replace(/\./g, "")
+      .replace(",", ".");
+    const parsed = Number(normalized);
+    return Number.isFinite(parsed) ? parsed : 0;
+  };
+
+  const parseImportReturn = (value) => {
+    const parsed = parseImportNumber(value);
+    if (Math.abs(parsed) > 1) {
+      return parsed / 100;
+    }
+    return parsed;
+  };
+
+  const normalizeImportText = (value) =>
+    String(value ?? "")
+      .trim()
+      .toLowerCase();
+
+  const getMonthLabelFromSheetName = (sheetName) => {
+    const match = sheetName.match(/Omzet_Animo_(.+?)'?(\d{2})?$/i);
+    if (!match) {
+      return sheetName;
+    }
+    return match[1].replace(/_/g, " ");
+  };
+
+  const getImportPlanConfigForAccount = (accountType) => {
+    const normalizedType = normalizeImportText(accountType);
+    if (normalizedType.includes("pensioen")) {
+      return {
+        initialCapital: startAmount2,
+        monthlyPlanReturn: annualReturn2 / 12,
+        getPlannedDeposit: (monthNumber) => getMonthlyDepositForMonth2(monthNumber) + getOneTimeExtraForMonth2(monthNumber)
+      };
+    }
+    if (normalizedType.includes("minderjarig")) {
+      return {
+        initialCapital: 0,
+        monthlyPlanReturn: annualReturn3 / 12,
+        getPlannedDeposit: (monthNumber) => (monthNumber % 12 === 0 ? startAmount3 : 0)
+      };
+    }
+    return {
+      initialCapital: startAmount,
+      monthlyPlanReturn: annualReturn / 12,
+      getPlannedDeposit: (monthNumber) => getMonthlyDepositForMonth(monthNumber) + getOneTimeExtraForMonth(monthNumber)
+    };
+  };
+
+  const buildActualProgressDataset = (flatRows, accountMetaOverride = null) => {
+    const rows = [];
+    const chartRows = [];
+    const accountState = new Map();
+    const monthGroups = new Map();
+
+    flatRows.forEach((row) => {
+      if (!monthGroups.has(row.monthNumber)) {
+        monthGroups.set(row.monthNumber, { month: row.month, rows: [] });
+      }
+      monthGroups.get(row.monthNumber).rows.push(row);
+    });
+
+    const accountMetaMap = new Map();
+    let totalPlannedDeposit = 0;
+    let totalActualDeposit = 0;
+    let totalWithdrawals = 0;
+
+    [...monthGroups.entries()]
+      .sort(([a], [b]) => a - b)
+      .forEach(([monthNumber, monthGroup]) => {
+        let plannedTotalBalance = 0;
+        let actualTotalBalance = 0;
+
+        monthGroup.rows.forEach((accountRow) => {
+          if (!accountState.has(accountRow.accountId)) {
+            const planConfig = getImportPlanConfigForAccount(accountRow.accountType);
+            accountState.set(accountRow.accountId, {
+              ...planConfig,
+              plannedBalance: planConfig.initialCapital,
+              actualBalance: planConfig.initialCapital
+            });
+          }
+
+          const state = accountState.get(accountRow.accountId);
+          const plannedDeposit = state.getPlannedDeposit(monthNumber);
+          state.plannedBalance = state.plannedBalance * (1 + state.monthlyPlanReturn) + plannedDeposit;
+          state.actualBalance =
+            accountRow.actualBalance != null
+              ? accountRow.actualBalance
+              : Math.max(0, (state.actualBalance + accountRow.actualDeposit - accountRow.withdrawal) * (1 + accountRow.actualReturn));
+
+          const row = {
+            ...accountRow,
+            monthNumber,
+            plannedDeposit,
+            plannedBalance: state.plannedBalance,
+            actualBalance: state.actualBalance,
+            difference: state.actualBalance - state.plannedBalance
+          };
+
+          rows.push(row);
+          plannedTotalBalance += state.plannedBalance;
+          actualTotalBalance += state.actualBalance;
+          totalPlannedDeposit += plannedDeposit;
+          totalActualDeposit += accountRow.actualDeposit;
+          totalWithdrawals += accountRow.withdrawal;
+
+          if (!accountMetaMap.has(accountRow.accountId)) {
+            accountMetaMap.set(accountRow.accountId, {
+              key: accountRow.accountId,
+              label: accountRow.accountType || accountRow.accountId,
+              accountId: accountRow.accountId
+            });
+          }
+        });
+
+        chartRows.push({
+          month: monthGroup.month,
+          monthNumber,
+          plannedBalance: plannedTotalBalance,
+          actualBalance: actualTotalBalance,
+          difference: actualTotalBalance - plannedTotalBalance
+        });
+      });
+
+    const accountMeta = accountMetaOverride ?? [...accountMetaMap.values()];
+    const totalInitialCapital = [...accountState.values()].reduce((sum, state) => sum + state.initialCapital, 0);
+    const lastRow = chartRows[chartRows.length - 1] ?? null;
+    const actualReturnAmount = lastRow
+      ? lastRow.actualBalance - totalInitialCapital - totalActualDeposit + totalWithdrawals
+      : 0;
+    const plannedReturnAmount = lastRow
+      ? lastRow.plannedBalance - totalInitialCapital - totalPlannedDeposit
+      : 0;
+
+    return {
+      rows,
+      chartRows,
+      lastRow,
+      accountMeta,
+      totalPlannedDeposit,
+      totalActualDeposit,
+      totalWithdrawals,
+      actualReturnAmount,
+      plannedReturnAmount,
+      depositDifference: totalActualDeposit - totalPlannedDeposit,
+      returnDifference: actualReturnAmount - plannedReturnAmount
+    };
+  };
+
+  const handleActualExcelImport = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    try {
+      setActualImportError("");
+      const buffer = await file.arrayBuffer();
+      const workbook = XLSX.read(buffer, { type: "array" });
+      const monthSheets = workbook.SheetNames.slice(1);
+      const importedRows = [];
+
+      monthSheets.forEach((sheetName, sheetIndex) => {
+        const worksheet = workbook.Sheets[sheetName];
+        if (!worksheet) {
+          return;
+        }
+        const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
+        const monthNumber = sheetIndex + 1;
+        const month = getMonthLabelFromSheetName(sheetName);
+        const returnByProfile = new Map();
+
+        rows.slice(2).forEach((row) => {
+          const profile = normalizeImportText(row[30]);
+          const monthlyReturn = parseImportReturn(row[31]);
+          if (profile && Number.isFinite(monthlyReturn)) {
+            returnByProfile.set(profile, monthlyReturn);
+          }
+        });
+
+        rows.slice(2).forEach((row) => {
+          const accountId = String(row[5] ?? "").trim();
+          const customerName = String(row[10] ?? "").trim();
+          if (!accountId || !customerName) {
+            return;
+          }
+          const portfolio = String(row[6] ?? "").trim();
+          const normalizedPortfolio = normalizeImportText(portfolio);
+          importedRows.push({
+            month,
+            monthNumber,
+            accountId,
+            portfolio,
+            accountType: String(row[7] ?? "").trim(),
+            customerName,
+            actualBalance: parseImportNumber(row[11]),
+            actualDeposit: parseImportNumber(row[13]),
+            withdrawal: parseImportNumber(row[14]),
+            actualReturn: returnByProfile.get(normalizedPortfolio) ?? parseImportReturn(row[31])
+          });
+        });
+      });
+
+      if (importedRows.length === 0) {
+        setActualImportError("Geen bruikbare rijen gevonden in het Excelbestand.");
+        setImportedActualRows([]);
+        setActualImportFileName("");
+        setSelectedActualCustomer("");
+        return;
+      }
+
+      const firstCustomer = importedRows[0].customerName;
+      const firstAccount = importedRows.find((row) => row.customerName === firstCustomer)?.accountId ?? "";
+      setImportedActualRows(importedRows);
+      setSelectedActualCustomer(firstCustomer);
+      setActualAccountFilter(firstAccount);
+      setActualImportFileName(file.name);
+    } catch (error) {
+      setActualImportError("Het Excelbestand kon niet worden ingelezen.");
+      setImportedActualRows([]);
+      setActualImportFileName("");
+      setSelectedActualCustomer("");
+    } finally {
+      event.target.value = "";
+    }
+  };
+
   const actualProgressData = useMemo(() => {
+    const rowsForSelectedCustomer = selectedActualCustomer
+      ? importedActualRows.filter((row) => row.customerName === selectedActualCustomer)
+      : [];
+    if (rowsForSelectedCustomer.length > 0) {
+      return buildActualProgressDataset(rowsForSelectedCustomer);
+    }
+
     const sampleMonths = [
       {
         month: "Januari",
@@ -1653,12 +1906,16 @@ const InvestmentCalculator = () => {
   }, [
     annualReturn,
     annualReturn2,
+    annualReturn3,
     getMonthlyDepositForMonth,
     getMonthlyDepositForMonth2,
     getOneTimeExtraForMonth,
     getOneTimeExtraForMonth2,
+    importedActualRows,
+    selectedActualCustomer,
     startAmount,
-    startAmount2
+    startAmount2,
+    startAmount3
   ]);
 
   const selectedActualProgressData = useMemo(() => {
@@ -1720,6 +1977,17 @@ const InvestmentCalculator = () => {
       }
     ];
   }, [selectedActualProgressData]);
+
+  const actualCustomerOptions = useMemo(
+    () => [...new Set(importedActualRows.map((row) => row.customerName).filter(Boolean))],
+    [importedActualRows]
+  );
+
+  const actualPeriodLabel = importedActualRows.length
+    ? `${actualProgressData.chartRows[0]?.month ?? "-"} t/m ${
+        actualProgressData.chartRows[actualProgressData.chartRows.length - 1]?.month ?? "-"
+      }`
+    : "januari t/m juli";
 
   const isDesktop = window.innerWidth >= 1024;
   const hoveredPoint = hoveredIndex != null ? calculationData[hoveredIndex] : null;
@@ -5665,12 +5933,25 @@ const InvestmentCalculator = () => {
               <div>
                 <div style={{ fontSize: "15px", fontWeight: 700, color: "#111827" }}>Werkelijk verloop</div>
                 <div style={{ marginTop: "4px", fontSize: "12px", color: "#6B7280" }}>
-                  Testdata januari t/m juli, gekoppeld aan de uitgangspunten uit Toekomst.
+                  {importedActualRows.length > 0
+                    ? `Import actief: ${actualImportFileName}`
+                    : "Testdata januari t/m juli, gekoppeld aan de uitgangspunten uit Toekomst."}
                 </div>
+                {actualImportError && (
+                  <div style={{ marginTop: "4px", fontSize: "12px", color: "#991b1b" }}>{actualImportError}</div>
+                )}
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                <input
+                  ref={actualImportInputRef}
+                  type="file"
+                  accept=".xlsx,.xls"
+                  onChange={handleActualExcelImport}
+                  style={{ display: "none" }}
+                />
                 <button
                   type="button"
+                  onClick={() => actualImportInputRef.current?.click()}
                   style={{
                     border: `1px solid ${subtleOverlayTextColor}`,
                     color: subtleOverlayTextColor,
@@ -5680,11 +5961,52 @@ const InvestmentCalculator = () => {
                     fontSize: "12px",
                     fontWeight: 700,
                     lineHeight: 1.2,
-                    cursor: "default"
+                    cursor: "pointer"
                   }}
                 >
                   Import Excel
                 </button>
+                {actualCustomerOptions.length > 0 ? (
+                  <select
+                    value={selectedActualCustomer}
+                    onChange={(event) => {
+                      const customerName = event.target.value;
+                      const firstAccount = importedActualRows.find((row) => row.customerName === customerName)?.accountId;
+                      setSelectedActualCustomer(customerName);
+                      if (firstAccount) {
+                        setActualAccountFilter(firstAccount);
+                      }
+                    }}
+                    style={{
+                      border: "1px solid #e1dccb",
+                      borderRadius: "6px",
+                      background: "#fff",
+                      padding: "6px 10px",
+                      fontSize: "12px",
+                      color: "#6B7280",
+                      outline: "none"
+                    }}
+                  >
+                    {actualCustomerOptions.map((customerName) => (
+                      <option key={customerName} value={customerName}>
+                        {customerName}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <div
+                    style={{
+                      border: "1px solid #e1dccb",
+                      borderRadius: "6px",
+                      background: "#fff",
+                      padding: "6px 10px",
+                      fontSize: "12px",
+                      color: "#6B7280"
+                    }}
+                  >
+                    Klant: testpersoon
+                  </div>
+                )}
                 <div
                   style={{
                     border: "1px solid #e1dccb",
@@ -5695,19 +6017,7 @@ const InvestmentCalculator = () => {
                     color: "#6B7280"
                   }}
                 >
-                  Klant: testpersoon
-                </div>
-                <div
-                  style={{
-                    border: "1px solid #e1dccb",
-                    borderRadius: "6px",
-                    background: "#fff",
-                    padding: "6px 10px",
-                    fontSize: "12px",
-                    color: "#6B7280"
-                  }}
-                >
-                  Periode: januari t/m juli
+                  Periode: {actualPeriodLabel}
                 </div>
               </div>
             </div>
