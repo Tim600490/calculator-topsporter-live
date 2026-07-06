@@ -1501,6 +1501,84 @@ const InvestmentCalculator = () => {
   };
   const formatPercentOneDecimal = (value) => `${(Number(value) || 0).toFixed(1).replace(".", ",")}%`;
 
+  const actualProgressData = useMemo(() => {
+    const sampleMonths = [
+      { month: "Januari", portfolio: "Gedreven", actualDeposit: 5000, withdrawal: 0, actualReturn: 0.02 },
+      { month: "Februari", portfolio: "Gedreven", actualDeposit: 5000, withdrawal: 0, actualReturn: 0.011 },
+      { month: "Maart", portfolio: "Gedreven", actualDeposit: 4000, withdrawal: 0, actualReturn: -0.008 },
+      { month: "April", portfolio: "Gedreven", actualDeposit: 5000, withdrawal: 0, actualReturn: 0.016 },
+      { month: "Mei", portfolio: "Gedreven", actualDeposit: 5000, withdrawal: 0, actualReturn: 0.004 },
+      { month: "Juni", portfolio: "Gedreven", actualDeposit: 7500, withdrawal: 0, actualReturn: 0.022 },
+      { month: "Juli", portfolio: "Gedreven", actualDeposit: 5000, withdrawal: 0, actualReturn: -0.003 }
+    ];
+
+    let plannedBalance = startAmount;
+    let actualBalance = startAmount;
+    let totalPlannedDeposit = 0;
+    let totalActualDeposit = 0;
+    let totalWithdrawals = 0;
+    const monthlyPlanReturn = annualReturn / 12;
+
+    const rows = sampleMonths.map((row, index) => {
+      const monthNumber = index + 1;
+      const plannedDeposit = getMonthlyDepositForMonth(monthNumber) + getOneTimeExtraForMonth(monthNumber);
+      plannedBalance = plannedBalance * (1 + monthlyPlanReturn) + plannedDeposit;
+      actualBalance = Math.max(0, (actualBalance + row.actualDeposit - row.withdrawal) * (1 + row.actualReturn));
+      totalPlannedDeposit += plannedDeposit;
+      totalActualDeposit += row.actualDeposit;
+      totalWithdrawals += row.withdrawal;
+
+      return {
+        ...row,
+        monthNumber,
+        plannedDeposit,
+        plannedBalance,
+        actualBalance,
+        difference: actualBalance - plannedBalance
+      };
+    });
+
+    const lastRow = rows[rows.length - 1] ?? null;
+    const initialCapital = startAmount;
+    const actualReturnAmount = lastRow
+      ? lastRow.actualBalance - initialCapital - totalActualDeposit + totalWithdrawals
+      : 0;
+    const plannedReturnAmount = lastRow
+      ? lastRow.plannedBalance - initialCapital - totalPlannedDeposit
+      : 0;
+
+    return {
+      rows,
+      lastRow,
+      totalPlannedDeposit,
+      totalActualDeposit,
+      totalWithdrawals,
+      actualReturnAmount,
+      plannedReturnAmount,
+      depositDifference: totalActualDeposit - totalPlannedDeposit,
+      returnDifference: actualReturnAmount - plannedReturnAmount
+    };
+  }, [annualReturn, getMonthlyDepositForMonth, getOneTimeExtraForMonth, startAmount]);
+
+  const actualProgressCards = useMemo(() => {
+    const lastRow = actualProgressData.lastRow;
+    return [
+      { label: "Werkelijk vermogen", value: lastRow ? formatCurrency(lastRow.actualBalance) : "Nog geen data" },
+      {
+        label: "Verschil t.o.v. plan",
+        value: lastRow ? `${lastRow.difference >= 0 ? "+" : "-"} ${formatCurrency(Math.abs(lastRow.difference))}` : "Nog geen data"
+      },
+      {
+        label: "Werkelijke inleg",
+        value: `${formatCurrency(actualProgressData.totalActualDeposit)} van ${formatCurrency(actualProgressData.totalPlannedDeposit)} gepland`
+      },
+      {
+        label: "Werkelijk rendement",
+        value: formatCurrency(actualProgressData.actualReturnAmount)
+      }
+    ];
+  }, [actualProgressData]);
+
   const isDesktop = window.innerWidth >= 1024;
   const hoveredPoint = hoveredIndex != null ? calculationData[hoveredIndex] : null;
   const hoveredPoint2 = hoveredIndex2 != null ? calculationData2[hoveredIndex2] : null;
@@ -5445,7 +5523,7 @@ const InvestmentCalculator = () => {
               <div>
                 <div style={{ fontSize: "15px", fontWeight: 700, color: "#111827" }}>Werkelijk verloop</div>
                 <div style={{ marginTop: "4px", fontSize: "12px", color: "#6B7280" }}>
-                  Import van maanddata wordt hier gekoppeld aan de uitgangspunten uit Toekomst.
+                  Testdata januari t/m juli, gekoppeld aan de uitgangspunten uit Toekomst.
                 </div>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
@@ -5475,7 +5553,7 @@ const InvestmentCalculator = () => {
                     color: "#6B7280"
                   }}
                 >
-                  Klant: nog niet geselecteerd
+                  Klant: testpersoon
                 </div>
                 <div
                   style={{
@@ -5487,18 +5565,13 @@ const InvestmentCalculator = () => {
                     color: "#6B7280"
                   }}
                 >
-                  Periode: geen import
+                  Periode: januari t/m juli
                 </div>
               </div>
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: "12px" }}>
-              {[
-                { label: "Werkelijk vermogen", value: "Nog geen data" },
-                { label: "Verschil t.o.v. plan", value: "Nog geen data" },
-                { label: "Werkelijke inleg", value: "Nog geen data" },
-                { label: "Werkelijk rendement", value: "Nog geen data" }
-              ].map((card) => (
+              {actualProgressCards.map((card) => (
                 <div
                   key={card.label}
                   style={{
@@ -5542,20 +5615,41 @@ const InvestmentCalculator = () => {
                 style={{
                   marginTop: "12px",
                   height: "260px",
-                  border: "1px dashed #d8d2bf",
+                  border: "1px solid #e1dccb",
                   borderRadius: "8px",
-                  background:
-                    "linear-gradient(to bottom, rgba(13,42,40,0.04), rgba(13,42,40,0.01)), #fff",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "#6B7280",
-                  fontSize: "13px",
-                  textAlign: "center",
-                  padding: "18px"
+                  background: "#fff",
+                  padding: "8px"
                 }}
               >
-                Na import tonen we hier de geplande vermogenslijn tegenover het werkelijke verloop per maand.
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={actualProgressData.rows} margin={{ top: 12, right: 16, left: 0, bottom: 8 }}>
+                    <CartesianGrid stroke="#e5e2d8" vertical={false} />
+                    <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#6B7280" }} tickLine={false} />
+                    <YAxis
+                      tick={{ fontSize: 11, fill: "#6B7280" }}
+                      tickFormatter={formatCurrencyShort}
+                      axisLine={false}
+                      tickLine={false}
+                      width={64}
+                    />
+                    <Tooltip
+                      formatter={(value, name) => [
+                        formatCurrency(value),
+                        name === "plannedBalance" ? "Plan" : "Werkelijk"
+                      ]}
+                      labelStyle={{ color: "#111827", fontWeight: 700 }}
+                      contentStyle={{
+                        background: "#2f2f2f",
+                        border: "none",
+                        borderRadius: "6px",
+                        color: "#fff",
+                        fontSize: "12px"
+                      }}
+                    />
+                    <Line type="monotone" dataKey="plannedBalance" stroke="#d2bb5d" strokeWidth={3} dot={false} />
+                    <Line type="monotone" dataKey="actualBalance" stroke="#0d2a28" strokeWidth={3} dot={{ r: 3 }} />
+                  </LineChart>
+                </ResponsiveContainer>
               </div>
             </div>
 
@@ -5589,7 +5683,28 @@ const InvestmentCalculator = () => {
                   ))}
                 </div>
                 <div style={{ padding: "18px 14px", fontSize: "13px", color: "#6B7280", textAlign: "center" }}>
-                  Nog geen Excelbestand geimporteerd.
+                  {actualProgressData.rows.map((row) => (
+                    <div
+                      key={row.month}
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr 1fr 1fr",
+                        textAlign: "left",
+                        borderTop: "1px solid #f0ede3",
+                        margin: "0 -14px",
+                        padding: "9px 14px",
+                        alignItems: "center"
+                      }}
+                    >
+                      <div>{row.month}</div>
+                      <div>{row.portfolio}</div>
+                      <div>{formatCurrency(row.plannedDeposit)}</div>
+                      <div>{formatCurrency(row.actualDeposit)}</div>
+                      <div>{row.withdrawal > 0 ? formatCurrency(row.withdrawal) : "-"}</div>
+                      <div>{formatPercentOneDecimal(row.actualReturn * 100)}</div>
+                      <div style={{ fontWeight: 700, color: "#0d2a28" }}>{formatCurrency(row.actualBalance)}</div>
+                    </div>
+                  ))}
                 </div>
               </div>
 
@@ -5606,15 +5721,19 @@ const InvestmentCalculator = () => {
                   <div style={{ marginTop: "12px", display: "grid", gap: "8px", fontSize: "12px", color: "#6B7280" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", gap: "12px" }}>
                       <span>Gemiste / extra inleg</span>
-                      <strong style={{ color: "#111827" }}>-</strong>
+                      <strong style={{ color: "#111827" }}>
+                        {actualProgressData.depositDifference >= 0 ? "+" : "-"} {formatCurrency(Math.abs(actualProgressData.depositDifference))}
+                      </strong>
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between", gap: "12px" }}>
                       <span>Rendementsverschil</span>
-                      <strong style={{ color: "#111827" }}>-</strong>
+                      <strong style={{ color: "#111827" }}>
+                        {actualProgressData.returnDifference >= 0 ? "+" : "-"} {formatCurrency(Math.abs(actualProgressData.returnDifference))}
+                      </strong>
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between", gap: "12px" }}>
                       <span>Onttrekkingen</span>
-                      <strong style={{ color: "#111827" }}>-</strong>
+                      <strong style={{ color: "#111827" }}>{formatCurrency(actualProgressData.totalWithdrawals)}</strong>
                     </div>
                   </div>
                 </div>
@@ -5628,7 +5747,9 @@ const InvestmentCalculator = () => {
                 >
                   <div style={{ fontSize: "15px", fontWeight: 700 }}>Nieuwe prognose</div>
                   <div style={{ marginTop: "10px", fontSize: "12px", color: "#6B7280", lineHeight: 1.45 }}>
-                    Hier tonen we straks wat de verwachte eindstand wordt als de speler vanaf het ijkmoment het plan weer volgt.
+                    Op basis van deze testdata ligt het actuele vermogen{" "}
+                    {actualProgressData.lastRow && actualProgressData.lastRow.difference >= 0 ? "voor" : "achter"} op het plan.
+                    In de volgende stap rekenen we vanaf dit ijkmoment opnieuw door naar de einddatum.
                   </div>
                 </div>
               </div>
