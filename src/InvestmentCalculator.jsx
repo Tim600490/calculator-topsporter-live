@@ -1990,6 +1990,24 @@ const InvestmentCalculator = () => {
     ];
   }, [selectedActualProgressData]);
 
+  const hasSelectedPlannedDeposits = selectedActualProgressData.totalPlannedDeposit > 0;
+  const actualMonthlyTableColumns = [
+    "Maand",
+    "Rekening",
+    "Type",
+    "Portefeuille",
+    "Berekende inleg",
+    "Werkelijk ingelegd",
+    "Verschil",
+    "Onttrekking",
+    "Verwacht vermogen",
+    "Werkelijk vermogen",
+    ...(hasSelectedPlannedDeposits ? ["Met planinleg"] : [])
+  ];
+  const actualMonthlyTableGrid = hasSelectedPlannedDeposits
+    ? "0.75fr 0.85fr 0.95fr 0.85fr 0.95fr 1fr 0.8fr 0.8fr 1fr 1fr 1fr"
+    : "0.75fr 0.85fr 0.95fr 0.85fr 0.95fr 1fr 0.8fr 0.8fr 1fr 1fr";
+
   const actualCustomerOptions = useMemo(
     () => [...new Set(importedActualRows.map((row) => row.customerName).filter(Boolean))],
     [importedActualRows]
@@ -6071,7 +6089,7 @@ const InvestmentCalculator = () => {
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "0.85fr 0.9fr 1fr 0.9fr 0.9fr 0.9fr 0.9fr 0.9fr 1fr 1fr",
+                  gridTemplateColumns: actualMonthlyTableGrid,
                   gap: 0,
                   fontSize: "11px",
                   color: "#6B7280",
@@ -6081,18 +6099,7 @@ const InvestmentCalculator = () => {
                   textAlign: "left"
                 }}
               >
-                {[
-                  "Maand",
-                  "Rekening",
-                  "Type",
-                  "Portefeuille",
-                  "Plan inleg",
-                  "Werkelijk",
-                  "Verschil",
-                  "Onttrekking",
-                  "Werkelijk vermogen",
-                  "Met planinleg"
-                ].map((label) => (
+                {actualMonthlyTableColumns.map((label) => (
                   <div key={label} style={{ fontWeight: 700 }}>
                     {label}
                   </div>
@@ -6106,7 +6113,7 @@ const InvestmentCalculator = () => {
                       key={`${row.month}-${row.accountId}`}
                       style={{
                         display: "grid",
-                        gridTemplateColumns: "0.85fr 0.9fr 1fr 0.9fr 0.9fr 0.9fr 0.9fr 0.9fr 1fr 1fr",
+                        gridTemplateColumns: actualMonthlyTableGrid,
                         textAlign: "left",
                         borderTop: "1px solid #f0ede3",
                         margin: "0 -14px",
@@ -6118,14 +6125,17 @@ const InvestmentCalculator = () => {
                       <div>{row.accountId}</div>
                       <div>{row.accountType}</div>
                       <div>{row.portfolio}</div>
-                      <div>{formatCurrency(row.plannedDeposit)}</div>
-                      <div>{formatCurrency(row.actualDeposit)}</div>
-                      <div style={{ color: depositGap < 0 ? "#991b1b" : "#0d2a28", fontWeight: 700 }}>
-                        {depositGap >= 0 ? "+" : "-"} {formatCurrency(Math.abs(depositGap))}
+                      <div>{row.plannedDeposit > 0 ? formatCurrency(row.plannedDeposit) : "n.v.t."}</div>
+                      <div>{row.plannedDeposit > 0 ? formatCurrency(row.actualDeposit) : "n.v.t."}</div>
+                      <div style={{ fontWeight: 700 }}>
+                        {row.plannedDeposit > 0 ? `${depositGap >= 0 ? "+" : "-"} ${formatCurrency(Math.abs(depositGap))}` : "n.v.t."}
                       </div>
                       <div>{row.withdrawal > 0 ? formatCurrency(row.withdrawal) : "-"}</div>
+                      <div style={{ fontWeight: 700, color: "#d2bb5d" }}>{formatCurrency(row.plannedBalance)}</div>
                       <div style={{ fontWeight: 700, color: "#0d2a28" }}>{formatCurrency(row.actualBalance)}</div>
-                      <div style={{ fontWeight: 700, color: "#6B7280" }}>{formatCurrency(row.planFollowBalance)}</div>
+                      {hasSelectedPlannedDeposits && (
+                        <div style={{ fontWeight: 700, color: "#6B7280" }}>{formatCurrency(row.planFollowBalance)}</div>
+                      )}
                     </div>
                   );
                 })}
@@ -6151,10 +6161,12 @@ const InvestmentCalculator = () => {
                     <span style={{ width: "12px", height: "3px", background: "#0d2a28", borderRadius: "2px" }} />
                     Werkelijk
                   </span>
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
-                    <span style={{ width: "12px", height: "3px", background: "#6672a8", borderRadius: "2px" }} />
-                    Werkelijk + planinleg
-                  </span>
+                  {hasSelectedPlannedDeposits && (
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                      <span style={{ width: "12px", height: "3px", background: "#6672a8", borderRadius: "2px" }} />
+                      Werkelijk + berekende inleg
+                    </span>
+                  )}
                 </div>
               </div>
               <div
@@ -6209,10 +6221,12 @@ const InvestmentCalculator = () => {
                                 <span style={{ width: "8px", height: "8px", background: "#0d2a28", borderRadius: "2px" }} />
                                 <span>Werkelijk: {formatCurrency(point.actualBalance)}</span>
                               </div>
-                              <div style={{ display: "flex", alignItems: "center", gap: "6px", whiteSpace: "nowrap" }}>
-                                <span style={{ width: "8px", height: "8px", background: "#6672a8", borderRadius: "2px" }} />
-                                <span>Werkelijk + planinleg: {formatCurrency(point.planFollowBalance)}</span>
-                              </div>
+                              {hasSelectedPlannedDeposits && (
+                                <div style={{ display: "flex", alignItems: "center", gap: "6px", whiteSpace: "nowrap" }}>
+                                  <span style={{ width: "8px", height: "8px", background: "#6672a8", borderRadius: "2px" }} />
+                                  <span>Werkelijk + berekende inleg: {formatCurrency(point.planFollowBalance)}</span>
+                                </div>
+                              )}
                             </div>
                           </div>
                         );
@@ -6220,7 +6234,9 @@ const InvestmentCalculator = () => {
                     />
                     <Line type="monotone" dataKey="plannedBalance" stroke="#d2bb5d" strokeWidth={3} dot={false} />
                     <Line type="monotone" dataKey="actualBalance" stroke="#0d2a28" strokeWidth={3} dot={{ r: 3 }} />
-                    <Line type="monotone" dataKey="planFollowBalance" stroke="#6672a8" strokeWidth={3} dot={false} />
+                    {hasSelectedPlannedDeposits && (
+                      <Line type="monotone" dataKey="planFollowBalance" stroke="#6672a8" strokeWidth={3} dot={false} />
+                    )}
                   </LineChart>
                 </ResponsiveContainer>
               </div>
