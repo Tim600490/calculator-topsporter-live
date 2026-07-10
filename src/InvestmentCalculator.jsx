@@ -1995,7 +1995,7 @@ const InvestmentCalculator = () => {
     { key: "account", label: "Rekening" },
     { key: "type", label: "Type" },
     { key: "portfolio", label: "Portefeuille" },
-    { key: "actualDeposit", label: "Werkelijk ingelegd" },
+    { key: "actualDeposit", label: ["Periodieke", "inleg"] },
     { key: "withdrawal", label: "Onttrekking" },
     { key: "plannedBalance", label: ["Verwacht", "vermogen"] },
     { key: "actualBalance", label: ["Werkelijk", "vermogen"] }
