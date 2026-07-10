@@ -330,6 +330,7 @@ const InvestmentCalculator = () => {
   const [actualImportFileName, setActualImportFileName] = useState("");
   const [actualImportError, setActualImportError] = useState("");
   const [selectedActualCustomer, setSelectedActualCustomer] = useState("");
+  const [expandedActualYears, setExpandedActualYears] = useState({});
   const [lifelineZoomMode, setLifelineZoomMode] = useState("week");
   const [activeScenarioBandKey, setActiveScenarioBandKey] = useState(null);
   const [hoveredLifelineSeriesKey, setHoveredLifelineSeriesKey] = useState(null);
@@ -1538,6 +1539,14 @@ const InvestmentCalculator = () => {
     return match[1].replace(/_/g, " ");
   };
 
+  const getYearFromSheetName = (sheetName) => {
+    const match = sheetName.match(/'?(\d{2})$/);
+    if (!match) {
+      return new Date().getFullYear();
+    }
+    return 2000 + Number(match[1]);
+  };
+
   const getImportPlanConfigForAccount = (accountType) => {
     const normalizedType = normalizeImportText(accountType);
     if (normalizedType.includes("pensioen")) {
@@ -1569,7 +1578,7 @@ const InvestmentCalculator = () => {
 
     flatRows.forEach((row) => {
       if (!monthGroups.has(row.monthNumber)) {
-        monthGroups.set(row.monthNumber, { month: row.month, rows: [] });
+        monthGroups.set(row.monthNumber, { month: row.month, year: row.year ?? new Date().getFullYear(), rows: [] });
       }
       monthGroups.get(row.monthNumber).rows.push(row);
     });
@@ -1644,6 +1653,7 @@ const InvestmentCalculator = () => {
 
         chartRows.push({
           month: monthGroup.month,
+          year: monthGroup.year,
           monthNumber,
           plannedBalance: plannedTotalBalance,
           actualBalance: actualTotalBalance,
@@ -1698,6 +1708,7 @@ const InvestmentCalculator = () => {
         const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
         const monthNumber = sheetIndex + 1;
         const month = getMonthLabelFromSheetName(sheetName);
+        const year = getYearFromSheetName(sheetName);
 
         rows.slice(2).forEach((row) => {
           const accountId = String(row[5] ?? "").trim();
@@ -1708,6 +1719,7 @@ const InvestmentCalculator = () => {
           const portfolio = String(row[6] ?? "").trim();
           importedRows.push({
             month,
+            year,
             monthNumber,
             accountId,
             portfolio,
@@ -1735,6 +1747,7 @@ const InvestmentCalculator = () => {
       setSelectedActualCustomer(firstCustomer);
       setActualAccountFilter(firstAccount);
       setActualImportFileName(file.name);
+      setExpandedActualYears({});
     } catch (error) {
       setActualImportError("Het Excelbestand kon niet worden ingelezen.");
       setImportedActualRows([]);
@@ -1842,6 +1855,7 @@ const InvestmentCalculator = () => {
 
     sampleMonths.forEach((monthGroup, index) => {
       const monthNumber = index + 1;
+      const year = monthGroup.year ?? 2026;
       let plannedTotalBalance = 0;
       let actualTotalBalance = 0;
       let planFollowTotalBalance = 0;
@@ -1866,6 +1880,7 @@ const InvestmentCalculator = () => {
         const row = {
           ...accountRow,
           month: monthGroup.month,
+          year,
           monthNumber,
           plannedDeposit,
           plannedBalance: state.plannedBalance,
@@ -1885,6 +1900,7 @@ const InvestmentCalculator = () => {
 
       chartRows.push({
         month: monthGroup.month,
+        year,
         monthNumber,
         plannedBalance: plannedTotalBalance,
         actualBalance: actualTotalBalance,
@@ -1937,6 +1953,7 @@ const InvestmentCalculator = () => {
     const rows = actualProgressData.rows.filter((row) => row.accountId === actualAccountFilter);
     const chartRows = rows.map((row) => ({
       month: row.month,
+      year: row.year,
       monthNumber: row.monthNumber,
       plannedBalance: row.plannedBalance,
       actualBalance: row.actualBalance,
@@ -2001,6 +2018,24 @@ const InvestmentCalculator = () => {
     { key: "actualBalance", label: ["Werkelijk", "vermogen"] }
   ];
   const actualMonthlyTableGrid = "0.8fr 0.95fr 1fr 0.95fr 1.05fr 0.95fr 1.1fr 1.1fr";
+
+  const selectedActualRowsByYear = useMemo(() => {
+    const grouped = new Map();
+    selectedActualProgressData.rows.forEach((row) => {
+      const year = row.year ?? new Date().getFullYear();
+      if (!grouped.has(year)) {
+        grouped.set(year, []);
+      }
+      grouped.get(year).push(row);
+    });
+
+    return [...grouped.entries()]
+      .sort(([a], [b]) => a - b)
+      .map(([year, rows]) => ({
+        year,
+        rows: [...rows].sort((a, b) => a.monthNumber - b.monthNumber)
+      }));
+  }, [selectedActualProgressData.rows]);
 
   const actualCustomerOptions = useMemo(
     () => [...new Set(importedActualRows.map((row) => row.customerName).filter(Boolean))],
@@ -6077,71 +6112,117 @@ const InvestmentCalculator = () => {
                 overflow: "hidden"
               }}
             >
-              <div
-                style={{
-                  padding: "12px 14px",
-                  fontSize: "15px",
-                  fontWeight: 700,
-                  borderBottom: "1px solid #e1dccb",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  gap: "12px"
-                }}
-              >
-                <span>Maandoverzicht 2026</span>
-                <span style={{ fontSize: "12px", fontWeight: 700, color: "#6B7280" }}>
-                  {selectedActualCustomer || "testpersoon"}
-                </span>
-              </div>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: actualMonthlyTableGrid,
-                  gap: 0,
-                  fontSize: "11px",
-                  color: "#6B7280",
-                  background: "#fbf9f1",
-                  borderBottom: "1px solid #e1dccb",
-                  padding: "9px 14px",
-                  textAlign: "left"
-                }}
-              >
-                {actualMonthlyTableColumns.map((column) => (
-                  <div key={column.key} style={{ fontWeight: 700, lineHeight: 1.15 }}>
-                    {Array.isArray(column.label)
-                      ? column.label.map((line) => <div key={line}>{line}</div>)
-                      : column.label}
-                  </div>
-                ))}
-              </div>
-              <div style={{ padding: "0 14px", fontSize: "13px", color: "#6B7280", textAlign: "center" }}>
-                {selectedActualProgressData.rows.map((row) => {
+              {selectedActualRowsByYear.length === 0 ? (
+                <div style={{ padding: "12px 14px", fontSize: "13px", color: "#6B7280" }}>
+                  Nog geen maandgegevens beschikbaar.
+                </div>
+              ) : (
+                selectedActualRowsByYear.map(({ year, rows }, index) => {
+                  const isExpanded = Boolean(expandedActualYears[year]);
                   return (
-                    <div
-                      key={`${row.month}-${row.accountId}`}
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: actualMonthlyTableGrid,
-                        textAlign: "left",
-                        borderTop: "1px solid #f0ede3",
-                        margin: "0 -14px",
-                        padding: "9px 14px",
-                        alignItems: "center"
-                      }}
-                    >
-                      <div>{row.month}</div>
-                      <div>{row.accountId}</div>
-                      <div>{row.accountType}</div>
-                      <div>{row.portfolio}</div>
-                      <div>{row.actualDeposit > 0 ? formatCurrency(row.actualDeposit) : "-"}</div>
-                      <div>{row.withdrawal > 0 ? formatCurrency(row.withdrawal) : "-"}</div>
-                      <div style={{ fontWeight: 700, color: "#6672a8" }}>{formatCurrency(row.plannedBalance)}</div>
-                      <div style={{ fontWeight: 700, color: "#0d2a28" }}>{formatCurrency(row.actualBalance)}</div>
+                    <div key={year} style={{ borderTop: index === 0 ? "none" : "1px solid #e1dccb" }}>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setExpandedActualYears((prev) => ({
+                            ...prev,
+                            [year]: !prev[year]
+                          }))
+                        }
+                        style={{
+                          width: "100%",
+                          border: "none",
+                          background: "#fff",
+                          padding: "12px 14px",
+                          fontSize: "15px",
+                          fontWeight: 700,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          gap: "12px",
+                          cursor: "pointer",
+                          textAlign: "left"
+                        }}
+                      >
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
+                          <span
+                            style={{
+                              width: "18px",
+                              height: "18px",
+                              border: "1px solid #d4cdbb",
+                              borderRadius: "999px",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              color: "#6B7280",
+                              fontSize: "12px",
+                              lineHeight: 1
+                            }}
+                          >
+                            {isExpanded ? "−" : "+"}
+                          </span>
+                          Maandoverzicht {year}
+                        </span>
+                        <span style={{ fontSize: "12px", fontWeight: 700, color: "#6B7280" }}>
+                          {selectedActualCustomer || "testpersoon"}
+                        </span>
+                      </button>
+
+                      {isExpanded && (
+                        <>
+                          <div
+                            style={{
+                              display: "grid",
+                              gridTemplateColumns: actualMonthlyTableGrid,
+                              gap: 0,
+                              fontSize: "11px",
+                              color: "#6B7280",
+                              background: "#fbf9f1",
+                              borderTop: "1px solid #e1dccb",
+                              borderBottom: "1px solid #e1dccb",
+                              padding: "9px 14px",
+                              textAlign: "left"
+                            }}
+                          >
+                            {actualMonthlyTableColumns.map((column) => (
+                              <div key={column.key} style={{ fontWeight: 700, lineHeight: 1.15 }}>
+                                {Array.isArray(column.label)
+                                  ? column.label.map((line) => <div key={line}>{line}</div>)
+                                  : column.label}
+                              </div>
+                            ))}
+                          </div>
+                          <div style={{ padding: "0 14px", fontSize: "13px", color: "#6B7280", textAlign: "center" }}>
+                            {rows.map((row) => (
+                              <div
+                                key={`${row.year}-${row.month}-${row.accountId}`}
+                                style={{
+                                  display: "grid",
+                                  gridTemplateColumns: actualMonthlyTableGrid,
+                                  textAlign: "left",
+                                  borderTop: "1px solid #f0ede3",
+                                  margin: "0 -14px",
+                                  padding: "9px 14px",
+                                  alignItems: "center"
+                                }}
+                              >
+                                <div>{row.month}</div>
+                                <div>{row.accountId}</div>
+                                <div>{row.accountType}</div>
+                                <div>{row.portfolio}</div>
+                                <div>{row.actualDeposit > 0 ? formatCurrency(row.actualDeposit) : "-"}</div>
+                                <div>{row.withdrawal > 0 ? formatCurrency(row.withdrawal) : "-"}</div>
+                                <div style={{ fontWeight: 700, color: "#6672a8" }}>{formatCurrency(row.plannedBalance)}</div>
+                                <div style={{ fontWeight: 700, color: "#0d2a28" }}>{formatCurrency(row.actualBalance)}</div>
+                              </div>
+                            ))}
+                          </div>
+                        </>
+                      )}
                     </div>
                   );
-                })}
-              </div>
+                })
+              )}
             </div>
 
             <div
