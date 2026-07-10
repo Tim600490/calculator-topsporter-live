@@ -2172,7 +2172,17 @@ const InvestmentCalculator = () => {
       }
       return numericValue;
     };
-    const addIllustrativePath = (rows, valueKey, lowKey, highKey, outputKey) => {
+    const getIllustrativeVolatilityFactor = (selectedProfile) => {
+      if (selectedProfile === "Ambitieus") {
+        return 1.0;
+      }
+      if (selectedProfile === "Gedreven") {
+        return 0.88;
+      }
+      return 0.78;
+    };
+
+    const addIllustrativePath = (rows, valueKey, lowKey, highKey, outputKey, volatilityFactor) => {
       const visibleIndexes = rows
         .map((row, index) => ({ index, value: row[valueKey] }))
         .filter((item) => item.value != null && item.value > 0)
@@ -2204,7 +2214,7 @@ const InvestmentCalculator = () => {
           Math.max(0, highValue - expectedValue),
           Math.max(0, expectedValue - lowValue)
         );
-        const deviation = availableRange * 0.78 * taper * wave;
+        const deviation = availableRange * volatilityFactor * taper * wave;
         const exampleValue = Math.min(highValue, Math.max(lowValue, expectedValue + deviation));
 
         return {
@@ -2249,11 +2259,19 @@ const InvestmentCalculator = () => {
     });
 
     return addIllustrativePath(
-      addIllustrativePath(baseData, "vva", "vvaLow", "vvaHigh", "vvaExample"),
+      addIllustrativePath(
+        baseData,
+        "vva",
+        "vvaLow",
+        "vvaHigh",
+        "vvaExample",
+        getIllustrativeVolatilityFactor(profile)
+      ),
       "pensioen",
       "pensioenLow",
       "pensioenHigh",
-      "pensioenExample"
+      "pensioenExample",
+      getIllustrativeVolatilityFactor(profile2)
     );
   }, [
     hasCfk,
@@ -2266,7 +2284,9 @@ const InvestmentCalculator = () => {
     startAge,
     startAge2,
     startAge3,
-    careerStartAge
+    careerStartAge,
+    profile,
+    profile2
   ]);
   const hasPension = (lifeline.pensionCapitalAtAow ?? 0) > 0;
   const hasAowIncome = pensionAowEnabled && (lifeline.aowAnnualIncome || 0) > 0;
