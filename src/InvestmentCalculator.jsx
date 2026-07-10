@@ -345,12 +345,6 @@ const InvestmentCalculator = () => {
   const [profile, setProfile] = useState("Gedreven");
   const [profile2, setProfile2] = useState("Gedreven");
   const [profile3, setProfile3] = useState("Gedreven");
-  const [actualFreeWealthValue, setActualFreeWealthValue] = useState("");
-  const [actualFreeWealthAge, setActualFreeWealthAge] = useState(18);
-  const [actualPensionValue, setActualPensionValue] = useState("");
-  const [actualPensionAge, setActualPensionAge] = useState(18);
-  const [actualMinorValue, setActualMinorValue] = useState("");
-  const [actualMinorAge, setActualMinorAge] = useState(18);
   const [isCalculatorExpanded, setIsCalculatorExpanded] = useState(false);
   const [isCalculatorExpanded2, setIsCalculatorExpanded2] = useState(false);
   const [isCalculatorExpanded3, setIsCalculatorExpanded3] = useState(false);
@@ -2430,68 +2424,6 @@ const InvestmentCalculator = () => {
     timelineStartAge
   ]);
 
-  const actualLifelineMarker = useMemo(() => {
-    const markerConfig = {
-      vva: {
-        label: "Vrij Vermogen Animo",
-        value: actualFreeWealthValue,
-        age: actualFreeWealthAge,
-        dataKey: "vva",
-        color: "#d2bb5d",
-        netto: true
-      },
-      pensioen: {
-        label: "Pensioen Animo",
-        value: actualPensionValue,
-        age: actualPensionAge,
-        dataKey: "pensioen",
-        color: "#6672a8",
-        bruto: true
-      },
-      nextgen: {
-        label: "Next Generation Animo",
-        value: actualMinorValue,
-        age: actualMinorAge,
-        dataKey: "nextgen",
-        color: "#ffa07a",
-        netto: true
-      }
-    };
-
-    const config = markerConfig[activeScenarioBandKey];
-    const actualValue = Number(config?.value) || 0;
-    if (!config || lifelineZoomMode !== "full" || actualValue <= 0) {
-      return null;
-    }
-
-    const markerAge = Math.max(lifelineChartView.xDomain[0], Math.min(lifelineChartView.xDomain[1], Number(config.age) || startAge));
-    const expectedRow = lifelineCfkGraphData.find((row) => row.age === Math.round(markerAge));
-    const expectedValue = expectedRow?.[config.dataKey] ?? 0;
-    const difference = actualValue - expectedValue;
-    const status = difference >= 0 ? "voor op schema" : "achter op schema";
-
-    return {
-      ...config,
-      age: markerAge,
-      actualValue,
-      expectedValue,
-      difference,
-      status
-    };
-  }, [
-    activeScenarioBandKey,
-    actualFreeWealthAge,
-    actualFreeWealthValue,
-    actualMinorAge,
-    actualMinorValue,
-    actualPensionAge,
-    actualPensionValue,
-    lifelineChartView.xDomain,
-    lifelineCfkGraphData,
-    lifelineZoomMode,
-    startAge
-  ]);
-
   const lifelineYAxisMax = useMemo(() => {
     if (lifelineZoomMode === "week") {
       const weekMax = Math.max(
@@ -2510,11 +2442,9 @@ const InvestmentCalculator = () => {
         ? (lifeline.aowAnnualIncome || 0) + (lifeline.pensionAnnualPayout || 0)
         : (lifeline.aowAnnualIncome || 0)
       : 0;
-    const actualMarkerMax = actualLifelineMarker?.actualValue || 0;
-    const baseline = Math.max(1, lineMax, aowOverlayMax, actualMarkerMax);
+    const baseline = Math.max(1, lineMax, aowOverlayMax);
     return baseline * 1.05;
   }, [
-    actualLifelineMarker,
     hasAowIncome,
     hasPension,
     lifeline.aowAnnualIncome,
@@ -4527,96 +4457,8 @@ const InvestmentCalculator = () => {
           padding: "24px"
         }}
       >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: "16px" }}>
+        <div>
           <h2 style={{ margin: 0, fontSize: "28px" }}>Levensloop profvoetballer</h2>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "10px", flexWrap: "wrap" }}>
-            {[
-              hasFreeWealth
-                ? {
-                    key: "free",
-                    label: "Werkelijk vrij vermogen",
-                    value: actualFreeWealthValue,
-                    setter: setActualFreeWealthValue,
-                    age: actualFreeWealthAge,
-                    setAge: setActualFreeWealthAge
-                  }
-                : null,
-              hasPension
-                ? {
-                    key: "pension",
-                    label: "Werkelijk pensioen",
-                    value: actualPensionValue,
-                    setter: setActualPensionValue,
-                    age: actualPensionAge,
-                    setAge: setActualPensionAge
-                  }
-                : null,
-              hasNextGeneration
-                ? {
-                    key: "minor",
-                    label: "Werkelijk minderjarige",
-                    value: actualMinorValue,
-                    setter: setActualMinorValue,
-                    age: actualMinorAge,
-                    setAge: setActualMinorAge
-                  }
-                : null
-            ]
-              .filter(Boolean)
-              .map((field) => (
-                <label
-                  key={field.key}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "6px",
-                    fontSize: "12px",
-                    color: "#6B7280",
-                    fontWeight: 700
-                  }}
-                >
-                  <span>{field.label}</span>
-                  <span style={{ color: "#111827" }}>€</span>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={field.value === "" ? "" : formatEuroInput(field.value)}
-                    onChange={(event) => {
-                      const rawValue = event.target.value;
-                      field.setter(rawValue.trim() === "" ? "" : parseEuroInput(rawValue));
-                    }}
-                    style={{
-                      width: "92px",
-                      border: "1px solid #d2bb5d",
-                      borderRadius: "6px",
-                      padding: "5px 7px",
-                      fontSize: "12px",
-                      color: "#111827",
-                      background: "#fff",
-                      outline: "none"
-                    }}
-                  />
-                  <span>leeftijd</span>
-                  <input
-                    type="number"
-                    min={18}
-                    max={88}
-                    value={field.age}
-                    onChange={(event) => field.setAge(clampNumber(event.target.value, 18, 88))}
-                    style={{
-                      width: "46px",
-                      border: "1px solid #d2bb5d",
-                      borderRadius: "6px",
-                      padding: "5px 6px",
-                      fontSize: "12px",
-                      color: "#111827",
-                      background: "#fff",
-                      outline: "none"
-                    }}
-                  />
-                </label>
-              ))}
-          </div>
         </div>
 
         <div style={{ marginTop: "16px", border: "1px solid #ded8c7", borderRadius: "8px", background: "#fbf9f1", padding: "12px" }}>
@@ -4764,37 +4606,6 @@ const InvestmentCalculator = () => {
                 {lifelinePhaseBoundaries.map((marker) => (
                   <ReferenceLine key={`marker-${marker}`} x={marker} stroke="#8a8a8a" strokeDasharray="3 4" />
                 ))}
-                {actualLifelineMarker && (
-                  <>
-                    <ReferenceLine
-                      segment={[
-                        { x: actualLifelineMarker.age, y: 0 },
-                        { x: actualLifelineMarker.age, y: actualLifelineMarker.actualValue }
-                      ]}
-                      stroke={actualLifelineMarker.color}
-                      strokeDasharray="4 4"
-                      strokeOpacity={0.75}
-                    />
-                    <ReferenceDot
-                      x={actualLifelineMarker.age}
-                      y={actualLifelineMarker.actualValue}
-                      r={6}
-                      fill={actualLifelineMarker.color}
-                      stroke="#fff"
-                      strokeWidth={2}
-                      ifOverflow="extendDomain"
-                      label={{
-                        value: `Werkelijk ${formatCurrency(actualLifelineMarker.actualValue)} · ${
-                          actualLifelineMarker.difference >= 0 ? "+" : "-"
-                        }${formatCurrency(Math.abs(actualLifelineMarker.difference))} ${actualLifelineMarker.status}`,
-                        position: "top",
-                        fill: "#111827",
-                        fontSize: 11,
-                        fontWeight: 700
-                      }}
-                    />
-                  </>
-                )}
                 {lifelineChartView.showWeekNote && (
                   <>
                     <ReferenceLine
