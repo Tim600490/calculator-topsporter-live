@@ -229,11 +229,11 @@ const LifelineHoverTooltip = ({ active, payload, label, formatCurrency, zoomMode
         <>
           <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "3px" }}>
             <span style={{ width: "8px", height: "8px", background: series.color }} />
-            <span style={{ fontSize: "12px" }}>{formatCurrency(betterValue)}</span>
+            <span style={{ fontSize: "12px" }}>Beter: {formatCurrency(betterValue)}</span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "3px" }}>
             <span style={{ width: "11px", height: "11px", background: series.color }} />
-            <span style={{ fontSize: "14px", fontWeight: 700 }}>{formatCurrency(expectedValue)}</span>
+            <span style={{ fontSize: "14px", fontWeight: 700 }}>Verwacht: {formatCurrency(expectedValue)}</span>
           </div>
           {exampleValue != null && (
             <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "3px", opacity: 0.9 }}>
@@ -249,7 +249,7 @@ const LifelineHoverTooltip = ({ active, payload, label, formatCurrency, zoomMode
           )}
           <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
             <span style={{ width: "8px", height: "8px", background: series.color }} />
-            <span style={{ fontSize: "12px" }}>{formatCurrency(lowerValue)}</span>
+            <span style={{ fontSize: "12px" }}>Minder: {formatCurrency(lowerValue)}</span>
           </div>
         </>
       ) : (
