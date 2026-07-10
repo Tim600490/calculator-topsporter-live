@@ -345,6 +345,9 @@ const InvestmentCalculator = () => {
   const [profile, setProfile] = useState("Gedreven");
   const [profile2, setProfile2] = useState("Gedreven");
   const [profile3, setProfile3] = useState("Gedreven");
+  const [actualFreeWealthValue, setActualFreeWealthValue] = useState(750000);
+  const [actualPensionValue, setActualPensionValue] = useState(0);
+  const [actualMinorValue, setActualMinorValue] = useState(0);
   const [isCalculatorExpanded, setIsCalculatorExpanded] = useState(false);
   const [isCalculatorExpanded2, setIsCalculatorExpanded2] = useState(false);
   const [isCalculatorExpanded3, setIsCalculatorExpanded3] = useState(false);
@@ -4458,8 +4461,66 @@ const InvestmentCalculator = () => {
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: "16px" }}>
           <h2 style={{ margin: 0, fontSize: "28px" }}>Levensloop profvoetballer</h2>
-          <div style={{ fontSize: "14px", color: "#6B7280" }}>
-            Startleeftijd {startAge} · AOW {aowAge}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "10px", flexWrap: "wrap" }}>
+            {[
+              hasFreeWealth
+                ? {
+                    key: "free",
+                    label: "Werkelijk vrij vermogen",
+                    value: actualFreeWealthValue,
+                    setter: setActualFreeWealthValue
+                  }
+                : null,
+              hasPension
+                ? {
+                    key: "pension",
+                    label: "Werkelijk pensioen",
+                    value: actualPensionValue,
+                    setter: setActualPensionValue
+                  }
+                : null,
+              hasNextGeneration
+                ? {
+                    key: "minor",
+                    label: "Werkelijk minderjarige",
+                    value: actualMinorValue,
+                    setter: setActualMinorValue
+                  }
+                : null
+            ]
+              .filter(Boolean)
+              .map((field) => (
+                <label
+                  key={field.key}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    fontSize: "12px",
+                    color: "#6B7280",
+                    fontWeight: 700
+                  }}
+                >
+                  <span>{field.label}</span>
+                  <span style={{ color: "#111827" }}>€</span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={formatEuroInput(field.value)}
+                    onChange={(event) => field.setter(parseEuroInput(event.target.value))}
+                    style={{
+                      width: "92px",
+                      border: "1px solid #d2bb5d",
+                      borderRadius: "6px",
+                      padding: "5px 7px",
+                      fontSize: "12px",
+                      color: "#111827",
+                      background: "#fff",
+                      outline: "none"
+                    }}
+                  />
+                </label>
+              ))}
           </div>
         </div>
 
