@@ -345,9 +345,12 @@ const InvestmentCalculator = () => {
   const [profile, setProfile] = useState("Gedreven");
   const [profile2, setProfile2] = useState("Gedreven");
   const [profile3, setProfile3] = useState("Gedreven");
-  const [actualFreeWealthValue, setActualFreeWealthValue] = useState(750000);
-  const [actualPensionValue, setActualPensionValue] = useState(0);
-  const [actualMinorValue, setActualMinorValue] = useState(0);
+  const [actualFreeWealthValue, setActualFreeWealthValue] = useState("");
+  const [actualFreeWealthAge, setActualFreeWealthAge] = useState(18);
+  const [actualPensionValue, setActualPensionValue] = useState("");
+  const [actualPensionAge, setActualPensionAge] = useState(18);
+  const [actualMinorValue, setActualMinorValue] = useState("");
+  const [actualMinorAge, setActualMinorAge] = useState(18);
   const [isCalculatorExpanded, setIsCalculatorExpanded] = useState(false);
   const [isCalculatorExpanded2, setIsCalculatorExpanded2] = useState(false);
   const [isCalculatorExpanded3, setIsCalculatorExpanded3] = useState(false);
@@ -2426,6 +2429,69 @@ const InvestmentCalculator = () => {
     lifelineZoomMode,
     timelineStartAge
   ]);
+
+  const actualLifelineMarker = useMemo(() => {
+    const markerConfig = {
+      vva: {
+        label: "Vrij Vermogen Animo",
+        value: actualFreeWealthValue,
+        age: actualFreeWealthAge,
+        dataKey: "vva",
+        color: "#d2bb5d",
+        netto: true
+      },
+      pensioen: {
+        label: "Pensioen Animo",
+        value: actualPensionValue,
+        age: actualPensionAge,
+        dataKey: "pensioen",
+        color: "#6672a8",
+        bruto: true
+      },
+      nextgen: {
+        label: "Next Generation Animo",
+        value: actualMinorValue,
+        age: actualMinorAge,
+        dataKey: "nextgen",
+        color: "#ffa07a",
+        netto: true
+      }
+    };
+
+    const config = markerConfig[activeScenarioBandKey];
+    const actualValue = Number(config?.value) || 0;
+    if (!config || lifelineZoomMode !== "full" || actualValue <= 0) {
+      return null;
+    }
+
+    const markerAge = Math.max(lifelineChartView.xDomain[0], Math.min(lifelineChartView.xDomain[1], Number(config.age) || startAge));
+    const expectedRow = lifelineCfkGraphData.find((row) => row.age === Math.round(markerAge));
+    const expectedValue = expectedRow?.[config.dataKey] ?? 0;
+    const difference = actualValue - expectedValue;
+    const status = difference >= 0 ? "voor op schema" : "achter op schema";
+
+    return {
+      ...config,
+      age: markerAge,
+      actualValue,
+      expectedValue,
+      difference,
+      status
+    };
+  }, [
+    activeScenarioBandKey,
+    actualFreeWealthAge,
+    actualFreeWealthValue,
+    actualMinorAge,
+    actualMinorValue,
+    actualPensionAge,
+    actualPensionValue,
+    lifelineChartView.xDomain,
+    lifelineCfkGraphData,
+    lifelineZoomMode,
+    startAge
+  ]);
+
   const lifelineYAxisMax = useMemo(() => {
     if (lifelineZoomMode === "week") {
       const weekMax = Math.max(
@@ -2444,9 +2510,11 @@ const InvestmentCalculator = () => {
         ? (lifeline.aowAnnualIncome || 0) + (lifeline.pensionAnnualPayout || 0)
         : (lifeline.aowAnnualIncome || 0)
       : 0;
-    const baseline = Math.max(1, lineMax, aowOverlayMax);
+    const actualMarkerMax = actualLifelineMarker?.actualValue || 0;
+    const baseline = Math.max(1, lineMax, aowOverlayMax, actualMarkerMax);
     return baseline * 1.05;
   }, [
+    actualLifelineMarker,
     hasAowIncome,
     hasPension,
     lifeline.aowAnnualIncome,
@@ -4468,7 +4536,9 @@ const InvestmentCalculator = () => {
                     key: "free",
                     label: "Werkelijk vrij vermogen",
                     value: actualFreeWealthValue,
-                    setter: setActualFreeWealthValue
+                    setter: setActualFreeWealthValue,
+                    age: actualFreeWealthAge,
+                    setAge: setActualFreeWealthAge
                   }
                 : null,
               hasPension
@@ -4476,7 +4546,9 @@ const InvestmentCalculator = () => {
                     key: "pension",
                     label: "Werkelijk pensioen",
                     value: actualPensionValue,
-                    setter: setActualPensionValue
+                    setter: setActualPensionValue,
+                    age: actualPensionAge,
+                    setAge: setActualPensionAge
                   }
                 : null,
               hasNextGeneration
@@ -4484,7 +4556,9 @@ const InvestmentCalculator = () => {
                     key: "minor",
                     label: "Werkelijk minderjarige",
                     value: actualMinorValue,
-                    setter: setActualMinorValue
+                    setter: setActualMinorValue,
+                    age: actualMinorAge,
+                    setAge: setActualMinorAge
                   }
                 : null
             ]
@@ -4506,13 +4580,34 @@ const InvestmentCalculator = () => {
                   <input
                     type="text"
                     inputMode="numeric"
-                    value={formatEuroInput(field.value)}
-                    onChange={(event) => field.setter(parseEuroInput(event.target.value))}
+                    value={field.value === "" ? "" : formatEuroInput(field.value)}
+                    onChange={(event) => {
+                      const rawValue = event.target.value;
+                      field.setter(rawValue.trim() === "" ? "" : parseEuroInput(rawValue));
+                    }}
                     style={{
                       width: "92px",
                       border: "1px solid #d2bb5d",
                       borderRadius: "6px",
                       padding: "5px 7px",
+                      fontSize: "12px",
+                      color: "#111827",
+                      background: "#fff",
+                      outline: "none"
+                    }}
+                  />
+                  <span>leeftijd</span>
+                  <input
+                    type="number"
+                    min={18}
+                    max={88}
+                    value={field.age}
+                    onChange={(event) => field.setAge(clampNumber(event.target.value, 18, 88))}
+                    style={{
+                      width: "46px",
+                      border: "1px solid #d2bb5d",
+                      borderRadius: "6px",
+                      padding: "5px 6px",
                       fontSize: "12px",
                       color: "#111827",
                       background: "#fff",
@@ -4669,6 +4764,37 @@ const InvestmentCalculator = () => {
                 {lifelinePhaseBoundaries.map((marker) => (
                   <ReferenceLine key={`marker-${marker}`} x={marker} stroke="#8a8a8a" strokeDasharray="3 4" />
                 ))}
+                {actualLifelineMarker && (
+                  <>
+                    <ReferenceLine
+                      segment={[
+                        { x: actualLifelineMarker.age, y: 0 },
+                        { x: actualLifelineMarker.age, y: actualLifelineMarker.actualValue }
+                      ]}
+                      stroke={actualLifelineMarker.color}
+                      strokeDasharray="4 4"
+                      strokeOpacity={0.75}
+                    />
+                    <ReferenceDot
+                      x={actualLifelineMarker.age}
+                      y={actualLifelineMarker.actualValue}
+                      r={6}
+                      fill={actualLifelineMarker.color}
+                      stroke="#fff"
+                      strokeWidth={2}
+                      ifOverflow="extendDomain"
+                      label={{
+                        value: `Werkelijk ${formatCurrency(actualLifelineMarker.actualValue)} · ${
+                          actualLifelineMarker.difference >= 0 ? "+" : "-"
+                        }${formatCurrency(Math.abs(actualLifelineMarker.difference))} ${actualLifelineMarker.status}`,
+                        position: "top",
+                        fill: "#111827",
+                        fontSize: 11,
+                        fontWeight: 700
+                      }}
+                    />
+                  </>
+                )}
                 {lifelineChartView.showWeekNote && (
                   <>
                     <ReferenceLine
