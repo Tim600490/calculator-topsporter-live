@@ -159,9 +159,23 @@ const LifelineHoverTooltip = ({ active, payload, label, formatCurrency, zoomMode
 
   const rawPoint = payload[0]?.payload || {};
   const seriesConfig = {
-    vva: { color: "#d2bb5d", label: "Vrij Vermogen Animo", lowKey: "vvaLow", highKey: "vvaHigh", netto: true },
+    vva: {
+      color: "#d2bb5d",
+      label: "Vrij Vermogen Animo",
+      lowKey: "vvaLow",
+      highKey: "vvaHigh",
+      exampleKey: "vvaExample",
+      netto: true
+    },
     cfk: { color: "#0d2a28", label: "CFK", bruto: true },
-    pensioen: { color: "#6672a8", label: "Pensioen Animo", lowKey: "pensioenLow", highKey: "pensioenHigh", bruto: true },
+    pensioen: {
+      color: "#6672a8",
+      label: "Pensioen Animo",
+      lowKey: "pensioenLow",
+      highKey: "pensioenHigh",
+      exampleKey: "pensioenExample",
+      bruto: true
+    },
     nextgen: { color: "#ffa07a", label: "Next Generation Animo", netto: true }
   };
   const availableSeriesKeys = ["vva", "cfk", "pensioen", "nextgen"].filter((key) => (rawPoint[key] || 0) > 0);
@@ -174,6 +188,7 @@ const LifelineHoverTooltip = ({ active, payload, label, formatCurrency, zoomMode
   const expectedValue = rawPoint[selectedSeriesKey] || 0;
   const betterValue = series.highKey ? rawPoint[series.highKey] || expectedValue : expectedValue;
   const lowerValue = series.lowKey ? rawPoint[series.lowKey] || expectedValue : expectedValue;
+  const exampleValue = series.exampleKey ? rawPoint[series.exampleKey] : null;
   const showScenarioDetails =
     zoomMode === "full" &&
     focusedSeriesKey === selectedSeriesKey &&
@@ -220,6 +235,18 @@ const LifelineHoverTooltip = ({ active, payload, label, formatCurrency, zoomMode
             <span style={{ width: "11px", height: "11px", background: series.color }} />
             <span style={{ fontSize: "14px", fontWeight: 700 }}>{formatCurrency(expectedValue)}</span>
           </div>
+          {exampleValue != null && (
+            <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "3px", opacity: 0.9 }}>
+              <span
+                style={{
+                  width: "12px",
+                  height: "0",
+                  borderTop: `2px dashed ${series.color}`
+                }}
+              />
+              <span style={{ fontSize: "12px" }}>Voorbeeld verloop: {formatCurrency(exampleValue)}</span>
+            </div>
+          )}
           <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
             <span style={{ width: "8px", height: "8px", background: series.color }} />
             <span style={{ fontSize: "12px" }}>{formatCurrency(lowerValue)}</span>
@@ -2145,7 +2172,49 @@ const InvestmentCalculator = () => {
       }
       return numericValue;
     };
-    return lifeline.potData.map((row) => {
+    const addIllustrativePath = (rows, valueKey, lowKey, highKey, outputKey) => {
+      const visibleIndexes = rows
+        .map((row, index) => ({ index, value: row[valueKey] }))
+        .filter((item) => item.value != null && item.value > 0)
+        .map((item) => item.index);
+
+      if (visibleIndexes.length === 0) {
+        return rows;
+      }
+
+      const firstIndex = visibleIndexes[0];
+      const lastIndex = visibleIndexes[visibleIndexes.length - 1];
+      const span = Math.max(1, lastIndex - firstIndex);
+
+      return rows.map((row, index) => {
+        const expectedValue = row[valueKey];
+        const lowValue = row[lowKey];
+        const highValue = row[highKey];
+
+        if (expectedValue == null || lowValue == null || highValue == null) {
+          return { ...row, [outputKey]: null };
+        }
+
+        const progress = Math.max(0, Math.min(1, (index - firstIndex) / span));
+        const taper = Math.sin(progress * Math.PI);
+        const wave =
+          Math.sin((index - firstIndex) * 1.7) * 0.72 +
+          Math.sin((index - firstIndex) * 0.83 + 1.1) * 0.28;
+        const availableRange = Math.min(
+          Math.max(0, highValue - expectedValue),
+          Math.max(0, expectedValue - lowValue)
+        );
+        const deviation = availableRange * 0.78 * taper * wave;
+        const exampleValue = Math.min(highValue, Math.max(lowValue, expectedValue + deviation));
+
+        return {
+          ...row,
+          [outputKey]: index === firstIndex || index === lastIndex ? expectedValue : exampleValue
+        };
+      });
+    };
+
+    const baseData = lifeline.potData.map((row) => {
       const rawCfk =
         hasCfk && row.age >= careerStartAge && row.age <= lifeline.cfkPayoutEndAge ? row.cfk : null;
       const rawVva = row.age >= startAge && row.age <= freeWealthVisibleEndAge ? row.vrij : null;
@@ -2178,6 +2247,14 @@ const InvestmentCalculator = () => {
         nextgen: nextgenValue
       };
     });
+
+    return addIllustrativePath(
+      addIllustrativePath(baseData, "vva", "vvaLow", "vvaHigh", "vvaExample"),
+      "pensioen",
+      "pensioenLow",
+      "pensioenHigh",
+      "pensioenExample"
+    );
   }, [
     hasCfk,
     lifeline.potData,
@@ -4577,6 +4654,16 @@ const InvestmentCalculator = () => {
                       fill="#d2bb5d"
                       fillOpacity={0.16}
                     />
+                    <Line
+                      type="linear"
+                      dataKey="vvaExample"
+                      stroke="#d2bb5d"
+                      strokeWidth={2}
+                      strokeDasharray="5 5"
+                      dot={false}
+                      opacity={0.8}
+                      onMouseMove={() => setHoveredLifelineSeriesKey("vva")}
+                    />
                   </>
                 )}
                 {lifelineZoomMode === "full" && showLifelinePensioenLine && activeScenarioBandKey === "pensioen" && (
@@ -4589,6 +4676,16 @@ const InvestmentCalculator = () => {
                       stroke="none"
                       fill="#6672a8"
                       fillOpacity={0.14}
+                    />
+                    <Line
+                      type="linear"
+                      dataKey="pensioenExample"
+                      stroke="#6672a8"
+                      strokeWidth={2}
+                      strokeDasharray="5 5"
+                      dot={false}
+                      opacity={0.8}
+                      onMouseMove={() => setHoveredLifelineSeriesKey("pensioen")}
                     />
                   </>
                 )}
