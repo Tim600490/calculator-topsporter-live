@@ -152,7 +152,16 @@ const AnchoredPotTooltip = ({ point, label, left, top, formatCurrency }) => {
   );
 };
 
-const LifelineHoverTooltip = ({ active, payload, label, formatCurrency, zoomMode, activeSeriesKey, focusedSeriesKey }) => {
+const LifelineHoverTooltip = ({
+  active,
+  payload,
+  label,
+  formatCurrency,
+  zoomMode,
+  activeSeriesKey,
+  focusedSeriesKey,
+  focusedScenarioMode
+}) => {
   if (!active || !payload || payload.length === 0) {
     return null;
   }
@@ -194,6 +203,7 @@ const LifelineHoverTooltip = ({ active, payload, label, formatCurrency, zoomMode
     focusedSeriesKey === selectedSeriesKey &&
     Boolean(series.lowKey) &&
     Boolean(series.highKey);
+  const showExampleValue = showScenarioDetails && focusedScenarioMode === "motion";
 
   const weekLabels = {
     1: "Maandag",
@@ -235,7 +245,7 @@ const LifelineHoverTooltip = ({ active, payload, label, formatCurrency, zoomMode
             <span style={{ width: "11px", height: "11px", background: series.color }} />
             <span style={{ fontSize: "14px", fontWeight: 700 }}>Verwacht: {formatCurrency(expectedValue)}</span>
           </div>
-          {exampleValue != null && (
+          {showExampleValue && exampleValue != null && (
             <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "3px", opacity: 0.9 }}>
               <span
                 style={{
@@ -352,6 +362,7 @@ const InvestmentCalculator = () => {
   const [isOneTimeExtrasExpanded2, setIsOneTimeExtrasExpanded2] = useState(false);
   const [lifelineZoomMode, setLifelineZoomMode] = useState("week");
   const [activeScenarioBandKey, setActiveScenarioBandKey] = useState(null);
+  const [activeScenarioFocusMode, setActiveScenarioFocusMode] = useState("band");
   const [hoveredLifelineSeriesKey, setHoveredLifelineSeriesKey] = useState(null);
   const [isExamplePresetActive, setIsExamplePresetActive] = useState(false);
   const [careerPhaseStartAge, setCareerPhaseStartAge] = useState(18);
@@ -1011,11 +1022,13 @@ const InvestmentCalculator = () => {
     if (isExamplePresetActive) {
       applyDefaultPreset();
       setActiveScenarioBandKey(null);
+      setActiveScenarioFocusMode("band");
       setIsExamplePresetActive(false);
       return;
     }
     applyExamplePreset();
     setActiveScenarioBandKey(null);
+    setActiveScenarioFocusMode("band");
     setIsExamplePresetActive(true);
   };
 
@@ -2630,6 +2643,20 @@ const InvestmentCalculator = () => {
   const showLifelinePensioenLine = hasPension && (!isLifelineFocusMode || activeScenarioBandKey === "pensioen");
   const showLifelineNextGenLine =
     hasNextGeneration && (!isLifelineFocusMode || activeScenarioBandKey === "nextgen");
+  const cycleScenarioFocus = (key) => {
+    setActiveScenarioBandKey((prevKey) => {
+      if (prevKey !== key) {
+        setActiveScenarioFocusMode("band");
+        return key;
+      }
+      if (activeScenarioFocusMode === "band") {
+        setActiveScenarioFocusMode("motion");
+        return key;
+      }
+      setActiveScenarioFocusMode("band");
+      return null;
+    });
+  };
   const incomeCareerPhaseStart = Math.max(careerStartAge, timelineStartAge);
   const incomeCareerPhaseEnd = Math.min(careerEndAge, lifeline.maxAge);
   const hasIncomeCareerPhase = incomeCareerPhaseEnd > incomeCareerPhaseStart;
@@ -4658,6 +4685,7 @@ const InvestmentCalculator = () => {
                       zoomMode={lifelineZoomMode}
                       activeSeriesKey={hoveredLifelineSeriesKey}
                       focusedSeriesKey={activeScenarioBandKey}
+                      focusedScenarioMode={activeScenarioFocusMode}
                     />
                   }
                 />
@@ -4679,7 +4707,8 @@ const InvestmentCalculator = () => {
                       strokeWidth={2}
                       strokeDasharray="5 5"
                       dot={false}
-                      opacity={0.8}
+                      opacity={activeScenarioFocusMode === "motion" ? 0.8 : 0}
+                      hide={activeScenarioFocusMode !== "motion"}
                       onMouseMove={() => setHoveredLifelineSeriesKey("vva")}
                     />
                   </>
@@ -4702,7 +4731,8 @@ const InvestmentCalculator = () => {
                       strokeWidth={2}
                       strokeDasharray="5 5"
                       dot={false}
-                      opacity={0.8}
+                      opacity={activeScenarioFocusMode === "motion" ? 0.8 : 0}
+                      hide={activeScenarioFocusMode !== "motion"}
                       onMouseMove={() => setHoveredLifelineSeriesKey("pensioen")}
                     />
                   </>
@@ -4830,7 +4860,7 @@ const InvestmentCalculator = () => {
             {hasFreeWealth && (
               <button
                 type="button"
-                onClick={() => setActiveScenarioBandKey((prev) => (prev === "vva" ? null : "vva"))}
+                onClick={() => cycleScenarioFocus("vva")}
                 style={{
                   border: `1px solid ${subtleOverlayTextColor}`,
                   color: subtleOverlayTextColor,
@@ -4874,7 +4904,7 @@ const InvestmentCalculator = () => {
             {hasPension && (
               <button
                 type="button"
-                onClick={() => setActiveScenarioBandKey((prev) => (prev === "pensioen" ? null : "pensioen"))}
+                onClick={() => cycleScenarioFocus("pensioen")}
                 style={{
                   border: `1px solid ${subtleOverlayTextColor}`,
                   color: subtleOverlayTextColor,
