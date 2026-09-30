@@ -291,27 +291,6 @@ const formatEuroInput = (value) =>
 
 const normalizeYear = (value, maxYear) => Math.min(maxYear, Math.max(1, Number(value) || 1));
 const normalizeMonth = (value) => Math.min(12, Math.max(1, Number(value) || 1));
-const formatPhaseDuration = (durationInYears) => {
-  const totalMonths = Math.max(0, Math.round((Number(durationInYears) || 0) * 12));
-  return `${Math.floor(totalMonths / 12)},${totalMonths % 12}`;
-};
-const formatPhaseDurationSummary = (durationInYears) => {
-  const totalMonths = Math.max(0, Math.round((Number(durationInYears) || 0) * 12));
-  const years = Math.floor(totalMonths / 12);
-  const months = totalMonths % 12;
-  if (years === 0) return `${months} maand${months === 1 ? "" : "en"}`;
-  if (months === 0) return `${years} jaar`;
-  return `${years} jaar en ${months} maanden`;
-};
-const parsePhaseDuration = (rawValue) => {
-  const match = String(rawValue).trim().match(/^(\d{1,2})(?:,(\d{1,2}))?$/);
-  if (!match) {
-    return null;
-  }
-  const years = Number(match[1]);
-  const months = Number(match[2] || 0);
-  return months <= 11 ? years * 12 + months : null;
-};
 
 const InvestmentCalculator = () => {
   const [startAmount, setStartAmount] = useState(0);
@@ -379,9 +358,6 @@ const InvestmentCalculator = () => {
   const [isCalculatorExpanded, setIsCalculatorExpanded] = useState(false);
   const [isCalculatorExpanded2, setIsCalculatorExpanded2] = useState(false);
   const [isCalculatorExpanded3, setIsCalculatorExpanded3] = useState(false);
-  const [visibleFreeWealthPhaseCount, setVisibleFreeWealthPhaseCount] = useState(1);
-  const [visibleFreeWealthExtraCount, setVisibleFreeWealthExtraCount] = useState(1);
-  const [freeWealthDurationInputs, setFreeWealthDurationInputs] = useState(Array(6).fill(""));
   const [isOneTimeExtrasExpanded, setIsOneTimeExtrasExpanded] = useState(false);
   const [isOneTimeExtrasExpanded2, setIsOneTimeExtrasExpanded2] = useState(false);
   const [lifelineZoomMode, setLifelineZoomMode] = useState("week");
@@ -500,7 +476,7 @@ const InvestmentCalculator = () => {
   }, [cfkDurationRange.max, cfkDurationRange.min]);
 
   useEffect(() => {
-    const clampYear = (value) => Math.max(0, Math.min(investmentHorizon, Math.round((Number(value) || 0) * 12) / 12));
+    const clampYear = (value) => Math.max(0, Math.min(investmentHorizon, Math.round(Number(value) || 0)));
     const nextPhase1 = clampYear(phase1Years);
     const nextPhase2 = Math.max(nextPhase1, clampYear(phase2EndYear));
     const nextPhase3 = Math.max(nextPhase2, clampYear(phase3EndYear));
@@ -897,9 +873,6 @@ const InvestmentCalculator = () => {
     setProfile("Gedreven");
     setStartDepositsInYear2(false);
     setIsOneTimeExtrasExpanded(false);
-    setVisibleFreeWealthPhaseCount(1);
-    setVisibleFreeWealthExtraCount(1);
-    setFreeWealthDurationInputs(Array(6).fill(""));
     setOneTimeExtras([
       { amount: 0, year: 5, month: 6 },
       { amount: 0, year: 5, month: 6 },
@@ -985,9 +958,6 @@ const InvestmentCalculator = () => {
     setProfile("Behouden");
     setStartDepositsInYear2(false);
     setIsOneTimeExtrasExpanded(false);
-    setVisibleFreeWealthPhaseCount(1);
-    setVisibleFreeWealthExtraCount(1);
-    setFreeWealthDurationInputs(Array(6).fill(""));
     setOneTimeExtras([
       { amount: 0, year: 5, month: 6 },
       { amount: 0, year: 5, month: 6 },
@@ -2995,16 +2965,6 @@ const InvestmentCalculator = () => {
           investmentHorizon - phase6MinYear === 0
             ? 0
             : ((phase6EndYear - phase6MinYear) / (investmentHorizon - phase6MinYear)) * 100;
-        const primaryPhaseRows = isPrimary
-          ? [
-              { label: "Fase 1", start: 0, end: phase1Years, amount: phase1MonthlyDeposit, setEnd: setPhase1Years, setAmount: setPhase1MonthlyDeposit },
-              { label: "Fase 2", start: phase1Years, end: phase2EndYear, amount: phase2MonthlyDeposit, setEnd: setPhase2EndYear, setAmount: setPhase2MonthlyDeposit },
-              { label: "Fase 3", start: phase2EndYear, end: phase3EndYear, amount: phase3MonthlyDeposit, setEnd: setPhase3EndYear, setAmount: setPhase3MonthlyDeposit },
-              { label: "Fase 4", start: phase3EndYear, end: phase4EndYear, amount: phase4MonthlyDeposit, setEnd: setPhase4EndYear, setAmount: setPhase4MonthlyDeposit },
-              { label: "Fase 5", start: phase4EndYear, end: phase5EndYear, amount: phase5MonthlyDeposit, setEnd: setPhase5EndYear, setAmount: setPhase5MonthlyDeposit },
-              { label: "Fase 6", start: phase5EndYear, end: phase6EndYear, amount: phase6MonthlyDeposit, setEnd: setPhase6EndYear, setAmount: setPhase6MonthlyDeposit }
-            ]
-          : [];
 
         return (
       <div
@@ -3098,80 +3058,6 @@ const InvestmentCalculator = () => {
             marginBottom: isDesktop ? "0" : "32px"
           }}
         >
-          {isPrimary && (
-            <div className="free-wealth-input-panel">
-              <section className="free-wealth-input-section">
-                <h3>Startpositie</h3>
-                <div className="free-wealth-input-row">
-                  <label>Startbedrag</label>
-                  <span className="free-wealth-input-prefix">€</span>
-                  <input type="number" min="0" max={startAmountMax} step="1" value={startAmount} onChange={(e) => setStartAmount(clampEuro(e.target.value, 0, startAmountMax))} />
-                  <output>{formatCurrency(startAmount)}</output>
-                </div>
-                <div className="free-wealth-input-row">
-                  <label>Startleeftijd</label>
-                  <input className="free-wealth-short-input" type="number" min="18" max="50" step="1" value={startAge} onChange={(e) => setStartAge(Math.max(18, Math.min(50, Number(e.target.value) || 18)))} />
-                  <span className="free-wealth-input-unit">jaar</span>
-                  <output>{startAge} jaar</output>
-                </div>
-              </section>
-
-              <section className="free-wealth-input-section">
-                <h3>Inleg p/m</h3>
-                {primaryPhaseRows.slice(0, visibleFreeWealthPhaseCount).map((phase, index) => {
-                  const duration = Math.max(0, phase.end - phase.start);
-                  const displayDuration = freeWealthDurationInputs[index] || formatPhaseDuration(duration);
-                  const updateDuration = (rawValue) => {
-                    setFreeWealthDurationInputs((previous) => previous.map((value, rowIndex) => (rowIndex === index ? rawValue : value)));
-                  };
-                  const commitDuration = () => {
-                    const durationMonths = parsePhaseDuration(freeWealthDurationInputs[index]);
-                    if (durationMonths != null) {
-                      phase.setEnd(Math.min(investmentHorizon, phase.start + durationMonths / 12));
-                    }
-                    setFreeWealthDurationInputs((previous) => previous.map((value, rowIndex) => (rowIndex === index ? "" : value)));
-                  };
-                  return (
-                    <div className="free-wealth-phase-row" key={phase.label}>
-                      <div className="free-wealth-input-row">
-                        <label>{phase.label}</label>
-                        <span className="free-wealth-input-prefix">€</span>
-                        <input type="number" min="0" max="10000" step="1" value={phase.amount} onChange={(e) => phase.setAmount(clampEuro(e.target.value))} />
-                        <span className="free-wealth-duration-label">Duur</span>
-                        <input className="free-wealth-duration-input" type="text" inputMode="numeric" value={displayDuration} onChange={(e) => updateDuration(e.target.value)} onBlur={commitDuration} aria-label={`${phase.label} duur in jaren en maanden`} />
-                      </div>
-                      <output>{formatCurrency(phase.amount)} p/m gedurende {formatPhaseDurationSummary(duration)}</output>
-                    </div>
-                  );
-                })}
-                {visibleFreeWealthPhaseCount < primaryPhaseRows.length && <button type="button" className="free-wealth-add-button" onClick={() => setVisibleFreeWealthPhaseCount((count) => count + 1)} aria-label="Voeg een inlegfase toe">+</button>}
-              </section>
-
-              <section className="free-wealth-input-section">
-                <h3>Eenmalige extra inleg</h3>
-                {oneTimeExtras.slice(0, visibleFreeWealthExtraCount).map((entry, index) => (
-                  <div className="free-wealth-phase-row" key={`extra-${index}`}>
-                    <div className="free-wealth-input-row">
-                      <label>Bedrag {index + 1}</label>
-                      <span className="free-wealth-input-prefix">€</span>
-                      <input type="number" min="0" max="5000000" step="1" value={entry.amount} onChange={(e) => updateOneTimeExtra(index, "amount", e.target.value)} />
-                      <span className="free-wealth-duration-label">Moment</span>
-                      <input className="free-wealth-moment-input" type="text" inputMode="numeric" defaultValue={`${entry.year},${entry.month}`} onBlur={(e) => { const match = e.target.value.trim().match(/^(\d{1,2}),(\d{1,2})$/); if (match) { updateOneTimeExtra(index, "year", match[1]); updateOneTimeExtra(index, "month", match[2]); } else { e.target.value = `${entry.year},${entry.month}`; } }} aria-label={`Bedrag ${index + 1} moment: jaar,maand`} />
-                    </div>
-                    <output>{formatCurrency(entry.amount)} in jaar {entry.year}, maand {entry.month}</output>
-                  </div>
-                ))}
-                {visibleFreeWealthExtraCount < oneTimeExtras.length && <button type="button" className="free-wealth-add-button" onClick={() => setVisibleFreeWealthExtraCount((count) => count + 1)} aria-label="Voeg een eenmalige extra inleg toe">+</button>}
-              </section>
-
-              <div className="free-wealth-controls-footer">
-                <label className="free-wealth-checkbox"><input type="checkbox" checked={startDepositsInYear2} onChange={(e) => setStartDepositsInYear2(e.target.checked)} />Start maandinleg vanaf jaar 2</label>
-                <label className="free-wealth-horizon">Beleggingshorizon <input type="number" min="1" max="50" value={investmentHorizon} onChange={(e) => setInvestmentHorizon(Math.max(1, Math.min(50, Number(e.target.value) || 1)))} /> jaar</label>
-                <label className="free-wealth-portfolio">Portefeuille<select value={profile} onChange={(e) => setProfile(e.target.value)}><option value="Behouden">Behouden</option><option value="Gedreven">Gedreven</option><option value="Ambitieus">Ambitieus</option></select></label>
-              </div>
-            </div>
-          )}
-          {!isPrimary && <>
           {/* Start Amount */}
           <div style={{ marginBottom: "32px" }}>
             <div
@@ -4352,7 +4238,6 @@ const InvestmentCalculator = () => {
               <option value="Ambitieus">Ambitieus</option>
             </select>
           </div>
-          </>}
         </div>
 
         {/* Right Panel - Results (60% on desktop) */}
