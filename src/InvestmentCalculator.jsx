@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import "./FreeWealthInput.css";
 import {
   Area,
   Bar,
@@ -3089,6 +3090,7 @@ const InvestmentCalculator = () => {
         >
         {/* Left Panel - Input Controls (40% on desktop) */}
         <div
+          className={isPrimary ? "free-wealth-panel-shell" : undefined}
           style={{
             width: isDesktop ? "40%" : "100%",
             backgroundColor: "#F7F5E9",
@@ -3139,7 +3141,7 @@ const InvestmentCalculator = () => {
                         <input type="number" min="0" max="10000" step="1" value={phase.amount} onChange={(e) => phase.setAmount(clampEuro(e.target.value))} />
                         <span className="free-wealth-duration-label">Duur</span>
                         <input className="free-wealth-duration-input" type="text" inputMode="numeric" value={displayDuration} onChange={(e) => updateDuration(e.target.value)} onBlur={commitDuration} aria-label={`${phase.label} duur in jaren en maanden`} />
-                        <output>{formatCurrency(phase.amount)} p/m · {formatPhaseDurationSummary(duration)}</output>
+                        <output><strong>{formatCurrency(phase.amount)} p/m</strong><span>{formatPhaseDurationSummary(duration)}</span></output>
                       </div>
                     </div>
                   );
@@ -3157,7 +3159,7 @@ const InvestmentCalculator = () => {
                       <input type="number" min="0" max="5000000" step="1" value={entry.amount} onChange={(e) => updateOneTimeExtra(index, "amount", e.target.value)} />
                       <span className="free-wealth-duration-label">Moment</span>
                       <input className="free-wealth-moment-input" type="text" inputMode="numeric" defaultValue={`${entry.year},${entry.month}`} onBlur={(e) => { const match = e.target.value.trim().match(/^(\d{1,2}),(\d{1,2})$/); if (match) { updateOneTimeExtra(index, "year", match[1]); updateOneTimeExtra(index, "month", match[2]); } else { e.target.value = `${entry.year},${entry.month}`; } }} aria-label={`Bedrag ${index + 1} moment: jaar,maand`} />
-                      <output>{formatCurrency(entry.amount)} · jaar {entry.year}, maand {entry.month}</output>
+                      <output><strong>{formatCurrency(entry.amount)}</strong><span>Jaar {entry.year}, maand {entry.month}</span></output>
                     </div>
                   </div>
                 ))}
