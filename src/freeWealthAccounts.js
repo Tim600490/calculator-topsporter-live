@@ -1,4 +1,4 @@
-export const ACCOUNT_COLORS = ["#d2bb5d", "#328c87"];
+export const ACCOUNT_COLORS = ["#d2bb5d", "#d2bb5d"];
 const RETURNS = { Behouden: 0.044, Gedreven: 0.057, Ambitieus: 0.069 };
 const LOW_RETURNS = { Behouden: 0.024, Gedreven: 0.032, Ambitieus: 0.039 };
 const HIGH_RETURNS = { Behouden: 0.054, Gedreven: 0.072, Ambitieus: 0.084 };

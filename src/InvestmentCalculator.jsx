@@ -179,7 +179,7 @@ const LifelineHoverTooltip = ({
       exampleKey: "vvaExample",
       netto: true
     },
-    vva2: { color: "#328c87", label: accountNames[1] || "Rekening 2", lowKey: "vva2Low", highKey: "vva2High", exampleKey: "vva2Example", netto: true },
+    vva2: { color: ACCOUNT_COLORS[1], label: accountNames[1] || "Rekening 2", lowKey: "vva2Low", highKey: "vva2High", exampleKey: "vva2Example", netto: true },
     cfk: { color: "#0d2a28", label: "CFK", bruto: true },
     pensioen: {
       color: "#6672a8",
@@ -5316,7 +5316,7 @@ const InvestmentCalculator = () => {
               <div className="free-wealth-card-breakdown">
                 {freeWealthAccounts.map((account, index) => (
                   <div key={account.id}>
-                    <span><i style={{ background: ACCOUNT_COLORS[index] }} />{account.name}<small>{account.profile}</small></span>
+                    <span><i style={{ background: ACCOUNT_COLORS[index] }} />{account.name}<small>{account.profile} - {account.investmentHorizon} jaar</small></span>
                     <strong>{formatCurrency(accountProjections[index].expected)}</strong>
                   </div>
                 ))}
