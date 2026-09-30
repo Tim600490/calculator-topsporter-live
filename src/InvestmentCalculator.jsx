@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import "./FreeWealthInput.css";
-import { ACCOUNT_COLORS, createFreeWealthAccount, projectAccount, combinedProjection, accountLifeline, accountVisibleEndAge, accountGraphValue } from "./freeWealthAccounts";
+import { ACCOUNT_COLORS, createFreeWealthAccount, projectAccount, accountLifeline, accountVisibleEndAge, accountGraphValue } from "./freeWealthAccounts";
 import {
   Area,
   Bar,
@@ -351,7 +351,6 @@ const parsePhaseDuration = (rawValue) => {
 const InvestmentCalculator = () => {
   const [freeWealthAccounts, setFreeWealthAccounts] = useState(() => [createFreeWealthAccount()]);
   const [activeFreeWealthAccount, setActiveFreeWealthAccount] = useState(0);
-  const [freeWealthChartMode, setFreeWealthChartMode] = useState("account");
   const currentFreeWealthAccount = freeWealthAccounts[activeFreeWealthAccount];
   const bindAccountField = (key) => [
     currentFreeWealthAccount[key],
@@ -370,10 +369,8 @@ const InvestmentCalculator = () => {
     if (freeWealthAccounts.length >= 2) return;
     setFreeWealthAccounts((accounts) => [...accounts, createFreeWealthAccount(accounts.length)]);
     setActiveFreeWealthAccount(1);
-    setFreeWealthChartMode("account");
     setActiveScenarioBandKey(null);
   };
-  const combinedFreeWealth = useMemo(() => combinedProjection(freeWealthAccounts), [freeWealthAccounts]);
   const accountProjections = useMemo(() => freeWealthAccounts.map((account) => {
     const expected = projectAccount(account).at(-1).balance;
     return { expected, low: projectAccount(account, undefined, "low").at(-1).balance,
@@ -3004,8 +3001,6 @@ const InvestmentCalculator = () => {
           worstCaseBalanceCurrent,
           bestCaseBalanceCurrent
         } = model;
-        const showTotal = isPrimary && freeWealthChartMode === "total" && freeWealthAccounts.length > 1;
-        const displayedBalance = showTotal ? combinedFreeWealth.finalBalance : finalBalanceCurrent;
         const isNextGeneration = calculatorIndex === 2;
         const startAmountMax = isNextGeneration ? 6500 : 1000000;
         const startAmountFill = startAmountMax === 0 ? 0 : (startAmount / startAmountMax) * 100;
@@ -3126,7 +3121,7 @@ const InvestmentCalculator = () => {
                   letterSpacing: "0.35px"
                 }}
               >
-                {showTotal ? "Totaal vrij vermogen*" : "Verwacht eindresultaat*"}
+                Verwacht eindresultaat*
               </div>
               <div
                 style={{
@@ -3136,7 +3131,7 @@ const InvestmentCalculator = () => {
                   lineHeight: 1
                 }}
               >
-                {formatCurrency(displayedBalance)}
+                {formatCurrency(finalBalanceCurrent)}
                 <span style={{ fontSize: "20px", verticalAlign: "top" }}>*</span>
               </div>
             </div>
@@ -4490,15 +4485,7 @@ const InvestmentCalculator = () => {
           >
             {isPrimary && (
               <div className="free-wealth-chart-heading">
-                {freeWealthAccounts.length > 1 && (
-                  <div className="free-wealth-account-tabs" role="group" aria-label="Grafiekweergave Vrij Vermogen">
-                    <button type="button" aria-pressed={!showTotal} onClick={() => { setFreeWealthChartMode("account"); setHoveredIndex(null); }}>Deze rekening</button>
-                    <button type="button" aria-pressed={showTotal} onClick={() => { setFreeWealthChartMode("total"); setHoveredIndex(null); }}>Totaal vrij vermogen</button>
-                  </div>
-                )}
-                <p>{showTotal
-                  ? `Beide rekeningen samen · op ${combinedFreeWealth.endAge}-jarige leeftijd`
-                  : `${currentFreeWealthAccount.name} · ${profile} · tot ${startAge + investmentHorizon} jaar`}</p>
+                <p>{`${currentFreeWealthAccount.name} · ${profile} · tot ${startAge + investmentHorizon} jaar`}</p>
               </div>
             )}
             <div style={{ height: "450px", position: "relative" }} ref={chartContainerRefCurrent}>
@@ -4527,7 +4514,7 @@ const InvestmentCalculator = () => {
                   <line x1="270" y1="210" x2="270" y2="306" stroke="#F7F5E9" strokeWidth="42" strokeLinecap="round" />
                 </svg>
               </div>
-              {!showTotal && hoveredPointCurrent && tooltipAnchorCurrent ? (
+              {hoveredPointCurrent && tooltipAnchorCurrent ? (
                 <AnchoredBarTooltip
                   point={hoveredPointCurrent}
                   label={hoveredPointCurrent.year}
@@ -4539,7 +4526,7 @@ const InvestmentCalculator = () => {
               <div style={{ position: "relative", zIndex: 1, height: "100%" }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
-                    data={showTotal ? combinedFreeWealth.rows : calculationDataCurrent}
+                    data={calculationDataCurrent}
                     margin={{ top: 20, right: 30, left: 20, bottom: 40 }}
                     onMouseLeave={() => setHoveredIndexCurrent(null)}
                   >
@@ -4561,18 +4548,18 @@ const InvestmentCalculator = () => {
                       </linearGradient>
                     </defs>
                     <XAxis
-                      dataKey={showTotal ? "age" : "year"}
+                      dataKey="year"
                       axisLine={false}
                       tickLine={false}
                       tick={{ fontSize: investmentHorizon >= 26 ? 10 : 12, fill: "#6B7280" }}
                       label={{
-                        value: showTotal ? "Leeftijd" : "Jaren",
+                        value: "Jaren",
                         position: "insideBottom",
                         offset: -10,
                         style: { textAnchor: "middle", fill: "#6B7280" }
                       }}
-                      ticks={showTotal ? undefined : barYearTicksCurrent}
-                      interval={showTotal ? "preserveStartEnd" : 0}
+                      ticks={barYearTicksCurrent}
+                      interval={0}
                     />
                     <YAxis
                       axisLine={false}
@@ -4581,15 +4568,7 @@ const InvestmentCalculator = () => {
                       tickFormatter={formatCurrencyShort}
                       width={70}
                     />
-                    {showTotal ? (
-                      <>
-                        <Tooltip formatter={(value, name) => [formatCurrency(value), name]} labelFormatter={(age) => `Leeftijd: ${age} jaar`} />
-                        {freeWealthAccounts.map((account, index) => (
-                          <Bar key={account.id} dataKey={`account${index + 1}`} name={account.name}
-                            stackId="accounts" fill={ACCOUNT_COLORS[index]} isAnimationActive={false} />
-                        ))}
-                      </>
-                    ) : <><Bar
+                    <Bar
                       dataKey="initialBalance"
                       stackId="stack"
                       fill="url(#whiteGradient)"
@@ -4612,20 +4591,13 @@ const InvestmentCalculator = () => {
                       radius={[4, 4, 0, 0]}
                       onMouseOver={(_, index) => setHoveredIndexCurrent(index)}
                     />
-                    </>}
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             </div>
 
             {/* Legend */}
-            {showTotal ? (
-              <div className="free-wealth-total-legend">
-                {freeWealthAccounts.map((account, index) => (
-                  <span key={account.id}><i style={{ background: ACCOUNT_COLORS[index] }} />{account.name}</span>
-                ))}
-              </div>
-            ) : <div style={{ display: "flex", flexWrap: "wrap", gap: "24px", marginTop: "16px", fontSize: "14px" }}>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "24px", marginTop: "16px", fontSize: "14px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                 <div
                   style={{
@@ -4662,11 +4634,6 @@ const InvestmentCalculator = () => {
               </div>
             </div>
 
-            }
-            {showTotal && <p className="free-wealth-total-note">
-              Beide rekeningen staan op dezelfde leeftijdslijn. Na de eigen beleggingshorizon stopt de inleg;
-              het vermogen groeit in dit totaal door tot de langste horizon. Uitkeringen worden verwerkt in de levensloopgrafiek.
-            </p>}
             {/* Disclaimer */}
             <div
               style={{
@@ -4677,8 +4644,8 @@ const InvestmentCalculator = () => {
               }}
             >
               *Dit is het gemiddelde resultaat. Ook mindere en betere scenario&apos;s zijn mogelijk waarbij het
-              resultaat waarschijnlijk tussen {formatCurrency(showTotal ? combinedFreeWealth.low : worstCaseBalanceCurrent)} en{" "}
-              {formatCurrency(showTotal ? combinedFreeWealth.high : bestCaseBalanceCurrent)} zal liggen. Voor details en achtergronden zie onze FAQ
+              resultaat waarschijnlijk tussen {formatCurrency(worstCaseBalanceCurrent)} en{" "}
+              {formatCurrency(bestCaseBalanceCurrent)} zal liggen. Voor details en achtergronden zie onze FAQ
               <br />
               **Deze rekentool laat de te verwachten netto € resultaten zien, dus na aftrek van de kosten.
             </div>
