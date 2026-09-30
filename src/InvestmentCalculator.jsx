@@ -3006,6 +3006,30 @@ const InvestmentCalculator = () => {
               { label: "Fase 6", start: phase5EndYear, end: phase6EndYear, amount: phase6MonthlyDeposit, setEnd: setPhase6EndYear, setAmount: setPhase6MonthlyDeposit }
             ]
           : [];
+        const removeFreeWealthPhase = (index) => {
+          const remaining = primaryPhaseRows
+            .filter((_, rowIndex) => rowIndex !== index)
+            .map((phase) => ({
+              amount: phase.amount,
+              months: Math.max(0, Math.round((phase.end - phase.start) * 12))
+            }));
+          remaining.push({ amount: 0, months: 0 });
+          let endMonth = 0;
+          primaryPhaseRows.forEach((phase, rowIndex) => {
+            endMonth += remaining[rowIndex].months;
+            phase.setAmount(remaining[rowIndex].amount);
+            phase.setEnd(endMonth / 12);
+          });
+          setFreeWealthDurationInputs(Array(6).fill(""));
+          setVisibleFreeWealthPhaseCount((count) => Math.max(1, count - 1));
+        };
+        const removeFreeWealthExtra = (index) => {
+          setOneTimeExtras((entries) => [
+            ...entries.filter((_, rowIndex) => rowIndex !== index),
+            { amount: 0, year: Math.min(5, investmentHorizon), month: 6 }
+          ]);
+          setVisibleFreeWealthExtraCount((count) => Math.max(1, count - 1));
+        };
 
         return (
       <div
@@ -3143,6 +3167,11 @@ const InvestmentCalculator = () => {
                         <input className="free-wealth-duration-input" type="text" inputMode="numeric" value={displayDuration} onChange={(e) => updateDuration(e.target.value)} onBlur={commitDuration} aria-label={`${phase.label} duur in jaren en maanden`} />
                         <output><strong>{formatCurrency(phase.amount)} p/m</strong><span>{formatPhaseDurationSummary(duration)}</span></output>
                       </div>
+                      {index > 0 && (
+                        <button type="button" className="free-wealth-remove-button" onClick={() => removeFreeWealthPhase(index)} aria-label={`Verwijder fase ${index + 1}`}>
+                          <span aria-hidden="true">×</span> Verwijderen
+                        </button>
+                      )}
                     </div>
                   );
                 })}
@@ -3152,7 +3181,7 @@ const InvestmentCalculator = () => {
               <section className="free-wealth-input-section">
                 <h3>Eenmalige extra inleg</h3>
                 {oneTimeExtras.slice(0, visibleFreeWealthExtraCount).map((entry, index) => (
-                  <div className="free-wealth-phase-row" key={`extra-${index}`}>
+                  <div className="free-wealth-phase-row" key={`extra-${index}-${entry.year}-${entry.month}`}>
                     <div className="free-wealth-input-row free-wealth-phase-input">
                       <label>Bedrag {index + 1}</label>
                       <span className="free-wealth-input-prefix">€</span>
@@ -3161,6 +3190,11 @@ const InvestmentCalculator = () => {
                       <input className="free-wealth-moment-input" type="text" inputMode="numeric" defaultValue={`${entry.year},${entry.month}`} onBlur={(e) => { const match = e.target.value.trim().match(/^(\d{1,2}),(\d{1,2})$/); if (match) { updateOneTimeExtra(index, "year", match[1]); updateOneTimeExtra(index, "month", match[2]); } else { e.target.value = `${entry.year},${entry.month}`; } }} aria-label={`Bedrag ${index + 1} moment: jaar,maand`} />
                       <output><strong>{formatCurrency(entry.amount)}</strong><span>Jaar {entry.year}, maand {entry.month}</span></output>
                     </div>
+                    {index > 0 && (
+                      <button type="button" className="free-wealth-remove-button" onClick={() => removeFreeWealthExtra(index)} aria-label={`Verwijder bedrag ${index + 1}`}>
+                        <span aria-hidden="true">×</span> Verwijderen
+                      </button>
+                    )}
                   </div>
                 ))}
                 {visibleFreeWealthExtraCount < oneTimeExtras.length && <button type="button" className="free-wealth-add-button" onClick={() => setVisibleFreeWealthExtraCount((count) => count + 1)} aria-label="Voeg een eenmalige extra inleg toe">+</button>}
