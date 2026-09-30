@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createFreeWealthAccount, projectAccount, combinedProjection, accountLifeline, monthlyDeposit } from "./freeWealthAccounts.js";
+import { createFreeWealthAccount, projectAccount, combinedProjection, accountLifeline, monthlyDeposit, accountGraphValue } from "./freeWealthAccounts.js";
 
 // Independent reference for the pre-existing calculator: six cumulative phase
 // boundaries, return before monthly deposits, and extras at month end.
@@ -97,4 +97,24 @@ test("account defaults have independent phases, payout rows and unset extra mome
   assert.equal(second.freeWealthPayouts[0].amount, 0);
   assert.equal(projectAccount(first).at(-1).balance, 0);
   assert.notEqual(first.id, second.id);
+});
+
+test("empty accounts have no graph line, including zero balances", () => {
+  const account = createFreeWealthAccount();
+  const hasFunding = projectAccount(account).at(-1).balance > 0;
+  assert.equal(accountGraphValue(account, 18, 0, hasFunding), null);
+  assert.equal(accountGraphValue(account, 38, 0, hasFunding), null);
+});
+
+test("each account line ends at its own horizon, even with later payouts", () => {
+  const first = { ...createFreeWealthAccount(), startAge: 27, investmentHorizon: 10,
+    freeWealthPayouts: [{ amount: 1000, fromAge: 40, toAge: 50 }] };
+  const second = { ...createFreeWealthAccount(1), startAge: 30, investmentHorizon: 20 };
+  assert.equal(accountGraphValue(first, 26, 1000, true), null);
+  assert.equal(accountGraphValue(first, 27, 1000, true), 1000);
+  assert.equal(accountGraphValue(first, 37, 2000, true), 2000);
+  assert.equal(accountGraphValue(first, 38, 2000, true), null);
+  assert.equal(accountGraphValue(second, 50, 3000, true), 3000);
+  assert.equal(accountGraphValue(second, 51, 3000, true), null);
+  assert.equal(accountGraphValue(first, 37, 0, true), 0);
 });

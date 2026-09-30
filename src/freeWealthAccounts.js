@@ -90,6 +90,12 @@ export function accountVisibleEndAge(account) {
     account.startAge + account.investmentHorizon);
 }
 
+// Display only: do not extend an account's line for another account or a later payout.
+export function accountGraphValue(account, age, balance, hasFunding) {
+  return hasFunding && age >= account.startAge && age <= account.startAge + account.investmentHorizon
+    ? balance : null;
+}
+
 // Same timing as the original lifeline: withdrawals at start of age-year,
 // then twelve months of growth and contributions. Accounts never fund each other's withdrawals.
 export function accountLifeline(account, maxAge) {

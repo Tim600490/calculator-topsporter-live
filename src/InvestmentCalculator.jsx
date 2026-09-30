@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import "./FreeWealthInput.css";
-import { ACCOUNT_COLORS, createFreeWealthAccount, projectAccount, combinedProjection, accountLifeline, accountVisibleEndAge } from "./freeWealthAccounts";
+import { ACCOUNT_COLORS, createFreeWealthAccount, projectAccount, combinedProjection, accountLifeline, accountVisibleEndAge, accountGraphValue } from "./freeWealthAccounts";
 import {
   Area,
   Bar,
@@ -2216,8 +2216,6 @@ const InvestmentCalculator = () => {
   const lifelineCfkGraphData = useMemo(() => {
     const ZERO_EPSILON = 1; // euro
     const cfkState = { seenPositive: false, hitZero: false };
-    const vvaState = { seenPositive: false, hitZero: false };
-    const vva2State = { seenPositive: false, hitZero: false };
     const pensioenState = { seenPositive: false, hitZero: false };
     const nextgenState = { seenPositive: false, hitZero: false };
 
@@ -2301,17 +2299,16 @@ const InvestmentCalculator = () => {
     const baseData = lifeline.potData.map((row) => {
       const rawCfk =
         hasCfk && row.age >= careerStartAge && row.age <= lifeline.cfkPayoutEndAge ? row.cfk : null;
-      const commonFreeWealthEndAge = Math.max(...freeWealthAccounts.map(accountVisibleEndAge));
-      const rawVva = row.age >= freeWealthAccounts[0].startAge && row.age <= commonFreeWealthEndAge ? row.vva1 : null;
+      const rawVva = accountGraphValue(freeWealthAccounts[0], row.age, row.vva1, accountProjections[0].expected > 0);
       const secondAccount = freeWealthAccounts[1];
-      const rawVva2 = secondAccount && row.age >= secondAccount.startAge && row.age <= commonFreeWealthEndAge ? row.vva2 : null;
+      const rawVva2 = secondAccount ? accountGraphValue(secondAccount, row.age, row.vva2, accountProjections[1].expected > 0) : null;
       const rawPensioen = row.age >= startAge2 ? row.pensioen : null;
       const rawNextGen =
         row.age >= startAge3 && row.age <= lifeline.nextGenerationHorizonAge ? row.nextgen : null;
 
       const cfkValue = normalizeSeriesValue(rawCfk, cfkState);
-      const vvaValue = normalizeSeriesValue(rawVva, vvaState);
-      const vva2Value = normalizeSeriesValue(rawVva2, vva2State);
+      const vvaValue = rawVva;
+      const vva2Value = rawVva2;
       const pensioenValue = normalizeSeriesValue(rawPensioen, pensioenState);
       const nextgenValue = normalizeSeriesValue(rawNextGen, nextgenState);
 
@@ -2381,8 +2378,8 @@ const InvestmentCalculator = () => {
     const cfkStartRow = lifelineCfkGraphData.find((row) => row.age >= careerStartAge && row.cfk != null) ?? firstRow;
     const nextGenStartRow = lifelineCfkGraphData.find((row) => row.age >= startAge3 && row.nextgen != null) ?? firstRow;
     const weekStartCfk = hasCfk ? cfkStartRow.cfk ?? 0 : null;
-    const weekStartVva = lifelineCfkGraphData.find((row) => row.vva != null)?.vva ?? 0;
-    const weekStartVva2 = lifelineCfkGraphData.find((row) => row.vva2 != null)?.vva2 ?? 0;
+    const weekStartVva = lifelineCfkGraphData.find((row) => row.vva != null)?.vva ?? null;
+    const weekStartVva2 = lifelineCfkGraphData.find((row) => row.vva2 != null)?.vva2 ?? null;
     const weekStartPensioen = hasPension ? firstRow.pensioen ?? 0 : null;
     const weekStartNextGen = hasNextGeneration ? nextGenStartRow.nextgen ?? 0 : null;
     return Array.from({ length: 7 }, (_, index) => ({
@@ -2697,7 +2694,6 @@ const InvestmentCalculator = () => {
     }
     return Math.max(maxValue, row.cfk);
   }, 0);
-  const hasFreeWealth = lifeline.potData.some((row) => (row.vrij || 0) > 0);
   const pensionExpectedEndResult = lifeline.pensionCapitalAtAow ?? 0;
   const pensionReturnOnNetContribution = pensionExpectedEndResult - pensionNetOwnContributionTotal;
   const pensionTaxBenefitPct =
@@ -4753,7 +4749,7 @@ const InvestmentCalculator = () => {
         }}
       >
         <div>
-          <h2 style={{ margin: 0, fontSize: "28px" }}>Levensloop profvoetballer</h2>
+          <h2 style={{ margin: 0, fontSize: "28px" }}>Levensloop topsporter</h2>
         </div>
 
         <div style={{ marginTop: "16px", border: "1px solid #ded8c7", borderRadius: "8px", background: "#fbf9f1", padding: "12px" }}>
@@ -4960,7 +4956,7 @@ const InvestmentCalculator = () => {
                 />
                 {freeWealthAccounts.map((account, index) => {
                   const key = index === 0 ? "vva" : "vva2";
-                  return lifelineZoomMode === "full" && activeScenarioBandKey === key && (
+                  return accountProjections[index].expected > 0 && lifelineZoomMode === "full" && activeScenarioBandKey === key && (
                     <React.Fragment key={account.id}>
                       <Area type="monotone" dataKey={key + "Low"} stackId={key + "Band"} stroke="none" fillOpacity={0} />
                       <Area type="monotone" dataKey={key + "Band"} stackId={key + "Band"} stroke="none" fill={ACCOUNT_COLORS[index]} fillOpacity={0.16} />
@@ -5005,7 +5001,7 @@ const InvestmentCalculator = () => {
                 )}
                 {freeWealthAccounts.map((account, index) => {
                   const key = index === 0 ? "vva" : "vva2";
-                  return (!isLifelineFocusMode || activeScenarioBandKey === key) && (
+                  return accountProjections[index].expected > 0 && (!isLifelineFocusMode || activeScenarioBandKey === key) && (
                     <Line key={account.id} name={account.name} type="monotone" dataKey={key}
                       stroke={ACCOUNT_COLORS[index]} strokeWidth={3} strokeDasharray={index === 1 ? "8 3" : undefined}
                       dot={false} onMouseMove={() => setHoveredLifelineSeriesKey(key)} />
@@ -5113,7 +5109,7 @@ const InvestmentCalculator = () => {
             )}
             {freeWealthAccounts.map((account, index) => {
               const key = index === 0 ? "vva" : "vva2";
-              return (
+              return accountProjections[index].expected > 0 && (
                 <button key={account.id} type="button" onClick={() => cycleScenarioFocus(key)}
                   aria-pressed={activeScenarioBandKey === key}
                   style={{ border: "1px solid #c9c6ba", color: "#4b5563", background: activeScenarioBandKey === key ? "#e9e5d7" : "transparent",
@@ -5346,16 +5342,15 @@ const InvestmentCalculator = () => {
               <span style={{ width: "14px", height: "3px", backgroundColor: "#d2bb5d", borderRadius: "2px" }} />
             </button>
             <div style={{ fontSize: "12px", color: "#6B7280" }}>Verwacht eindresultaat (box 2 / 3)</div>
-            <div style={{ fontSize: "16px", fontWeight: 700, marginTop: "6px" }}>
+            {freeWealthAccounts.length === 1 && <div style={{ fontSize: "16px", fontWeight: 700, marginTop: "6px" }}>
               {formatCurrency(freeWealthExpectedEndResult)}
-            </div>
+            </div>}
             {freeWealthAccounts.length > 1 && (
               <div className="free-wealth-card-breakdown">
-                <small>Hoogste gezamenlijke waarde · {freeWealthPeakPoint.age} jaar</small>
                 {freeWealthAccounts.map((account, index) => (
                   <div key={account.id}>
                     <span><i style={{ background: ACCOUNT_COLORS[index] }} />{account.name}<small>{account.profile}</small></span>
-                    <strong>{formatCurrency(freeWealthPeakPoint[index === 0 ? "vva" : "vva2"] || 0)}</strong>
+                    <strong>{formatCurrency(accountProjections[index].expected)}</strong>
                   </div>
                 ))}
                 <label>Uitkeringen en behoudend beleggen voor
