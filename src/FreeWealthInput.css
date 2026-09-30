@@ -51,7 +51,7 @@
 
 .free-wealth-input-row label { grid-column: 1; white-space: nowrap; }
 .free-wealth-input-prefix { grid-column: 2; }
-.free-wealth-input-row input[type="number"] { grid-column: 3; }
+.free-wealth-amount-input, .free-wealth-short-input { grid-column: 3; }
 .free-wealth-duration-label, .free-wealth-input-unit { grid-column: 4; color: #6b7280; }
 .free-wealth-duration-input, .free-wealth-moment-input { grid-column: 5; text-align: center; }
 

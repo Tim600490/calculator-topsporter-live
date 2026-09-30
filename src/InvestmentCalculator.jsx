@@ -290,6 +290,37 @@ const parseEuroInput = (value) => {
 const formatEuroInput = (value) =>
   new Intl.NumberFormat("nl-NL", { maximumFractionDigits: 0 }).format(Number(value) || 0);
 
+// Keep incomplete typing local; apply bounds only when an entry is committed.
+const FreeWealthNumberInput = ({ value, onChange, min = 0, max, money = false, ...props }) => {
+  const [draft, setDraft] = useState(null);
+  const format = (number) => money ? formatEuroInput(number) : String(number);
+  return (
+    <input
+      {...props}
+      type="text"
+      inputMode="numeric"
+      value={draft ?? format(value)}
+      onChange={(event) => {
+        const text = event.target.value;
+        if (!(money ? /^[\d.]*$/ : /^\d*$/).test(text)) return;
+        setDraft(text);
+        const parsed = money ? parseEuroInput(text) : Number(text);
+        if (/\d/.test(text) && parsed >= min && parsed <= max) onChange(parsed);
+      }}
+      onBlur={() => {
+        if (draft !== null) {
+          const parsed = money ? parseEuroInput(draft) : Number(draft);
+          onChange(draft === "" && !money ? value : clampEuro(parsed, min, max));
+          setDraft(null);
+        }
+      }}
+      onKeyDown={(event) => {
+        if (event.key === "Enter") event.currentTarget.blur();
+      }}
+    />
+  );
+};
+
 const normalizeYear = (value, maxYear) => Math.min(maxYear, Math.max(1, Number(value) || 1));
 const normalizeMonth = (value) => Math.min(12, Math.max(1, Number(value) || 1));
 const formatPhaseDuration = (durationInYears) => {
@@ -3131,12 +3162,12 @@ const InvestmentCalculator = () => {
                 <div className="free-wealth-input-row free-wealth-start-row">
                   <label>Startbedrag</label>
                   <span className="free-wealth-input-prefix">€</span>
-                  <input type="number" min="0" max={startAmountMax} step="1" value={startAmount} onChange={(e) => setStartAmount(clampEuro(e.target.value, 0, startAmountMax))} />
+                  <FreeWealthNumberInput className="free-wealth-amount-input" aria-label="Startbedrag" money max={startAmountMax} value={startAmount} onChange={setStartAmount} />
                   <output>{formatCurrency(startAmount)}</output>
                 </div>
                 <div className="free-wealth-input-row free-wealth-start-row">
                   <label>Startleeftijd</label>
-                  <input className="free-wealth-short-input" type="number" min="18" max="50" step="1" value={startAge} onChange={(e) => setStartAge(Math.max(18, Math.min(50, Number(e.target.value) || 18)))} />
+                  <FreeWealthNumberInput className="free-wealth-short-input" aria-label="Startleeftijd" min={18} max={50} value={startAge} onChange={setStartAge} />
                   <span className="free-wealth-input-unit">jaar</span>
                   <output>{startAge} jaar</output>
                 </div>
@@ -3162,7 +3193,7 @@ const InvestmentCalculator = () => {
                       <div className="free-wealth-input-row free-wealth-phase-input">
                         <label>{phase.label}</label>
                         <span className="free-wealth-input-prefix">€</span>
-                        <input type="number" min="0" max="10000" step="1" value={phase.amount} onChange={(e) => phase.setAmount(clampEuro(e.target.value))} />
+                        <FreeWealthNumberInput className="free-wealth-amount-input" aria-label={`${phase.label} maandinleg`} money max={10000} value={phase.amount} onChange={phase.setAmount} />
                         <span className="free-wealth-duration-label">Duur</span>
                         <input className="free-wealth-duration-input" type="text" inputMode="numeric" value={displayDuration} onChange={(e) => updateDuration(e.target.value)} onBlur={commitDuration} aria-label={`${phase.label} duur in jaren en maanden`} />
                         <output><strong>{formatCurrency(phase.amount)} p/m</strong><span>{formatPhaseDurationSummary(duration)}</span></output>
@@ -3185,7 +3216,7 @@ const InvestmentCalculator = () => {
                     <div className="free-wealth-input-row free-wealth-phase-input">
                       <label>Bedrag {index + 1}</label>
                       <span className="free-wealth-input-prefix">€</span>
-                      <input type="number" min="0" max="5000000" step="1" value={entry.amount} onChange={(e) => updateOneTimeExtra(index, "amount", e.target.value)} />
+                      <FreeWealthNumberInput className="free-wealth-amount-input" aria-label={`Bedrag ${index + 1} eenmalige inleg`} money max={5000000} value={entry.amount} onChange={(amount) => updateOneTimeExtra(index, "amount", amount)} />
                       <span className="free-wealth-duration-label">Moment</span>
                       <input className="free-wealth-moment-input" type="text" inputMode="numeric" defaultValue={`${entry.year},${entry.month}`} onBlur={(e) => { const match = e.target.value.trim().match(/^(\d{1,2}),(\d{1,2})$/); if (match) { updateOneTimeExtra(index, "year", match[1]); updateOneTimeExtra(index, "month", match[2]); } else { e.target.value = `${entry.year},${entry.month}`; } }} aria-label={`Bedrag ${index + 1} moment: jaar,maand`} />
                       <output><strong>{formatCurrency(entry.amount)}</strong><span>Jaar {entry.year}, maand {entry.month}</span></output>
