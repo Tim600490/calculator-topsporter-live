@@ -3102,13 +3102,13 @@ const InvestmentCalculator = () => {
             <div className="free-wealth-input-panel">
               <section className="free-wealth-input-section">
                 <h3>Startpositie</h3>
-                <div className="free-wealth-input-row">
+                <div className="free-wealth-input-row free-wealth-start-row">
                   <label>Startbedrag</label>
                   <span className="free-wealth-input-prefix">€</span>
                   <input type="number" min="0" max={startAmountMax} step="1" value={startAmount} onChange={(e) => setStartAmount(clampEuro(e.target.value, 0, startAmountMax))} />
                   <output>{formatCurrency(startAmount)}</output>
                 </div>
-                <div className="free-wealth-input-row">
+                <div className="free-wealth-input-row free-wealth-start-row">
                   <label>Startleeftijd</label>
                   <input className="free-wealth-short-input" type="number" min="18" max="50" step="1" value={startAge} onChange={(e) => setStartAge(Math.max(18, Math.min(50, Number(e.target.value) || 18)))} />
                   <span className="free-wealth-input-unit">jaar</span>
@@ -3133,14 +3133,14 @@ const InvestmentCalculator = () => {
                   };
                   return (
                     <div className="free-wealth-phase-row" key={phase.label}>
-                      <div className="free-wealth-input-row">
+                      <div className="free-wealth-input-row free-wealth-phase-input">
                         <label>{phase.label}</label>
                         <span className="free-wealth-input-prefix">€</span>
                         <input type="number" min="0" max="10000" step="1" value={phase.amount} onChange={(e) => phase.setAmount(clampEuro(e.target.value))} />
                         <span className="free-wealth-duration-label">Duur</span>
                         <input className="free-wealth-duration-input" type="text" inputMode="numeric" value={displayDuration} onChange={(e) => updateDuration(e.target.value)} onBlur={commitDuration} aria-label={`${phase.label} duur in jaren en maanden`} />
+                        <output>{formatCurrency(phase.amount)} p/m · {formatPhaseDurationSummary(duration)}</output>
                       </div>
-                      <output>{formatCurrency(phase.amount)} p/m gedurende {formatPhaseDurationSummary(duration)}</output>
                     </div>
                   );
                 })}
@@ -3151,14 +3151,14 @@ const InvestmentCalculator = () => {
                 <h3>Eenmalige extra inleg</h3>
                 {oneTimeExtras.slice(0, visibleFreeWealthExtraCount).map((entry, index) => (
                   <div className="free-wealth-phase-row" key={`extra-${index}`}>
-                    <div className="free-wealth-input-row">
+                    <div className="free-wealth-input-row free-wealth-phase-input">
                       <label>Bedrag {index + 1}</label>
                       <span className="free-wealth-input-prefix">€</span>
                       <input type="number" min="0" max="5000000" step="1" value={entry.amount} onChange={(e) => updateOneTimeExtra(index, "amount", e.target.value)} />
                       <span className="free-wealth-duration-label">Moment</span>
                       <input className="free-wealth-moment-input" type="text" inputMode="numeric" defaultValue={`${entry.year},${entry.month}`} onBlur={(e) => { const match = e.target.value.trim().match(/^(\d{1,2}),(\d{1,2})$/); if (match) { updateOneTimeExtra(index, "year", match[1]); updateOneTimeExtra(index, "month", match[2]); } else { e.target.value = `${entry.year},${entry.month}`; } }} aria-label={`Bedrag ${index + 1} moment: jaar,maand`} />
+                      <output>{formatCurrency(entry.amount)} · jaar {entry.year}, maand {entry.month}</output>
                     </div>
-                    <output>{formatCurrency(entry.amount)} in jaar {entry.year}, maand {entry.month}</output>
                   </div>
                 ))}
                 {visibleFreeWealthExtraCount < oneTimeExtras.length && <button type="button" className="free-wealth-add-button" onClick={() => setVisibleFreeWealthExtraCount((count) => count + 1)} aria-label="Voeg een eenmalige extra inleg toe">+</button>}
@@ -3166,8 +3166,15 @@ const InvestmentCalculator = () => {
 
               <div className="free-wealth-controls-footer">
                 <label className="free-wealth-checkbox"><input type="checkbox" checked={startDepositsInYear2} onChange={(e) => setStartDepositsInYear2(e.target.checked)} />Start maandinleg vanaf jaar 2</label>
-                <label className="free-wealth-horizon">Beleggingshorizon <input type="number" min="1" max="50" value={investmentHorizon} onChange={(e) => setInvestmentHorizon(Math.max(1, Math.min(50, Number(e.target.value) || 1)))} /> jaar</label>
-                <label className="free-wealth-portfolio">Portefeuille<select value={profile} onChange={(e) => setProfile(e.target.value)}><option value="Behouden">Behouden</option><option value="Gedreven">Gedreven</option><option value="Ambitieus">Ambitieus</option></select></label>
+                <div className="free-wealth-original-horizon">
+                  <div><label>Beleggingshorizon</label><span>{investmentHorizon} jaar</span></div>
+                  <input type="range" min="1" max="50" step="1" value={investmentHorizon} onChange={(e) => setInvestmentHorizon(Number(e.target.value))} style={{ background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${((investmentHorizon - 1) / 49) * 100}%, #E5E7EB ${((investmentHorizon - 1) / 49) * 100}%, #E5E7EB 100%)` }} />
+                  <div className="free-wealth-slider-limits"><span>1 jaar</span><span>50 jaar</span></div>
+                </div>
+                <div className="free-wealth-original-portfolio">
+                  <label>Portefeuille</label>
+                  <select value={profile} onChange={(e) => setProfile(e.target.value)}><option value="Behouden">Behouden</option><option value="Gedreven">Gedreven</option><option value="Ambitieus">Ambitieus</option></select>
+                </div>
               </div>
             </div>
           )}

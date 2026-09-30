@@ -23,27 +23,28 @@ body {
 .free-wealth-input-panel {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 18px;
 }
 
 .free-wealth-input-section {
-  border: 1px solid #d8d2bf;
+  border: 1px solid #d2bb5d;
   border-radius: 8px;
-  background: #fffdf5;
-  padding: 14px;
+  background: #fdfbf3;
+  padding: 16px;
 }
 
 .free-wealth-input-section h3 {
-  margin: 0 0 12px;
+  margin: 0 0 15px;
   color: #102d2a;
-  font-size: 17px;
+  font-size: 18px;
 }
 
 .free-wealth-input-row {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: minmax(78px, 1fr) 13px minmax(72px, 86px) 34px 54px minmax(0, 1.25fr);
   align-items: center;
-  gap: 6px;
+  column-gap: 7px;
+  min-height: 34px;
 }
 
 .free-wealth-input-section > .free-wealth-input-row + .free-wealth-input-row,
@@ -61,48 +62,64 @@ body {
 }
 
 .free-wealth-input-row label {
-  flex: 0 0 88px;
-  margin-right: 2px;
+  grid-column: 1;
 }
 
-.free-wealth-input-row input,
-.free-wealth-horizon input,
-.free-wealth-portfolio select {
+.free-wealth-input-row input {
   min-width: 0;
   width: 100%;
-  border: 1px solid #cfc9b9;
+  border: 1px solid #d2bb5d;
   border-radius: 5px;
   background: #fff;
   color: #111827;
   font: inherit;
-  padding: 7px 8px;
+  padding: 6px 7px;
 }
 
 .free-wealth-input-row input[type="number"] {
-  flex: 1 1 92px;
+  grid-column: 3;
 }
 
 .free-wealth-input-row output {
-  flex-basis: 100%;
-  margin-top: 1px;
-  color: #5b6763;
+  grid-column: 6;
+  color: #102d2a;
   font-size: 12px;
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: left;
+}
+
+.free-wealth-input-prefix {
+  grid-column: 2;
+  text-align: center;
+}
+
+.free-wealth-input-unit {
+  grid-column: 4;
+}
+
+.free-wealth-start-row output {
+  grid-column: 5 / 7;
   text-align: right;
 }
 
-.free-wealth-input-row .free-wealth-short-input {
-  flex: 1 1 92px;
+.free-wealth-start-row .free-wealth-short-input {
+  grid-column: 3;
 }
 
 .free-wealth-duration-input,
 .free-wealth-moment-input {
-  flex: 0 0 60px;
+  grid-column: 5;
   text-align: center;
+}
+
+.free-wealth-duration-label {
+  grid-column: 4;
 }
 
 .free-wealth-phase-row {
   border-top: 1px solid #e7e2d5;
-  padding-top: 10px;
+  padding: 12px 0;
 }
 
 .free-wealth-phase-row:first-of-type {
@@ -111,9 +128,9 @@ body {
 }
 
 .free-wealth-add-button {
-  width: 30px;
-  height: 30px;
-  margin-top: 10px;
+  width: 28px;
+  height: 28px;
+  margin-top: 4px;
   border: 1px solid #bfa548;
   border-radius: 50%;
   background: #fffdf5;
@@ -134,28 +151,61 @@ body {
 .free-wealth-controls-footer {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 2px 2px 0;
+  gap: 18px;
+  padding: 2px 0 0;
 }
 
 .free-wealth-checkbox input {
   accent-color: #d2bb5d;
 }
 
-.free-wealth-horizon,
-.free-wealth-portfolio {
-  display: grid;
-  grid-template-columns: auto 76px auto;
+.free-wealth-original-horizon > div:first-child {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 8px;
-  color: #102d2a;
-  font-size: 14px;
-  font-weight: 600;
+  margin-bottom: 12px;
+  color: #111827;
+  font-size: 18px;
+  font-weight: 500;
 }
 
-.free-wealth-portfolio {
-  grid-template-columns: 1fr;
-  gap: 7px;
+.free-wealth-original-horizon input {
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  outline: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.free-wealth-slider-limits {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.free-wealth-original-portfolio label {
+  display: block;
+  margin-bottom: 16px;
+  color: #111827;
+  font-size: 18px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.free-wealth-original-portfolio select {
+  width: 100%;
+  padding: 12px;
+  border: 1.4px solid #d2bb5d;
+  border-radius: 8px;
+  outline: none;
+  background-color: #e5e7eb;
+  color: #111827;
+  font-size: 18px;
+  text-align: center;
+  text-align-last: center;
 }
 
 @media (max-width: 520px) {
@@ -164,7 +214,16 @@ body {
   }
 
   .free-wealth-input-row label {
-    flex-basis: 76px;
+    font-size: 12px;
+  }
+
+  .free-wealth-input-row {
+    grid-template-columns: minmax(65px, 1fr) 12px minmax(58px, 70px) 30px 48px minmax(0, 1fr);
+    column-gap: 4px;
+  }
+
+  .free-wealth-input-row output {
+    font-size: 11px;
   }
 }
 
