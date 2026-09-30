@@ -106,9 +106,8 @@ test("empty accounts have no graph line, including zero balances", () => {
   assert.equal(accountGraphValue(account, 38, 0, hasFunding), null);
 });
 
-test("each account line ends at its own horizon, even with later payouts", () => {
-  const first = { ...createFreeWealthAccount(), startAge: 27, investmentHorizon: 10,
-    freeWealthPayouts: [{ amount: 1000, fromAge: 40, toAge: 50 }] };
+test("without later payouts each account line ends at its own horizon", () => {
+  const first = { ...createFreeWealthAccount(), startAge: 27, investmentHorizon: 10 };
   const second = { ...createFreeWealthAccount(1), startAge: 30, investmentHorizon: 20 };
   assert.equal(accountGraphValue(first, 26, 1000, true), null);
   assert.equal(accountGraphValue(first, 27, 1000, true), 1000);
@@ -117,4 +116,33 @@ test("each account line ends at its own horizon, even with later payouts", () =>
   assert.equal(accountGraphValue(second, 50, 3000, true), 3000);
   assert.equal(accountGraphValue(second, 51, 3000, true), null);
   assert.equal(accountGraphValue(first, 37, 0, true), 0);
+});
+
+for (const yearsAfterHorizon of [1, 2, 3, 4, 10]) {
+  test(`only the paying account extends ${yearsAfterHorizon} years past its horizon`, () => {
+    const account = { ...createFreeWealthAccount(), startAge: 27, investmentHorizon: 10, startAmount: 50000 };
+    const lastPayoutAge = 37 + yearsAfterHorizon;
+    const payingAccount = { ...account, freeWealthPayouts: [
+      { amount: 1000, fromAge: lastPayoutAge, toAge: lastPayoutAge },
+      { amount: 0, fromAge: 70, toAge: 80 }
+    ] };
+    const timeline = accountLifeline(payingAccount, lastPayoutAge + 1);
+    for (const row of timeline) {
+      assert.equal(accountGraphValue(payingAccount, row.age, row.balance, true),
+        row.age <= lastPayoutAge ? row.balance : null);
+    }
+    assert.equal(accountGraphValue(account, 38, 50000, true), null);
+    assert.equal(accountGraphValue(payingAccount, lastPayoutAge, 50000, false), null);
+    // Removing the payout restores the original horizon.
+    const cleared = { ...payingAccount, freeWealthPayouts: payingAccount.freeWealthPayouts.map(row => ({ ...row, amount: 0 })) };
+    assert.equal(accountGraphValue(cleared, 38, 50000, true), null);
+  });
+}
+
+test("multiple payout periods extend the line through the latest end age, including gaps", () => {
+  const account = { ...createFreeWealthAccount(), startAge: 27, investmentHorizon: 10,
+    freeWealthPayouts: [{ amount: 1000, fromAge: 45, toAge: 47 }, { amount: 1000, fromAge: 38, toAge: 40 }] };
+  assert.equal(accountGraphValue(account, 42, 2000, true), 2000);
+  assert.equal(accountGraphValue(account, 47, 2000, true), 2000);
+  assert.equal(accountGraphValue(account, 48, 2000, true), null);
 });

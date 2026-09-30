@@ -90,9 +90,9 @@ export function accountVisibleEndAge(account) {
     account.startAge + account.investmentHorizon);
 }
 
-// Display only: do not extend an account's line for another account or a later payout.
+// Display only: extend each account to its own last enabled payout, never another account's.
 export function accountGraphValue(account, age, balance, hasFunding) {
-  return hasFunding && age >= account.startAge && age <= account.startAge + account.investmentHorizon
+  return hasFunding && age >= account.startAge && age <= accountVisibleEndAge(account)
     ? balance : null;
 }
 
