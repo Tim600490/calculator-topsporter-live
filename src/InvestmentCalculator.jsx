@@ -382,12 +382,12 @@ const InvestmentCalculator = () => {
   const [childAge3, setChildAge3] = useState(1);
   const aowAge = 68;
   const [oneTimeExtras, setOneTimeExtras] = useState([
-    { amount: 0, year: 5, month: 6 },
-    { amount: 0, year: 5, month: 6 },
-    { amount: 0, year: 5, month: 6 },
-    { amount: 0, year: 5, month: 6 },
-    { amount: 0, year: 5, month: 6 },
-    { amount: 0, year: 5, month: 6 }
+    { amount: 0, year: 0, month: 0 },
+    { amount: 0, year: 0, month: 0 },
+    { amount: 0, year: 0, month: 0 },
+    { amount: 0, year: 0, month: 0 },
+    { amount: 0, year: 0, month: 0 },
+    { amount: 0, year: 0, month: 0 }
   ]);
   const [oneTimeExtras2, setOneTimeExtras2] = useState([
     { amount: 0, year: 1, month: 12 },
@@ -688,8 +688,8 @@ const InvestmentCalculator = () => {
     setOneTimeExtras((prev) => {
       const next = prev.map((entry) => ({
         amount: clampEuro(entry.amount, 0, 5000000),
-        year: normalizeYear(entry.year, investmentHorizon),
-        month: normalizeMonth(entry.month)
+        year: entry.year === 0 && entry.month === 0 ? 0 : normalizeYear(entry.year, investmentHorizon),
+        month: entry.year === 0 && entry.month === 0 ? 0 : normalizeMonth(entry.month)
       }));
       const changed = next.some(
         (entry, idx) =>
@@ -933,12 +933,12 @@ const InvestmentCalculator = () => {
     setVisibleFreeWealthExtraCount(1);
     setFreeWealthDurationInputs(Array(6).fill(""));
     setOneTimeExtras([
-      { amount: 0, year: 5, month: 6 },
-      { amount: 0, year: 5, month: 6 },
-      { amount: 0, year: 5, month: 6 },
-      { amount: 0, year: 5, month: 6 },
-      { amount: 0, year: 5, month: 6 },
-      { amount: 0, year: 5, month: 6 }
+      { amount: 0, year: 0, month: 0 },
+      { amount: 0, year: 0, month: 0 },
+      { amount: 0, year: 0, month: 0 },
+      { amount: 0, year: 0, month: 0 },
+      { amount: 0, year: 0, month: 0 },
+      { amount: 0, year: 0, month: 0 }
     ]);
     setFreeWealthPayouts([
       { amount: 0, fromAge: 35, toAge: 36 },
@@ -1021,12 +1021,12 @@ const InvestmentCalculator = () => {
     setVisibleFreeWealthExtraCount(1);
     setFreeWealthDurationInputs(Array(6).fill(""));
     setOneTimeExtras([
-      { amount: 0, year: 5, month: 6 },
-      { amount: 0, year: 5, month: 6 },
-      { amount: 0, year: 5, month: 6 },
-      { amount: 0, year: 5, month: 6 },
-      { amount: 0, year: 5, month: 6 },
-      { amount: 0, year: 5, month: 6 }
+      { amount: 0, year: 0, month: 0 },
+      { amount: 0, year: 0, month: 0 },
+      { amount: 0, year: 0, month: 0 },
+      { amount: 0, year: 0, month: 0 },
+      { amount: 0, year: 0, month: 0 },
+      { amount: 0, year: 0, month: 0 }
     ]);
 
     setFreeWealthPayouts([
@@ -3057,7 +3057,7 @@ const InvestmentCalculator = () => {
         const removeFreeWealthExtra = (index) => {
           setOneTimeExtras((entries) => [
             ...entries.filter((_, rowIndex) => rowIndex !== index),
-            { amount: 0, year: Math.min(5, investmentHorizon), month: 6 }
+            { amount: 0, year: 0, month: 0 }
           ]);
           setVisibleFreeWealthExtraCount((count) => Math.max(1, count - 1));
         };
@@ -3218,8 +3218,19 @@ const InvestmentCalculator = () => {
                       <span className="free-wealth-input-prefix">€</span>
                       <FreeWealthNumberInput className="free-wealth-amount-input" aria-label={`Bedrag ${index + 1} eenmalige inleg`} money max={5000000} value={entry.amount} onChange={(amount) => updateOneTimeExtra(index, "amount", amount)} />
                       <span className="free-wealth-duration-label">Moment</span>
-                      <input className="free-wealth-moment-input" type="text" inputMode="numeric" defaultValue={`${entry.year},${entry.month}`} onBlur={(e) => { const match = e.target.value.trim().match(/^(\d{1,2}),(\d{1,2})$/); if (match) { updateOneTimeExtra(index, "year", match[1]); updateOneTimeExtra(index, "month", match[2]); } else { e.target.value = `${entry.year},${entry.month}`; } }} aria-label={`Bedrag ${index + 1} moment: jaar,maand`} />
-                      <output><strong>{formatCurrency(entry.amount)}</strong><span>Jaar {entry.year}, maand {entry.month}</span></output>
+                      <input className="free-wealth-moment-input" type="text" inputMode="numeric" defaultValue={`${entry.year},${entry.month}`} onBlur={(e) => {
+                        const match = e.target.value.trim().match(/^(\d{1,2}),(\d{1,2})$/);
+                        if (match && Number(match[1]) === 0 && Number(match[2]) === 0) {
+                          setOneTimeExtras((entries) => entries.map((row, rowIndex) => rowIndex === index ? { ...row, year: 0, month: 0 } : row));
+                          e.target.value = "0,0";
+                        } else if (match) {
+                          updateOneTimeExtra(index, "year", match[1]);
+                          updateOneTimeExtra(index, "month", match[2]);
+                        } else {
+                          e.target.value = `${entry.year},${entry.month}`;
+                        }
+                      }} aria-label={`Bedrag ${index + 1} moment: jaar,maand`} />
+                      <output><strong>{formatCurrency(entry.amount)}</strong><span>{entry.year === 0 && entry.month === 0 ? "Moment nog niet ingesteld" : `Jaar ${entry.year}, maand ${entry.month}`}</span></output>
                     </div>
                     {index > 0 && (
                       <button type="button" className="free-wealth-remove-button" onClick={() => removeFreeWealthExtra(index)} aria-label={`Verwijder bedrag ${index + 1}`}>
