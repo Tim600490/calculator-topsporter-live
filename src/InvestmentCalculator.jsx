@@ -5705,7 +5705,7 @@ const InvestmentCalculator = () => {
                   }}
                 >
                   <div>Inkomsten</div>
-                  <div>uit voetbal</div>
+                  <div>uit topsport</div>
                 </div>
               )}
               <ResponsiveContainer width="100%" height="100%">
