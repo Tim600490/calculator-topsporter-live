@@ -5003,7 +5003,7 @@ const InvestmentCalculator = () => {
                   const key = index === 0 ? "vva" : "vva2";
                   return accountProjections[index].expected > 0 && (!isLifelineFocusMode || activeScenarioBandKey === key) && (
                     <Line key={account.id} name={account.name} type="monotone" dataKey={key}
-                      stroke={ACCOUNT_COLORS[index]} strokeWidth={3} strokeDasharray={index === 1 ? "8 3" : undefined}
+                      stroke={ACCOUNT_COLORS[index]} strokeWidth={3}
                       dot={false} onMouseMove={() => setHoveredLifelineSeriesKey(key)} />
                   );
                 })}
@@ -5114,7 +5114,7 @@ const InvestmentCalculator = () => {
                   aria-pressed={activeScenarioBandKey === key}
                   style={{ border: "1px solid #c9c6ba", color: "#4b5563", background: activeScenarioBandKey === key ? "#e9e5d7" : "transparent",
                     borderRadius: "4px", padding: "3px 8px", fontSize: "11px", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "6px" }}>
-                  <span style={{ width: "14px", borderTop: `3px ${index === 1 ? "dashed" : "solid"} ${ACCOUNT_COLORS[index]}` }} />
+                  <span style={{ width: "14px", borderTop: `3px solid ${ACCOUNT_COLORS[index]}` }} />
                   {freeWealthAccounts.length === 1 ? "Vrij Vermogen Animo" : account.name}
                 </button>
               );
