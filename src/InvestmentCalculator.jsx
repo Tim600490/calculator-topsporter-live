@@ -4672,7 +4672,7 @@ const InvestmentCalculator = () => {
               style={{
                 marginTop: "12px",
                 fontSize: "11px",
-                color: "#9CA3AF",
+                color: "#4B5563",
                 lineHeight: "1.4"
               }}
             >
