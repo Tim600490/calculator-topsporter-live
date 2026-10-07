@@ -76,3 +76,26 @@ test("shared extra removal preserves remaining moments and appends an unset entr
   assert.deepEqual(entries, [original[0], ...original.slice(2), { amount: 0, year: 0, month: 0 }]);
   assert.equal(visible, 5);
 });
+
+test("monthly input accepts Dutch-formatted 100.000 and clamps higher amounts", () => {
+  const helpers = source.slice(source.indexOf("const MAX_MONTHLY_DEPOSIT ="), source.indexOf("const formatEuroInput ="));
+  const { clampEuro, parseEuroInput, maximum } = new Function(`${helpers}\nreturn { clampEuro, parseEuroInput, maximum: MAX_MONTHLY_DEPOSIT };`)();
+  assert.equal(maximum, 100000);
+  assert.equal(clampEuro(parseEuroInput("100.000")), 100000);
+  assert.equal(clampEuro(50000), 50000);
+  assert.equal(clampEuro(100001), 100000);
+  assert.equal(clampEuro(-1), 0);
+  assert.equal(clampEuro(500000, 0, 1000000), 500000); // Start amount keeps its own limit.
+  assert.ok(source.includes('money max={MAX_MONTHLY_DEPOSIT} value={phase.amount}'));
+});
+
+test("all six pension phases calculate monthly deposits of 100,000 without a lower cap", () => {
+  const account = { ...createFreeWealthAccount(), investmentHorizon: 6 };
+  for (let phase = 1; phase <= 6; phase++) {
+    account[`phase${phase}MonthlyDeposit`] = 100000;
+    account[phase === 1 ? "phase1Years" : `phase${phase}EndYear`] = phase;
+  }
+  const result = calculatePension(account, .057);
+  assert.equal(result.periodic, 7200000);
+  assert.equal(result.rows.at(-1).balance, projectAccount(account).at(-1).balance);
+});

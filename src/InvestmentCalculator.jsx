@@ -276,7 +276,9 @@ const LifelineHoverTooltip = ({
   );
 };
 
-const clampEuro = (value, min = 0, max = 10000) => {
+const MAX_MONTHLY_DEPOSIT = 100000;
+
+const clampEuro = (value, min = 0, max = MAX_MONTHLY_DEPOSIT) => {
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) {
     return min;
@@ -3252,7 +3254,7 @@ const InvestmentCalculator = () => {
                       <div className="free-wealth-input-row free-wealth-phase-input">
                         <label>{phase.label}</label>
                         <span className="free-wealth-input-prefix">€</span>
-                        <FreeWealthNumberInput className="free-wealth-amount-input" aria-label={`${phase.label} maandinleg`} money max={10000} value={phase.amount} onChange={phase.setAmount} />
+                        <FreeWealthNumberInput className="free-wealth-amount-input" aria-label={`${phase.label} maandinleg`} money max={MAX_MONTHLY_DEPOSIT} value={phase.amount} onChange={phase.setAmount} />
                         <span className="free-wealth-duration-label">Duur</span>
                         <input className="free-wealth-duration-input" type="text" inputMode="numeric" value={displayDuration} onChange={(e) => updateDuration(e.target.value)} onBlur={commitDuration} aria-label={`${phase.label} duur in jaren en maanden`} />
                         <output><strong>{formatCurrency(phase.amount)} p/m</strong><span>{formatPhaseDurationSummary(duration)}</span></output>
@@ -3501,7 +3503,7 @@ const InvestmentCalculator = () => {
               <input
                 type="range"
                 min="0"
-                max="10000"
+                max={MAX_MONTHLY_DEPOSIT}
                 step="100"
                 value={phase1MonthlyDeposit}
                 onChange={(e) => setPhase1MonthlyDeposit(Number(e.target.value))}
@@ -3509,7 +3511,7 @@ const InvestmentCalculator = () => {
                   width: "100%",
                   height: "8px",
                   borderRadius: "4px",
-                  background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${(phase1MonthlyDeposit / 10000) * 100}%, #E5E7EB ${(phase1MonthlyDeposit / 10000) * 100}%, #E5E7EB 100%)`,
+                  background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${(phase1MonthlyDeposit / MAX_MONTHLY_DEPOSIT) * 100}%, #E5E7EB ${(phase1MonthlyDeposit / MAX_MONTHLY_DEPOSIT) * 100}%, #E5E7EB 100%)`,
                   outline: "none",
                   appearance: "none",
                   cursor: "pointer"
@@ -3525,7 +3527,7 @@ const InvestmentCalculator = () => {
                 }}
               >
                 <span>€0</span>
-                <span>€10.000</span>
+                <span>{formatCurrency(MAX_MONTHLY_DEPOSIT)}</span>
               </div>
               <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "8px" }}>
                 <span style={{ fontSize: "14px", color: "#6B7280" }}>Exact p/m:</span>
@@ -3533,7 +3535,7 @@ const InvestmentCalculator = () => {
                 <input
                   type="number"
                   min="0"
-                  max="10000"
+                  max={MAX_MONTHLY_DEPOSIT}
                   step="1"
                   value={phase1MonthlyDeposit}
                   onChange={(e) => setPhase1MonthlyDeposit(clampEuro(e.target.value))}
@@ -3666,7 +3668,7 @@ const InvestmentCalculator = () => {
                 <input
                   type="range"
                   min="0"
-                  max="10000"
+                  max={MAX_MONTHLY_DEPOSIT}
                   step="100"
                   value={phase2MonthlyDeposit}
                   onChange={(e) => setPhase2MonthlyDeposit(Number(e.target.value))}
@@ -3674,7 +3676,7 @@ const InvestmentCalculator = () => {
                     width: "100%",
                     height: "8px",
                     borderRadius: "4px",
-                    background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${(phase2MonthlyDeposit / 10000) * 100}%, #E5E7EB ${(phase2MonthlyDeposit / 10000) * 100}%, #E5E7EB 100%)`,
+                    background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${(phase2MonthlyDeposit / MAX_MONTHLY_DEPOSIT) * 100}%, #E5E7EB ${(phase2MonthlyDeposit / MAX_MONTHLY_DEPOSIT) * 100}%, #E5E7EB 100%)`,
                     outline: "none",
                     appearance: "none",
                     cursor: "pointer"
@@ -3690,7 +3692,7 @@ const InvestmentCalculator = () => {
                   }}
                 >
                   <span>€0</span>
-                  <span>€10.000</span>
+                  <span>{formatCurrency(MAX_MONTHLY_DEPOSIT)}</span>
                 </div>
                 <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "8px" }}>
                   <span style={{ fontSize: "14px", color: "#6B7280" }}>Exact p/m:</span>
@@ -3698,7 +3700,7 @@ const InvestmentCalculator = () => {
                   <input
                     type="number"
                     min="0"
-                    max="10000"
+                    max={MAX_MONTHLY_DEPOSIT}
                     step="1"
                     value={phase2MonthlyDeposit}
                     onChange={(e) => setPhase2MonthlyDeposit(clampEuro(e.target.value))}
@@ -3787,7 +3789,7 @@ const InvestmentCalculator = () => {
               <input
                 type="range"
                 min="0"
-                max="10000"
+                max={MAX_MONTHLY_DEPOSIT}
                 step="100"
                 value={phase3MonthlyDeposit}
                 onChange={(e) => setPhase3MonthlyDeposit(Number(e.target.value))}
@@ -3795,7 +3797,7 @@ const InvestmentCalculator = () => {
                   width: "100%",
                   height: "8px",
                   borderRadius: "4px",
-                  background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${(phase3MonthlyDeposit / 10000) * 100}%, #E5E7EB ${(phase3MonthlyDeposit / 10000) * 100}%, #E5E7EB 100%)`,
+                  background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${(phase3MonthlyDeposit / MAX_MONTHLY_DEPOSIT) * 100}%, #E5E7EB ${(phase3MonthlyDeposit / MAX_MONTHLY_DEPOSIT) * 100}%, #E5E7EB 100%)`,
                   outline: "none",
                   appearance: "none",
                   cursor: "pointer"
@@ -3811,7 +3813,7 @@ const InvestmentCalculator = () => {
                 }}
               >
                 <span>€0</span>
-                <span>€10.000</span>
+                <span>{formatCurrency(MAX_MONTHLY_DEPOSIT)}</span>
               </div>
               <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "8px" }}>
                 <span style={{ fontSize: "14px", color: "#6B7280" }}>Exact p/m:</span>
@@ -3819,7 +3821,7 @@ const InvestmentCalculator = () => {
                 <input
                   type="number"
                   min="0"
-                  max="10000"
+                  max={MAX_MONTHLY_DEPOSIT}
                   step="1"
                   value={phase3MonthlyDeposit}
                   onChange={(e) => setPhase3MonthlyDeposit(clampEuro(e.target.value))}
@@ -3910,7 +3912,7 @@ const InvestmentCalculator = () => {
                   <input
                     type="range"
                     min="0"
-                    max="10000"
+                    max={MAX_MONTHLY_DEPOSIT}
                     step="100"
                     value={phase4MonthlyDeposit}
                     onChange={(e) => setPhase4MonthlyDeposit(Number(e.target.value))}
@@ -3918,7 +3920,7 @@ const InvestmentCalculator = () => {
                       width: "100%",
                       height: "8px",
                       borderRadius: "4px",
-                      background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${(phase4MonthlyDeposit / 10000) * 100}%, #E5E7EB ${(phase4MonthlyDeposit / 10000) * 100}%, #E5E7EB 100%)`,
+                      background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${(phase4MonthlyDeposit / MAX_MONTHLY_DEPOSIT) * 100}%, #E5E7EB ${(phase4MonthlyDeposit / MAX_MONTHLY_DEPOSIT) * 100}%, #E5E7EB 100%)`,
                       outline: "none",
                       appearance: "none",
                       cursor: "pointer"
@@ -3934,7 +3936,7 @@ const InvestmentCalculator = () => {
                     }}
                   >
                     <span>€0</span>
-                    <span>€10.000</span>
+                    <span>{formatCurrency(MAX_MONTHLY_DEPOSIT)}</span>
                   </div>
                   <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "8px" }}>
                     <span style={{ fontSize: "14px", color: "#6B7280" }}>Exact p/m:</span>
@@ -3942,7 +3944,7 @@ const InvestmentCalculator = () => {
                     <input
                       type="number"
                       min="0"
-                      max="10000"
+                      max={MAX_MONTHLY_DEPOSIT}
                       step="1"
                       value={phase4MonthlyDeposit}
                       onChange={(e) => setPhase4MonthlyDeposit(clampEuro(e.target.value))}
@@ -4031,7 +4033,7 @@ const InvestmentCalculator = () => {
                   <input
                     type="range"
                     min="0"
-                    max="10000"
+                    max={MAX_MONTHLY_DEPOSIT}
                     step="100"
                     value={phase5MonthlyDeposit}
                     onChange={(e) => setPhase5MonthlyDeposit(Number(e.target.value))}
@@ -4039,7 +4041,7 @@ const InvestmentCalculator = () => {
                       width: "100%",
                       height: "8px",
                       borderRadius: "4px",
-                      background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${(phase5MonthlyDeposit / 10000) * 100}%, #E5E7EB ${(phase5MonthlyDeposit / 10000) * 100}%, #E5E7EB 100%)`,
+                      background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${(phase5MonthlyDeposit / MAX_MONTHLY_DEPOSIT) * 100}%, #E5E7EB ${(phase5MonthlyDeposit / MAX_MONTHLY_DEPOSIT) * 100}%, #E5E7EB 100%)`,
                       outline: "none",
                       appearance: "none",
                       cursor: "pointer"
@@ -4055,7 +4057,7 @@ const InvestmentCalculator = () => {
                     }}
                   >
                     <span>€0</span>
-                    <span>€10.000</span>
+                    <span>{formatCurrency(MAX_MONTHLY_DEPOSIT)}</span>
                   </div>
                   <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "8px" }}>
                     <span style={{ fontSize: "14px", color: "#6B7280" }}>Exact p/m:</span>
@@ -4063,7 +4065,7 @@ const InvestmentCalculator = () => {
                     <input
                       type="number"
                       min="0"
-                      max="10000"
+                      max={MAX_MONTHLY_DEPOSIT}
                       step="1"
                       value={phase5MonthlyDeposit}
                       onChange={(e) => setPhase5MonthlyDeposit(clampEuro(e.target.value))}
@@ -4152,7 +4154,7 @@ const InvestmentCalculator = () => {
                   <input
                     type="range"
                     min="0"
-                    max="10000"
+                    max={MAX_MONTHLY_DEPOSIT}
                     step="100"
                     value={phase6MonthlyDeposit}
                     onChange={(e) => setPhase6MonthlyDeposit(Number(e.target.value))}
@@ -4160,7 +4162,7 @@ const InvestmentCalculator = () => {
                       width: "100%",
                       height: "8px",
                       borderRadius: "4px",
-                      background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${(phase6MonthlyDeposit / 10000) * 100}%, #E5E7EB ${(phase6MonthlyDeposit / 10000) * 100}%, #E5E7EB 100%)`,
+                      background: `linear-gradient(to right, #D2BB5D 0%, #D2BB5D ${(phase6MonthlyDeposit / MAX_MONTHLY_DEPOSIT) * 100}%, #E5E7EB ${(phase6MonthlyDeposit / MAX_MONTHLY_DEPOSIT) * 100}%, #E5E7EB 100%)`,
                       outline: "none",
                       appearance: "none",
                       cursor: "pointer"
@@ -4176,7 +4178,7 @@ const InvestmentCalculator = () => {
                     }}
                   >
                     <span>€0</span>
-                    <span>€10.000</span>
+                    <span>{formatCurrency(MAX_MONTHLY_DEPOSIT)}</span>
                   </div>
                   <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "8px" }}>
                     <span style={{ fontSize: "14px", color: "#6B7280" }}>Exact p/m:</span>
@@ -4184,7 +4186,7 @@ const InvestmentCalculator = () => {
                     <input
                       type="number"
                       min="0"
-                      max="10000"
+                      max={MAX_MONTHLY_DEPOSIT}
                       step="1"
                       value={phase6MonthlyDeposit}
                       onChange={(e) => setPhase6MonthlyDeposit(clampEuro(e.target.value))}
