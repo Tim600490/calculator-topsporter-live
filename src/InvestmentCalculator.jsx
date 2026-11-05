@@ -3035,7 +3035,7 @@ const InvestmentCalculator = () => {
         const durationInputs = isPrimary ? freeWealthDurationInputs : pensionDurationInputs;
         const setDurationInputs = isPrimary ? setFreeWealthDurationInputs : setPensionDurationInputs;
         const setPanelExtras = isPrimary ? setOneTimeExtras : setOneTimeExtras2;
-        const startAmountMax = isNextGeneration ? 6500 : 1000000;
+        const startAmountMax = isPrimary ? 5000000 : isNextGeneration ? 6500 : 1000000;
         const startAmountFill = startAmountMax === 0 ? 0 : (startAmount / startAmountMax) * 100;
         const phase2MinYear = phase1Years;
         const phase2FillPercentage =

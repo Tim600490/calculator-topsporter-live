@@ -77,6 +77,24 @@ test("shared extra removal preserves remaining moments and appends an unset entr
   assert.equal(visible, 5);
 });
 
+test("free wealth accepts start amounts up to 5 million without changing other calculator limits", () => {
+  const declaration = source.match(/const startAmountMax = ([^;]+);/);
+  assert.ok(declaration);
+  const maximumFor = new Function("isPrimary", "isNextGeneration", `return ${declaration[1]};`);
+  assert.equal(maximumFor(true, false), 5000000);
+  assert.equal(maximumFor(false, false), 1000000);
+  assert.equal(maximumFor(false, true), 6500);
+
+  const helpers = source.slice(source.indexOf("const MAX_MONTHLY_DEPOSIT ="), source.indexOf("const formatEuroInput ="));
+  const { clampEuro, parseEuroInput } = new Function(`${helpers}\nreturn { clampEuro, parseEuroInput };`)();
+  const max = maximumFor(true, false);
+  for (const amount of ["1.000.001", "2.500.000", "5.000.000"]) {
+    assert.equal(clampEuro(parseEuroInput(amount), 0, max), parseEuroInput(amount));
+  }
+  assert.equal(clampEuro(parseEuroInput("5.000.001"), 0, max), 5000000);
+  assert.ok(source.includes('aria-label="Startbedrag" money max={startAmountMax}'));
+});
+
 test("monthly input accepts Dutch-formatted 100.000 and clamps higher amounts", () => {
   const helpers = source.slice(source.indexOf("const MAX_MONTHLY_DEPOSIT ="), source.indexOf("const formatEuroInput ="));
   const { clampEuro, parseEuroInput, maximum } = new Function(`${helpers}\nreturn { clampEuro, parseEuroInput, maximum: MAX_MONTHLY_DEPOSIT };`)();

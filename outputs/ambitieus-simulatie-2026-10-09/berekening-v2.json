@@ -1,0 +1,208 @@
+{
+  "basis": {
+    "start": 150000,
+    "maandinleg": 4000,
+    "inleg_maanden": 48,
+    "horizon_jaren": 20,
+    "rendement_calculator": 0.069,
+    "inlegmoment": "einde maand"
+  },
+  "rekenlijn_eindvermogen": 1256518.1357133277,
+  "voorbeeld_eindvermogen": 1378515.4867609285,
+  "eigen_inleg_totaal": 342000.0,
+  "jaareindrendementen_pct": [
+    12,
+    9,
+    -8,
+    18,
+    24,
+    5,
+    -6.8,
+    21,
+    19,
+    7,
+    13,
+    -9,
+    22,
+    -12,
+    16,
+    11,
+    6,
+    -4,
+    12,
+    8
+  ],
+  "geometrisch_rendement_scenario": 0.07609590126535415,
+  "betekenis_band": "Door gebruiker aangeleverde illustratieve jaar-tot-datum rendementsgrenzen; geen statistische of gegarandeerde grenzen.",
+  "methode": "Handmatig gekozen maandankers, log-interpolatie en reproduceerbare kleine variaties tussen ankers. Geen Monte Carlo, historische reeks of voorspelling. Rendementen verondersteld netto.",
+  "jaarankers_pct": [
+    {
+      "0": 0,
+      "3": 5,
+      "5": -4,
+      "8": 14,
+      "10": 6,
+      "12": 12
+    },
+    {
+      "0": 0,
+      "2": -5,
+      "5": 8,
+      "8": 16,
+      "10": 4,
+      "12": 9
+    },
+    {
+      "0": 0,
+      "3": 6,
+      "6": -13,
+      "9": -22,
+      "12": -8
+    },
+    {
+      "0": 0,
+      "2": 8,
+      "5": 3,
+      "8": 26,
+      "10": 11,
+      "12": 18
+    },
+    {
+      "0": 0,
+      "3": 9,
+      "5": 21,
+      "8": 34,
+      "10": 17,
+      "12": 24
+    },
+    {
+      "0": 0,
+      "3": -9,
+      "6": 13,
+      "8": 4,
+      "10": -2,
+      "12": 5
+    },
+    {
+      "0": 0,
+      "1": 2,
+      "2": -6,
+      "3": -27,
+      "4": -21,
+      "6": -15,
+      "8": -9,
+      "10": -12,
+      "12": -6.8
+    },
+    {
+      "0": 0,
+      "2": 4,
+      "5": 15,
+      "7": 7,
+      "10": 28,
+      "12": 21
+    },
+    {
+      "0": 0,
+      "3": 13,
+      "6": 24,
+      "8": 36.6,
+      "10": 28,
+      "12": 19
+    },
+    {
+      "0": 0,
+      "2": 8,
+      "5": -7,
+      "8": 11,
+      "10": 3,
+      "12": 7
+    },
+    {
+      "0": 0,
+      "3": -4,
+      "5": 6,
+      "8": 20,
+      "10": 8,
+      "12": 13
+    },
+    {
+      "0": 0,
+      "2": 4,
+      "5": -11,
+      "8": -25,
+      "10": -17,
+      "12": -9
+    },
+    {
+      "0": 0,
+      "3": 11,
+      "5": 4,
+      "8": 29,
+      "10": 16,
+      "12": 22
+    },
+    {
+      "0": 0,
+      "2": 3,
+      "4": -12,
+      "5": -33,
+      "6": -29,
+      "8": -22,
+      "10": -18,
+      "12": -12
+    },
+    {
+      "0": 0,
+      "2": -8,
+      "5": 3,
+      "7": 12,
+      "9": 6,
+      "12": 16
+    },
+    {
+      "0": 0,
+      "3": 7,
+      "5": -2,
+      "8": 19,
+      "10": 5,
+      "12": 11
+    },
+    {
+      "0": 0,
+      "2": 5,
+      "5": -7,
+      "7": 9,
+      "10": 15,
+      "12": 6
+    },
+    {
+      "0": 0,
+      "3": 7,
+      "6": -16,
+      "8": -8,
+      "10": 2,
+      "12": -4
+    },
+    {
+      "0": 0,
+      "2": -3,
+      "5": 8,
+      "8": 24,
+      "10": 9,
+      "12": 12
+    },
+    {
+      "0": 0,
+      "3": 10,
+      "6": -5,
+      "8": 13,
+      "10": 3,
+      "12": 8
+    }
+  ],
+  "pngs": [
+    "/Users/tamar/Documents/New project/outputs/ambitieus-simulatie-2026-10-09/ambitieus-beweeglijkheid-2026-10-09-donkergroen-v2.png",
+    "/Users/tamar/Documents/New project/outputs/ambitieus-simulatie-2026-10-09/ambitieus-beweeglijkheid-2026-10-09-transparant-v2.png"
+  ]
+}
